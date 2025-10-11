@@ -36,17 +36,33 @@ This repository includes complete setup scripts for both GitHub Actions and GitL
 - [`QUICK_REFERENCE.txt`](../github/QUICK_REFERENCE.txt) - Quick reference card
 
 ### GitLab CI Self-Hosted Runners
+
+**⚠️ RECOMMENDED: v2 Setup** - More efficient architecture!
+
 **Location**: [`/gitlab/`](../gitlab/)
 
-- ✅ 4 dedicated runners (PHP, Node, Python, General)
-- ✅ systemd service management
-- ✅ Docker executor for isolated builds
-- ✅ Docker-in-Docker (DinD) support
+**v2 (NEW - Recommended)**:
+- ✅ **2 efficient runners** (Docker multi-purpose + Deploy shell)
+- ✅ More flexible (specify image in `.gitlab-ci.yml`)
+- ✅ Better resource usage (5 concurrent jobs vs 4)
+- ✅ Real separation (Docker executor vs Shell executor)
+- ✅ Simpler management
 
 **Files**:
-- [`setup-gitlab-runners.sh`](../gitlab/setup-gitlab-runners.sh) - Setup script
-- [`GITLAB_RUNNERS_SETUP.md`](../gitlab/GITLAB_RUNNERS_SETUP.md) - Full documentation
-- [`QUICK_REFERENCE.txt`](../gitlab/QUICK_REFERENCE.txt) - Quick reference card
+- [`setup-gitlab-runners-v2.sh`](../gitlab/setup-gitlab-runners-v2.sh) - **v2 Setup script (RECOMMENDED)**
+- [`GITLAB_RUNNERS_SETUP_V2.md`](../gitlab/GITLAB_RUNNERS_SETUP_V2.md) - **v2 Full documentation**
+- [`MIGRATION_V1_TO_V2.md`](../gitlab/MIGRATION_V1_TO_V2.md) - **Migration guide from v1**
+
+**v1 (Legacy)**:
+- ❌ 4 separate runners (PHP, Node, Python, General) - **NOT RECOMMENDED**
+- ❌ All use Docker executor (no real isolation)
+- ❌ Complex management
+
+**Files**:
+- [`setup-gitlab-runners.sh`](../gitlab/setup-gitlab-runners.sh) - v1 Setup script (legacy)
+- [`GITLAB_RUNNERS_SETUP.md`](../gitlab/GITLAB_RUNNERS_SETUP.md) - v1 Full documentation (legacy)
+
+**📘 See [Migration Guide](../gitlab/MIGRATION_V1_TO_V2.md) to upgrade from v1 to v2**
 
 ---
 
