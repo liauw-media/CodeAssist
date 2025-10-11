@@ -2209,6 +2209,284 @@ Health check endpoint.
 *Generated API documentation. Update as endpoints are added.*
 ```
 
+### Step 6.7: Optional - Setup Automated API Documentation (OpenAPI/Swagger)
+
+**Agent Question**:
+> "Would you like to set up automated API documentation with OpenAPI/Swagger? This generates interactive docs from your code. (yes/no/later)"
+
+**If yes and project is an API**:
+
+**Agent Actions**:
+1. Ask: "Which framework are you using?" (based on Phase 3 choice)
+2. Install and configure appropriate OpenAPI/Swagger tool
+
+**Framework-Specific Setup**:
+
+#### Python - FastAPI (Built-in)
+```python
+# FastAPI already has built-in OpenAPI support
+# Update main.py with proper metadata
+
+from fastapi import FastAPI
+
+app = FastAPI(
+    title="[Project Name from Phase 2]",
+    description="[Project description from Phase 2]",
+    version="1.0.0",
+    docs_url="/docs",        # Swagger UI
+    redoc_url="/redoc",      # ReDoc
+    openapi_url="/openapi.json"
+)
+
+# Access documentation:
+# Swagger UI: http://localhost:8000/docs
+# ReDoc: http://localhost:8000/redoc
+# OpenAPI JSON: http://localhost:8000/openapi.json
+```
+
+#### Python - Flask
+```bash
+pip install flask-restx
+
+# Configure in app.py
+from flask_restx import Api
+
+api = Api(
+    app,
+    version='1.0',
+    title='[Project Name]',
+    description='[Project description]',
+    doc='/docs'
+)
+```
+
+#### Python - Django REST Framework
+```bash
+pip install drf-spectacular
+
+# Add to settings.py
+INSTALLED_APPS += ['drf_spectacular']
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# Access: /api/docs/ for Swagger UI
+```
+
+#### JavaScript - NestJS
+```bash
+npm install --save @nestjs/swagger swagger-ui-express
+
+# Configure in main.ts with project details from Phase 2
+```
+
+#### JavaScript - Express
+```bash
+npm install swagger-jsdoc swagger-ui-express
+
+# Configure with JSDoc comments
+```
+
+#### PHP - Laravel
+```bash
+composer require dedoc/scramble
+
+# Access: /docs/api
+```
+
+#### Go - Gin
+```bash
+go get -u github.com/swaggo/swag/cmd/swag
+go get -u github.com/swaggo/gin-swagger
+go get -u github.com/swaggo/files
+
+# Generate docs:
+swag init
+
+# Access: /swagger/index.html
+```
+
+**Document in `.claude/CLAUDE.md`**:
+```markdown
+## API Documentation
+
+### Auto-Generated Documentation
+- **Enabled**: Yes / No
+- **Framework**: [OpenAPI tool based on tech stack]
+- **Access URLs**:
+  - Swagger UI: http://localhost:[port]/docs
+  - ReDoc: http://localhost:[port]/redoc (if applicable)
+  - OpenAPI JSON: http://localhost:[port]/openapi.json
+
+### Documentation Strategy
+- **Auto-generated**: API docs generated from code annotations
+- **Interactive testing**: Test APIs directly in browser via Swagger UI
+- **Always in sync**: Documentation updates automatically with code changes
+
+### Key Practices
+- Document all endpoints with clear descriptions
+- Add request/response examples
+- Document authentication requirements
+- Include error responses
+- Provide realistic example data
+
+### Regenerating Documentation
+[Commands to regenerate based on framework - if manual step needed]
+
+### Deployment
+[Strategy for deploying docs to GitHub Pages / GitLab Pages]
+
+See: [API Documentation Guide](../docs/api-documentation-guide.md)
+```
+
+**Update docs/api.md**:
+```markdown
+# API Documentation
+
+*Auto-generated interactive API documentation with OpenAPI/Swagger*
+
+## 📚 Interactive Documentation
+
+- **Swagger UI**: [http://localhost:[port]/docs](http://localhost:[port]/docs)
+  - Interactive API testing
+  - Try endpoints directly in browser
+  - View request/response schemas
+
+- **ReDoc** (if applicable): [http://localhost:[port]/redoc](http://localhost:[port]/redoc)
+  - Beautiful static documentation
+  - Better for reading/reference
+
+- **OpenAPI Specification**: [http://localhost:[port]/openapi.json](http://localhost:[port]/openapi.json)
+  - Raw OpenAPI 3.0 JSON specification
+  - Use for client SDK generation
+  - Import into Postman/Insomnia
+
+## 🔄 CI/CD Integration
+
+### Validate OpenAPI Spec in CI/CD
+
+**GitHub Actions** (`.github/workflows/api-docs.yml`):
+```yaml
+name: API Documentation
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'api/**'
+
+jobs:
+  validate-openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Generate OpenAPI spec
+        run: |
+          # Framework-specific command to generate openapi.json
+          [generation command]
+
+      - name: Validate OpenAPI
+        uses: char0n/swagger-editor-validate@v1
+        with:
+          definition-file: openapi.json
+
+      - name: Upload spec as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: openapi-spec
+          path: openapi.json
+```
+
+**GitLab CI** (`.gitlab-ci.yml`):
+```yaml
+validate:openapi:
+  stage: validate
+  script:
+    - [generate openapi.json]
+    - npx @openapitools/openapi-generator-cli validate -i openapi.json
+  artifacts:
+    paths:
+      - openapi.json
+```
+
+## 📦 Client SDK Generation
+
+Generate client SDKs automatically from OpenAPI spec:
+
+```bash
+# Install generator
+npm install -g @openapitools/openapi-generator-cli
+
+# Generate Python client
+openapi-generator-cli generate -i openapi.json -g python -o ./clients/python
+
+# Generate TypeScript client
+openapi-generator-cli generate -i openapi.json -g typescript-axios -o ./clients/typescript
+
+# Generate Go client
+openapi-generator-cli generate -i openapi.json -g go -o ./clients/go
+```
+
+## 🧪 Mock Server for Testing
+
+```bash
+# Install Prism
+npm install -g @stoplight/prism-cli
+
+# Run mock server from OpenAPI spec
+prism mock openapi.json
+
+# Access mock API: http://localhost:4010
+```
+
+## 📖 Documentation Best Practices
+
+- **Keep in sync**: Documentation auto-generates from code
+- **Rich examples**: Provide realistic request/response examples
+- **Security docs**: Document authentication clearly
+- **Error codes**: Document all possible error responses
+- **Versioning**: Document API version in OpenAPI spec
+
+## 🚀 Deployment
+
+**Deploy to GitHub Pages**:
+```bash
+# Generate static HTML
+npx redoc-cli bundle openapi.json -o api-docs.html
+
+# Deploy to gh-pages branch
+git checkout --orphan gh-pages
+git add api-docs.html openapi.json
+git commit -m "docs: deploy API documentation"
+git push origin gh-pages
+```
+
+**Deploy to GitLab Pages** (`.gitlab-ci.yml`):
+```yaml
+pages:
+  stage: deploy
+  script:
+    - mkdir -p public
+    - npx redoc-cli bundle openapi.json -o public/index.html
+    - cp openapi.json public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+```
+
+---
+
+See **[API Documentation Guide](../docs/api-documentation-guide.md)** for comprehensive setup instructions for all frameworks.
+```
+
+**If no/later**:
+- Document that API documentation can be added later
+- Add reference to [API Documentation Guide](../docs/api-documentation-guide.md) for future reference
+- Add to TASKS.md as a medium-priority task if project type is API
+
 ---
 
 ## Phase 7: Pre-commit Hooks Setup

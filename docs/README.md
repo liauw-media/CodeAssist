@@ -174,6 +174,28 @@ This documentation suite provides everything you need to set up, develop, and ma
 
 ---
 
+#### 📚 [API Documentation & OpenAPI/Swagger Guide](api-documentation-guide.md)
+**Purpose**: Automated API documentation generation with OpenAPI/Swagger
+
+**What you'll learn**:
+- **OpenAPI/Swagger**: Interactive API documentation standards
+- **Framework integration**: FastAPI, NestJS, Laravel, Flask, Django REST, Express, Gin
+- **Auto-generation**: Generate docs from code annotations
+- **Interactive testing**: Swagger UI and ReDoc setup
+- **CI/CD integration**: Validate and deploy API docs automatically
+- **Client SDK generation**: Auto-generate client libraries
+- **Mock servers**: Test against API spec before implementation
+
+**Use this when**:
+- Building REST APIs or GraphQL services
+- Need interactive API documentation
+- Want to auto-generate client SDKs
+- Setting up API-first development workflow
+
+**Language Coverage**: Python, JavaScript/TypeScript, PHP, Go
+
+---
+
 ## Quick Start Guides
 
 ### For New Projects
@@ -407,6 +429,7 @@ vendor/bin/phpunit
 | [AI Agent Project Initialization](ai-agent-project-initialization-prompt.md) | Project setup | Task system, Git setup, AI workflow |
 | [Git Branching Strategy](git-branching-strategy-guide.md) | Git workflows | Branching, PRs/MRs, protection |
 | [Development Tooling](development-tooling-guide.md) | Tool reference | CLIs, linters, formatters, testing |
+| [API Documentation](api-documentation-guide.md) | API docs automation | OpenAPI, Swagger, auto-generation |
 | [Testing & Backup](testing-and-backup-strategy.md) | Safe testing | DB isolation, backups, CI/CD |
 | [CI/CD Runners](cicd-runners-guide.md) | Self-hosted runners | GitHub Actions, GitLab CI, setup |
 | [Repository Security](repository-security-guide.md) | Security & protection | Branch protection, access control |

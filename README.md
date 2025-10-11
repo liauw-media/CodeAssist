@@ -21,6 +21,7 @@ Start here: **[Documentation Index](docs/README.md)**
 - **[AI Agent Project Initialization](docs/ai-agent-project-initialization-prompt.md)** - Interactive AI workflow for setting up new projects
 - **[Git Branching Strategy](docs/git-branching-strategy-guide.md)** - Complete guide to Git workflows (GitHub & GitLab)
 - **[Development Tooling](docs/development-tooling-guide.md)** - Comprehensive CLI tools, linters, formatters reference
+- **[API Documentation Guide](docs/api-documentation-guide.md)** - Automated API docs with OpenAPI/Swagger for all frameworks
 - **[Testing & Backup Strategy](docs/testing-and-backup-strategy.md)** - Safe testing practices and data protection
 - **[CI/CD Runners Setup](docs/cicd-runners-guide.md)** - Self-hosted runners for GitHub Actions & GitLab CI
 - **[Repository Security](docs/repository-security-guide.md)** - Branch protection, access control, security best practices
@@ -33,6 +34,7 @@ Start here: **[Documentation Index](docs/README.md)**
 - ✅ Git branching strategies (Simple, GitHub/GitLab Flow, Git Flow)
 - ✅ GitHub CLI (`gh`) and GitLab CLI (`glab`) usage
 - ✅ Code quality tools (linters, formatters, type checkers)
+- ✅ **API documentation automation** (OpenAPI/Swagger, interactive docs)
 - ✅ Safe testing practices (database isolation, automated backups)
 - ✅ CI/CD configuration (GitHub Actions & GitLab CI)
 - ✅ Pre-commit hooks and code quality gates
