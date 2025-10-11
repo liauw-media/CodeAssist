@@ -1,0 +1,95 @@
+╔════════════════════════════════════════════════════════════════════╗
+║        GitHub Actions Multi-Runner Quick Reference Card            ║
+╚════════════════════════════════════════════════════════════════════╝
+
+📦 INSTALLATION
+═══════════════
+1. chmod +x /tmp/setup-github-runners.sh
+2. /tmp/setup-github-runners.sh (as regular user, NOT root!)
+3. Get tokens: https://github.com/owner/repo/settings/actions/runners/new
+4. sudo /opt/register-github-runners.sh
+
+🎮 MANAGEMENT
+═════════════
+Status:    sudo /opt/manage-github-runners.sh status
+Start:     sudo /opt/manage-github-runners.sh start
+Stop:      sudo /opt/manage-github-runners.sh stop
+Restart:   sudo /opt/manage-github-runners.sh restart
+Logs:      sudo /opt/manage-github-runners.sh logs <type>
+
+📊 RUNNERS
+══════════
+┌─────────────┬─────────────────────────┬────────────────────────────┐
+│   Runner    │         Labels          │         Typical Use        │
+├─────────────┼─────────────────────────┼────────────────────────────┤
+│ Runner-PHP  │ php,laravel,composer    │ Laravel/PHP applications   │
+│ Runner-Node │ node,typescript,nextjs  │ Node.js/React/Next.js apps │
+│ Runner-Py   │ python,pip              │ Python/Django/Flask apps   │
+│ Runner-Gen  │ general,shell           │ Shell scripts, deployment  │
+└─────────────┴─────────────────────────┴────────────────────────────┘
+
+📝 GITHUB ACTIONS WORKFLOW USAGE
+═════════════════════════════════
+jobs:
+  build-php:
+    runs-on: [self-hosted, php]
+    steps:
+      - uses: actions/checkout@v3
+      - run: composer install
+
+  build-node:
+    runs-on: [self-hosted, node]
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm install
+
+  test-python:
+    runs-on: [self-hosted, python]
+    steps:
+      - uses: actions/checkout@v3
+      - run: pytest
+
+🔧 SYSTEMD COMMANDS
+═══════════════════
+sudo systemctl status github-runner-php
+sudo systemctl restart github-runner-node
+sudo journalctl -u github-runner-python -f
+
+📂 LOCATIONS
+════════════
+Directories: /opt/github-runner-{type}/
+Services:    /etc/systemd/system/github-runner-{type}.service
+Scripts:     /opt/register-github-runners.sh
+             /opt/manage-github-runners.sh
+
+🐛 TROUBLESHOOTING
+══════════════════
+Check Status:  sudo systemctl status github-runner-php
+View Logs:     sudo journalctl -u github-runner-php -n 100
+Cleanup:       docker system prune -a
+Restart:       sudo systemctl restart github-runner-php
+
+🌐 WEB INTERFACE
+════════════════
+Repository: https://github.com/owner/repo/settings/actions/runners
+Organization: https://github.com/organizations/ORG/settings/actions/runners
+
+⚠️  IMPORTANT SECURITY NOTES
+═════════════════════════════
+• NEVER use self-hosted runners for public repositories!
+• Run as regular user (NOT root)
+• Use runner groups for access control
+• Regularly monitor runner logs
+• Keep runners updated
+
+📊 KEY DIFFERENCES FROM GITLAB
+═══════════════════════════════
+• GitHub uses "labels" instead of "tags"
+• runs-on: [self-hosted, php] vs tags: php
+• Direct execution vs Docker executor
+• Runner groups vs Instance/Group/Project runners
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Tip: Use the same registration token for all 4 runners if you    ║
+║       want them available to the same repository/organization!     ║
+╚════════════════════════════════════════════════════════════════════╝

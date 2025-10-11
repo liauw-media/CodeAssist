@@ -1,0 +1,78 @@
+╔════════════════════════════════════════════════════════════════════╗
+║           GitLab Multi-Runner Quick Reference Card                 ║
+╚════════════════════════════════════════════════════════════════════╝
+
+📦 INSTALLATION
+═══════════════
+1. chmod +x /tmp/setup-gitlab-runners.sh
+2. sudo /tmp/setup-gitlab-runners.sh
+3. Get tokens: https://gitlab.liauw-media.de/admin/runners
+4. sudo /opt/register-gitlab-runners.sh
+
+🎮 MANAGEMENT
+═════════════
+Status:    sudo /opt/manage-gitlab-runners.sh status
+Start:     sudo /opt/manage-gitlab-runners.sh start
+Stop:      sudo /opt/manage-gitlab-runners.sh stop
+Restart:   sudo /opt/manage-gitlab-runners.sh restart
+Logs:      sudo /opt/manage-gitlab-runners.sh logs <type>
+
+📊 RUNNERS
+══════════
+┌─────────────┬─────────────────────────┬────────────────────────────┐
+│   Runner    │         Tags            │       Default Image        │
+├─────────────┼─────────────────────────┼────────────────────────────┤
+│ Runner-PHP  │ php,laravel,composer    │ php:8.2                    │
+│ Runner-Node │ node,typescript,nextjs  │ node:20                    │
+│ Runner-Py   │ python,pip              │ python:3.11                │
+│ Runner-Gen  │ general,docker,shell    │ alpine:latest              │
+└─────────────┴─────────────────────────┴────────────────────────────┘
+
+📝 .GITLAB-CI.YML USAGE
+═══════════════════════
+build:php:
+  tags:
+    - php
+  script:
+    - composer install
+
+build:node:
+  tags:
+    - node
+  script:
+    - npm install
+
+test:python:
+  tags:
+    - python
+  script:
+    - pytest
+
+🔧 SYSTEMD COMMANDS
+═══════════════════
+sudo systemctl status gitlab-runner-php
+sudo systemctl restart gitlab-runner-node
+sudo journalctl -u gitlab-runner-python -f
+
+📂 LOCATIONS
+════════════
+Configs:  /opt/gitlab-runner-{type}/config/config.toml
+Services: /etc/systemd/system/gitlab-runner-{type}.service
+Scripts:  /opt/register-gitlab-runners.sh
+          /opt/manage-gitlab-runners.sh
+
+🐛 TROUBLESHOOTING
+══════════════════
+Verify:    sudo gitlab-runner verify --config /opt/gitlab-runner-php/config/config.toml
+Cleanup:   docker system prune -a
+Logs:      sudo journalctl -u gitlab-runner-php -n 100
+
+🌐 WEB INTERFACE
+════════════════
+Admin:     https://gitlab.liauw-media.de/admin/runners
+Project:   Project → Settings → CI/CD → Runners
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Tip: Use same registration token for all 4 runners if you want   ║
+║       them available to all your projects!                         ║
+╚════════════════════════════════════════════════════════════════════╝

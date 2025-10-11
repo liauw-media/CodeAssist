@@ -109,6 +109,27 @@ This documentation suite provides everything you need to set up, develop, and ma
 
 ---
 
+#### 🚀 [CI/CD Runners Setup Guide](cicd-runners-guide.md)
+**Purpose**: Complete guide to self-hosted runners for GitHub Actions and GitLab CI
+
+**What you'll learn**:
+- **Self-hosted runners**: Setup for GitHub Actions and GitLab CI
+- **4 specialized runners**: PHP, Node, Python, General-purpose
+- **Runner management**: systemd service control and monitoring
+- **Workflow examples**: Multi-language monorepo CI/CD
+- **Comparison**: GitHub vs GitLab runner architectures
+- **Troubleshooting**: Common issues and solutions
+
+**Use this when**:
+- Setting up self-hosted CI/CD infrastructure
+- Need better performance than cloud runners
+- Want control over runner environment
+- Building multi-language projects
+
+**Includes**: Complete setup scripts, documentation, and quick reference cards
+
+---
+
 ## Quick Start Guides
 
 ### For New Projects
@@ -343,6 +364,7 @@ vendor/bin/phpunit
 | [Git Branching Strategy](git-branching-strategy-guide.md) | Git workflows | Branching, PRs/MRs, protection |
 | [Development Tooling](development-tooling-guide.md) | Tool reference | CLIs, linters, formatters, testing |
 | [Testing & Backup](testing-and-backup-strategy.md) | Safe testing | DB isolation, backups, CI/CD |
+| [CI/CD Runners](cicd-runners-guide.md) | Self-hosted runners | GitHub Actions, GitLab CI, setup |
 | [Integration Guides](integration-guides.md) | System integration | APIs, components, troubleshooting |
 
 ---

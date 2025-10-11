@@ -22,6 +22,7 @@ Start here: **[Documentation Index](docs/README.md)**
 - **[Git Branching Strategy](docs/git-branching-strategy-guide.md)** - Complete guide to Git workflows (GitHub & GitLab)
 - **[Development Tooling](docs/development-tooling-guide.md)** - Comprehensive CLI tools, linters, formatters reference
 - **[Testing & Backup Strategy](docs/testing-and-backup-strategy.md)** - Safe testing practices and data protection
+- **[CI/CD Runners Setup](docs/cicd-runners-guide.md)** - Self-hosted runners for GitHub Actions & GitLab CI
 - **[Integration Guides](docs/integration-guides.md)** - System integration patterns and best practices
 
 ## 🎯 What You'll Learn
@@ -71,6 +72,7 @@ Start here: **[Documentation Index](docs/README.md)**
 - **Linter & formatter configurations** for multiple languages
 - **Testing framework setup** with safety checks
 - **CI/CD templates** for GitHub Actions & GitLab CI
+- **Self-hosted runner setup** for GitHub & GitLab (complete scripts!)
 - **Pre-commit hook examples**
 - **Best practices** and troubleshooting guides
 
