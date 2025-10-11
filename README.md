@@ -23,6 +23,8 @@ Start here: **[Documentation Index](docs/README.md)**
 - **[Development Tooling](docs/development-tooling-guide.md)** - Comprehensive CLI tools, linters, formatters reference
 - **[Testing & Backup Strategy](docs/testing-and-backup-strategy.md)** - Safe testing practices and data protection
 - **[CI/CD Runners Setup](docs/cicd-runners-guide.md)** - Self-hosted runners for GitHub Actions & GitLab CI
+- **[Repository Security](docs/repository-security-guide.md)** - Branch protection, access control, security best practices
+- **[Wiki Setup Guide](docs/wiki-setup-guide.md)** - Using GitHub/GitLab wikis for documentation
 - **[Integration Guides](docs/integration-guides.md)** - System integration patterns and best practices
 
 ## 🎯 What You'll Learn

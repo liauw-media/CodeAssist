@@ -130,6 +130,50 @@ This documentation suite provides everything you need to set up, develop, and ma
 
 ---
 
+#### 🔐 [Repository Security & Branch Protection Guide](repository-security-guide.md)
+**Purpose**: Secure your GitHub and GitLab repositories with proper access controls
+
+**What you'll learn**:
+- **Branch protection rules**: For GitHub and GitLab
+- **Access control**: Roles, permissions, and teams
+- **CODEOWNERS**: Automatic code owner review requests
+- **Security features**: Dependabot, code scanning, secret detection
+- **Pre-push hooks**: Prevent direct pushes to protected branches
+- **Automation scripts**: Check protection status
+- **Emergency procedures**: When to bypass (and how)
+
+**Use this when**:
+- Setting up new repository
+- Implementing Git Flow or GitHub Flow
+- Need to enforce code review
+- Want to prevent accidental pushes to main
+
+**Covers both**: GitHub and GitLab with CLI commands
+
+---
+
+#### 📚 [Wiki Setup & Documentation Strategy Guide](wiki-setup-guide.md)
+**Purpose**: Use GitHub/GitLab wikis as optional documentation platforms
+
+**What you'll learn**:
+- **When to use wikis**: vs repository `/docs/` folder
+- **Wiki setup**: Enable and configure wikis
+- **Content organization**: Structure and navigation
+- **Documentation strategy**: Hybrid approach (repo docs + wiki)
+- **Synchronization**: Keep wiki in sync with code
+- **Templates**: Reusable page templates
+- **Best practices**: Writing, organizing, maintaining
+
+**Use this when**:
+- Need separate user documentation
+- Want easier editing for non-developers
+- Building knowledge base or FAQ
+- Creating onboarding documentation
+
+**Hybrid approach**: Technical docs in repo, user docs in wiki
+
+---
+
 ## Quick Start Guides
 
 ### For New Projects
@@ -365,6 +409,8 @@ vendor/bin/phpunit
 | [Development Tooling](development-tooling-guide.md) | Tool reference | CLIs, linters, formatters, testing |
 | [Testing & Backup](testing-and-backup-strategy.md) | Safe testing | DB isolation, backups, CI/CD |
 | [CI/CD Runners](cicd-runners-guide.md) | Self-hosted runners | GitHub Actions, GitLab CI, setup |
+| [Repository Security](repository-security-guide.md) | Security & protection | Branch protection, access control |
+| [Wiki Setup](wiki-setup-guide.md) | Documentation strategy | Wiki vs repo docs, templates |
 | [Integration Guides](integration-guides.md) | System integration | APIs, components, troubleshooting |
 
 ---

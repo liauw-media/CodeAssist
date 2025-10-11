@@ -702,7 +702,213 @@ chmod +x scripts/sync-issues-to-tasks.sh
 
 ---
 
-### Step 4.6: Configure Pre-commit Hooks for Branch Strategy
+### Step 4.6: Optional CI/CD Pipeline Setup
+
+**Agent Question**:
+> "Would you like to set up CI/CD pipelines for automated testing and deployment? (yes/no/later)"
+
+**If yes**:
+
+**Agent Actions**:
+1. Ask: "Which platform are you using? (github-actions / gitlab-ci / both)"
+2. Ask: "Do you want self-hosted runners or use cloud runners?"
+3. Create appropriate CI/CD configuration files
+
+**For GitHub Actions** (`.github/workflows/ci.yml`):
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest  # or [self-hosted, php] for self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run tests
+        run: |
+          # Add your test commands
+          echo "Tests would run here"
+```
+
+**For GitLab CI** (`.gitlab-ci.yml`):
+```yaml
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  image: ubuntu:latest
+  script:
+    - echo "Tests would run here"
+  only:
+    - main
+    - develop
+```
+
+**Document in `.claude/CLAUDE.md`**:
+```markdown
+## CI/CD Pipeline
+
+### Pipeline Status
+- **Enabled**: Yes / No
+- **Platform**: GitHub Actions / GitLab CI / Both
+- **Runners**: Cloud / Self-hosted
+
+### Running Pipelines Locally
+
+[Platform-specific commands for local pipeline testing]
+
+### Pipeline Configuration
+
+See:
+- [GitHub Actions Workflows](../.github/workflows/)
+- [GitLab CI Configuration](../.gitlab-ci.yml)
+- [CI/CD Runners Guide](../docs/cicd-runners-guide.md)
+
+### Self-Hosted Runners
+
+[If applicable, link to runner setup documentation]
+```
+
+**If later**:
+- Document in `.claude/CLAUDE.md` that pipelines can be added later
+- Reference the [CI/CD Runners Guide](cicd-runners-guide.md) for future setup
+
+---
+
+### Step 4.7: Optional Wiki Setup
+
+**Agent Question**:
+> "Would you like to enable the repository wiki for user documentation? (yes/no)"
+
+**If yes**:
+
+**Agent Actions**:
+1. Enable wiki via CLI:
+   ```bash
+   # GitHub
+   gh repo edit owner/repo --enable-wiki=true
+
+   # GitLab
+   glab api projects/:id --method PUT -f wiki_enabled=true
+   ```
+
+2. Create initial wiki structure (inform user to do this):
+   ```bash
+   # Clone wiki
+   git clone https://github.com/owner/repo.wiki.git
+   # or
+   git clone https://gitlab.com/owner/repo.wiki.git
+
+   # Create home page
+   cd repo.wiki
+   echo "# Project Wiki" > Home.md
+   git add Home.md
+   git commit -m "docs: initialize wiki"
+   git push origin master
+   ```
+
+**Document in `.claude/CLAUDE.md`**:
+```markdown
+## Wiki Documentation
+
+### Wiki Enabled
+- **Platform**: GitHub / GitLab
+- **URL**: [Wiki URL]
+- **Purpose**: User guides, FAQs, troubleshooting
+
+### Wiki Structure
+- Home page: Entry point with navigation
+- Installation guides
+- User documentation
+- FAQ / Troubleshooting
+
+### Editing Wiki
+[Link to wiki setup guide: ../docs/wiki-setup-guide.md]
+
+### Documentation Strategy
+- **Repository `/docs/`**: Technical docs, API reference, code architecture
+- **Wiki**: User guides, installation, FAQs, tutorials
+
+See: [Wiki Setup Guide](../docs/wiki-setup-guide.md)
+```
+
+**If no**:
+- All documentation stays in `/docs/` folder
+- Document this decision in `.claude/CLAUDE.md`
+
+---
+
+### Step 4.8: Repository Security & Branch Protection
+
+**Agent Question**:
+> "Would you like to configure repository security and branch protection now? (yes/later)"
+
+**If yes**:
+
+**Agent Actions**:
+1. Inform user about branch protection importance
+2. Provide commands for setting up protection (user must run these)
+
+**For GitHub** - Protect `main` branch:
+```bash
+# User runs this command (requires admin access)
+gh api repos/owner/repo/branches/main/protection \
+  -X PUT \
+  -f required_pull_request_reviews[required_approving_review_count]=2 \
+  -f required_pull_request_reviews[dismiss_stale_reviews]=true \
+  -f enforce_admins=true \
+  -f required_linear_history=true \
+  -f allow_force_pushes[enabled]=false
+```
+
+**For GitLab** - Protect `main` branch:
+```bash
+# User runs this command (requires maintainer access)
+glab api projects/:id/protected_branches --method POST \
+  -f name=main \
+  -f push_access_level=40 \
+  -f merge_access_level=40 \
+  -f allow_force_push=false
+```
+
+**Document in `.claude/CLAUDE.md`**:
+```markdown
+## Repository Security
+
+### Branch Protection Status
+- **Main branch**: [Protected / Not Protected]
+- **Develop branch**: [Protected / Not Protected]
+- **Required approvals**: [Number]
+- **Status checks required**: [Yes / No]
+
+### Security Checklist
+- [ ] Branch protection enabled
+- [ ] CODEOWNERS file created
+- [ ] Required approvals configured
+- [ ] Status checks required
+- [ ] Force push disabled
+- [ ] Pre-push hooks installed
+
+### Security Documentation
+See: [Repository Security Guide](../docs/repository-security-guide.md)
+```
+
+**If later**:
+- Document that security setup is pending
+- Provide link to [Repository Security Guide](repository-security-guide.md)
+- Add to TASKS.md as high-priority item
+
+---
+
+### Step 4.9: Configure Pre-commit Hooks for Branch Strategy
 
 **Agent Action**: Update pre-commit hooks to respect branch protection
 
