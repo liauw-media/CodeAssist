@@ -51,6 +51,7 @@ This repository includes complete setup scripts for both GitHub Actions and GitL
 **Files**:
 - [`setup-gitlab-runners-v2.sh`](../gitlab/setup-gitlab-runners-v2.sh) - **v2 Setup script (RECOMMENDED)**
 - [`GITLAB_RUNNERS_SETUP_V2.md`](../gitlab/GITLAB_RUNNERS_SETUP_V2.md) - **v2 Full documentation**
+- [`REGISTRY_AUTHENTICATION.md`](../gitlab/REGISTRY_AUTHENTICATION.md) - **Private registry authentication guide**
 - [`MIGRATION_V1_TO_V2.md`](../gitlab/MIGRATION_V1_TO_V2.md) - **Migration guide from v1**
 
 **v1 (Legacy)**:

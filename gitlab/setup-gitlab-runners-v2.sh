@@ -201,9 +201,49 @@ echo -e "${YELLOW}them available to the same projects/groups.${NC}"
 echo ""
 
 # ============================================================================
+# Configure Private Registry Authentication
+# ============================================================================
+
+echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}  Private Container Registry Authentication${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
+echo ""
+echo -e "GitLab provides automatic authentication via CI_REGISTRY variables."
+echo -e "For GitLab Container Registry, runners will automatically authenticate"
+echo -e "using CI_REGISTRY_PASSWORD during pipeline execution."
+echo ""
+echo -e "${YELLOW}Do you need to configure ADDITIONAL private registry credentials?${NC}"
+echo -e "(GitLab registry is handled automatically via CI variables)"
+read -p "Configure additional registry? (yes/no) [no]: " CONFIGURE_REGISTRY
+CONFIGURE_REGISTRY=${CONFIGURE_REGISTRY:-no}
+
+if [[ "$CONFIGURE_REGISTRY" =~ ^[Yy] ]]; then
+    echo ""
+    echo -e "${YELLOW}Enter registry credentials (or press Enter to skip):${NC}"
+    read -p "Registry URL (e.g., registry.example.com): " REGISTRY_URL
+    read -p "Registry Username: " REGISTRY_USER
+    read -sp "Registry Password: " REGISTRY_PASS
+    echo ""
+
+    if [ -n "$REGISTRY_URL" ] && [ -n "$REGISTRY_USER" ] && [ -n "$REGISTRY_PASS" ]; then
+        # Login as gitlab-runner user to store credentials
+        echo ""
+        echo -e "${YELLOW}Storing registry credentials for gitlab-runner user...${NC}"
+        su - gitlab-runner -c "docker login $REGISTRY_URL -u $REGISTRY_USER -p $REGISTRY_PASS"
+
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}✅ Registry credentials configured${NC}"
+        else
+            echo -e "${RED}❌ Failed to configure registry credentials${NC}"
+        fi
+    fi
+fi
+
+# ============================================================================
 # Register Runner-Docker
 # ============================================================================
 
+echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
 echo -e "${BLUE}  Registering Runner-Docker (Multi-purpose)${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
@@ -236,6 +276,7 @@ gitlab-runner register \
   --docker-privileged="true" \
   --docker-volumes "/var/run/docker.sock:/var/run/docker.sock" \
   --docker-volumes "/cache" \
+  --docker-pull-policy "if-not-present" \
   --config "/opt/gitlab-runner-docker/config/config.toml"
 
 if [ $? -eq 0 ]; then
@@ -296,6 +337,46 @@ echo -e "  ${GITLAB_URL}/admin/runners"
 echo ""
 echo -e "Start runners with:"
 echo -e "  ${YELLOW}sudo /opt/manage-gitlab-runners.sh start${NC}"
+echo ""
+echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}  GitLab Container Registry Authentication${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
+echo ""
+echo -e "${GREEN}GitLab automatically provides these CI variables:${NC}"
+echo -e "  • \$CI_REGISTRY        - Registry URL"
+echo -e "  • \$CI_REGISTRY_USER   - Username (gitlab-ci-token)"
+echo -e "  • \$CI_REGISTRY_PASSWORD - Authentication token"
+echo -e "  • \$CI_REGISTRY_IMAGE  - Your project's image path"
+echo ""
+echo -e "${YELLOW}Example .gitlab-ci.yml for private registry:${NC}"
+echo -e ""
+cat << 'EXAMPLE'
+build:
+  stage: build
+  tags:
+    - docker
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    # Automatic GitLab registry authentication
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+
+test:
+  stage: test
+  tags:
+    - docker
+  # Pull from your private registry
+  image: registry.gitlab.com/your-group/your-project/base-image:latest
+  before_script:
+    # Already authenticated by GitLab!
+    - echo "Using private image from GitLab registry"
+  script:
+    - npm test
+EXAMPLE
 echo ""
 EOF
 

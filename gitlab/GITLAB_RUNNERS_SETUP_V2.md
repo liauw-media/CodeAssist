@@ -650,6 +650,343 @@ Go to `https://your-gitlab.com/admin/runners` to see:
 
 ---
 
+## 🔒 Private Container Registry Authentication
+
+### GitLab Container Registry (Automatic)
+
+GitLab automatically provides CI/CD variables for authenticating with the GitLab Container Registry. **No manual configuration needed!**
+
+**Available Variables:**
+- `$CI_REGISTRY` - Registry URL (e.g., `registry.gitlab.com`)
+- `$CI_REGISTRY_USER` - Username (`gitlab-ci-token`)
+- `$CI_REGISTRY_PASSWORD` - Authentication token
+- `$CI_REGISTRY_IMAGE` - Full image path for your project
+
+### Using GitLab Registry in Pipelines
+
+#### Example 1: Building and Pushing Images
+
+```yaml
+build:image:
+  stage: build
+  tags:
+    - docker
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    # Automatic authentication with GitLab registry
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
+```
+
+#### Example 2: Pulling Private Images
+
+```yaml
+test:
+  stage: test
+  tags:
+    - docker
+  # Pull from your private GitLab registry
+  image: registry.gitlab.com/your-group/your-project/base-image:latest
+  # Authentication is automatic - no before_script needed!
+  script:
+    - npm test
+    - npm run lint
+```
+
+#### Example 3: Multi-stage with Private Base Images
+
+```yaml
+stages:
+  - build
+  - test
+  - push
+
+variables:
+  # Use your private image as base
+  BASE_IMAGE: $CI_REGISTRY_IMAGE/base:latest
+
+build:app:
+  stage: build
+  tags:
+    - docker
+  image: $BASE_IMAGE
+  script:
+    - composer install
+    - npm run build
+  artifacts:
+    paths:
+      - vendor/
+      - public/build/
+
+test:app:
+  stage: test
+  tags:
+    - docker
+  image: $BASE_IMAGE
+  script:
+    - composer test
+    - npm test
+
+push:image:
+  stage: push
+  tags:
+    - docker
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+  only:
+    - tags
+```
+
+### Additional Private Registry (DockerHub, AWS ECR, etc.)
+
+If you need to authenticate with **non-GitLab registries**, you have two options:
+
+#### Option 1: Using CI/CD Variables (Recommended)
+
+1. **Add credentials as GitLab CI/CD variables:**
+   - Go to: Project → Settings → CI/CD → Variables
+   - Add variables:
+     - `DOCKER_REGISTRY_URL` (e.g., `docker.io`, `123456789.dkr.ecr.us-east-1.amazonaws.com`)
+     - `DOCKER_REGISTRY_USER`
+     - `DOCKER_REGISTRY_PASSWORD` (mark as "Masked" and "Protected")
+
+2. **Use in pipeline:**
+
+```yaml
+build:
+  stage: build
+  tags:
+    - docker
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    # Login to GitLab registry
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
+    # Login to additional registry
+    - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USER" "$DOCKER_REGISTRY_URL" --password-stdin
+  script:
+    - docker build -t $DOCKER_REGISTRY_URL/myapp:$CI_COMMIT_SHORT_SHA .
+    - docker push $DOCKER_REGISTRY_URL/myapp:$CI_COMMIT_SHORT_SHA
+```
+
+#### Option 2: DOCKER_AUTH_CONFIG (Advanced)
+
+For multiple registries or complex authentication:
+
+1. **Generate Docker auth config locally:**
+
+```bash
+# Login to all your registries
+docker login registry.gitlab.com
+docker login docker.io
+docker login my-registry.example.com
+
+# Get the auth config
+cat ~/.docker/config.json
+```
+
+2. **Add to GitLab CI/CD variables:**
+   - Variable name: `DOCKER_AUTH_CONFIG`
+   - Value: Content of `~/.docker/config.json`
+   - Type: File
+   - Masked: Yes
+   - Protected: Yes (if only for protected branches)
+
+3. **Use in pipeline (automatic):**
+
+```yaml
+build:
+  stage: build
+  tags:
+    - docker
+  image: docker:latest
+  services:
+    - docker:dind
+  # No before_script needed - DOCKER_AUTH_CONFIG is used automatically
+  script:
+    - docker build -t my-registry.example.com/app:latest .
+    - docker push my-registry.example.com/app:latest
+```
+
+#### Option 3: Pre-configured Registry Login (Setup Script)
+
+During runner setup, the registration script asks if you want to configure additional registry credentials. This stores credentials for the `gitlab-runner` user.
+
+**When to use:**
+- When you want all jobs to automatically have access to a private registry
+- For base images that are frequently used
+
+**How it works:**
+```bash
+# During setup, you'll be prompted:
+Configure additional registry? (yes/no) [no]: yes
+Registry URL (e.g., registry.example.com): my-registry.com
+Registry Username: myuser
+Registry Password: ****
+
+# This runs:
+su - gitlab-runner -c "docker login my-registry.com -u myuser -p <password>"
+```
+
+**Credentials stored in:**
+```bash
+/home/gitlab-runner/.docker/config.json
+```
+
+**To add more registries later:**
+```bash
+# Login as gitlab-runner user
+sudo su - gitlab-runner
+
+# Login to registry
+docker login my-registry.example.com -u myuser -p mypassword
+
+# Verify
+docker pull my-registry.example.com/private-image:latest
+```
+
+### AWS ECR Authentication
+
+For AWS Elastic Container Registry:
+
+```yaml
+variables:
+  AWS_DEFAULT_REGION: us-east-1
+  ECR_REGISTRY: 123456789.dkr.ecr.us-east-1.amazonaws.com
+
+build:ecr:
+  stage: build
+  tags:
+    - docker
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - apk add --no-cache aws-cli
+    # Get ECR login token (valid for 12 hours)
+    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+  script:
+    - docker build -t $ECR_REGISTRY/myapp:$CI_COMMIT_SHORT_SHA .
+    - docker push $ECR_REGISTRY/myapp:$CI_COMMIT_SHORT_SHA
+```
+
+**Required CI/CD Variables:**
+- `AWS_ACCESS_KEY_ID` (masked, protected)
+- `AWS_SECRET_ACCESS_KEY` (masked, protected)
+
+### Google Container Registry (GCR) Authentication
+
+```yaml
+build:gcr:
+  stage: build
+  tags:
+    - docker
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - echo "$GCR_SERVICE_ACCOUNT_KEY" | docker login -u _json_key --password-stdin https://gcr.io
+  script:
+    - docker build -t gcr.io/my-project/myapp:$CI_COMMIT_SHORT_SHA .
+    - docker push gcr.io/my-project/myapp:$CI_COMMIT_SHORT_SHA
+```
+
+**Required CI/CD Variables:**
+- `GCR_SERVICE_ACCOUNT_KEY` - JSON key file content (masked, protected)
+
+### Azure Container Registry (ACR) Authentication
+
+```yaml
+build:acr:
+  stage: build
+  tags:
+    - docker
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - echo "$ACR_PASSWORD" | docker login $ACR_REGISTRY -u $ACR_USERNAME --password-stdin
+  script:
+    - docker build -t $ACR_REGISTRY/myapp:$CI_COMMIT_SHORT_SHA .
+    - docker push $ACR_REGISTRY/myapp:$CI_COMMIT_SHORT_SHA
+```
+
+**Required CI/CD Variables:**
+- `ACR_REGISTRY` (e.g., `myregistry.azurecr.io`)
+- `ACR_USERNAME` (masked)
+- `ACR_PASSWORD` (masked, protected)
+
+### Troubleshooting Registry Authentication
+
+#### Issue: "Error response from daemon: pull access denied"
+
+**Solution:**
+```bash
+# Check if credentials are configured
+sudo su - gitlab-runner
+docker login registry.gitlab.com
+# Or check stored credentials
+cat ~/.docker/config.json
+```
+
+#### Issue: "unauthorized: authentication required"
+
+**Solution:**
+1. Verify CI/CD variables are set correctly
+2. Check that image path is correct
+3. Ensure registry URL includes protocol if needed
+
+```yaml
+# ✅ Correct
+image: registry.gitlab.com/group/project:latest
+
+# ❌ Wrong - missing registry path
+image: group/project:latest
+```
+
+#### Issue: Token expired (AWS ECR)
+
+ECR tokens expire after 12 hours. For long-running pipelines:
+
+```yaml
+before_script:
+  - |
+    # Function to refresh ECR token
+    refresh_ecr_token() {
+      aws ecr get-login-password --region $AWS_DEFAULT_REGION | \
+        docker login --username AWS --password-stdin $ECR_REGISTRY
+    }
+  - refresh_ecr_token
+script:
+  - docker build -t $ECR_REGISTRY/app:v1 .
+  - refresh_ecr_token  # Refresh before push if job is long
+  - docker push $ECR_REGISTRY/app:v1
+```
+
+### Security Best Practices
+
+1. **Always use CI/CD variables for credentials** - Never hardcode in `.gitlab-ci.yml`
+2. **Mark variables as "Masked"** - Prevents exposure in job logs
+3. **Use "Protected" variables** - Only available on protected branches
+4. **Rotate credentials regularly** - Update registry passwords/tokens periodically
+5. **Use minimal permissions** - Registry credentials should only have push/pull access
+6. **Use dedicated service accounts** - Don't use personal credentials
+
+---
+
 ## 🎯 Best Practices
 
 ### 1. **Use Specific Tags**
