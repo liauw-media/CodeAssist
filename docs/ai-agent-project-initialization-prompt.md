@@ -115,15 +115,23 @@ git commit -m "docs: update AI agent initialization guide"
 | Document | Path | Purpose |
 |----------|------|---------|
 | **This Prompt** | `docs/ai-agent-project-initialization-prompt.md` | Project initialization workflow |
-| **Database Backup Strategy** | `docs/database-backup-strategy.md` | Comprehensive database safety guide |
+| **🛡️ Database Backup Strategy** | `docs/database-backup-strategy.md` | **CRITICAL** - Comprehensive database safety guide |
 | **Development Tooling** | `docs/development-tooling-guide.md` | Dev environment setup |
 | **Git Branching Strategy** | `docs/git-branching-strategy-guide.md` | Git workflow guidelines |
 | **API Documentation Guide** | `docs/api-documentation-guide.md` | API docs setup |
+| **Testing & Backup Strategy** | `docs/testing-and-backup-strategy.md` | Safe testing practices (see also Database Backup Strategy) |
 | **Repository Security** | `docs/repository-security-guide.md` | Security best practices |
 | **Wiki Setup** | `docs/wiki-setup-guide.md` | Wiki configuration |
-| **GitLab Runners** | `gitlab/GITLAB_RUNNERS_SETUP_V2.md` | CI/CD runner setup |
+| **Integration Guides** | `docs/integration-guides.md` | System integration patterns |
+| **CI/CD Runners Guide** | `docs/cicd-runners-guide.md` | Self-hosted runners overview |
+| **Documentation Roadmap** | `docs/documentation-roadmap.md` | Future documentation plans |
+| **Documentation Index** | `docs/README.md` | Complete documentation index |
+| **GitLab Runners V2** | `gitlab/GITLAB_RUNNERS_SETUP_V2.md` | **RECOMMENDED** - GitLab CI/CD runner setup (latest) |
+| **GitLab Runners V1** | `gitlab/GITLAB_RUNNERS_SETUP.md` | GitLab runners (legacy, use V2) |
+| **GitLab V1→V2 Migration** | `gitlab/MIGRATION_V1_TO_V2.md` | Migrate from V1 to V2 runners |
+| **GitLab Registry Auth** | `gitlab/REGISTRY_AUTHENTICATION.md` | GitLab container registry authentication |
 | **GitHub Runners** | `github/GITHUB_RUNNERS_SETUP.md` | GitHub Actions runners |
-| **Container Registry** | `docs/private-container-registry-auth.md` | Private registry auth |
+| **Container Registry Auth** | `docs/private-container-registry-auth.md` | Private registry authentication (general) |
 
 **How to fetch any guide**:
 ```bash
