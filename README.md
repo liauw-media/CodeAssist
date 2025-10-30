@@ -8,9 +8,26 @@
 
 CodeAssist is a comprehensive collection of documentation, guides, and best practices for professional software development. It provides everything you need to start new projects with proper workflows, tooling, and AI-assisted development.
 
-## 🔄 Self-Update: Get Latest CodeAssist Version
+## 🚀 Quick Start Prompts
 
-**Use this prompt to update your AI agent to the latest CodeAssist guidelines without running the full initialization:**
+### 🆕 Initialize New Project
+
+**Copy-paste this to start a new project with full AI-guided setup:**
+
+```
+Initialize a new project using the CodeAssist framework. First, fetch and read the latest AI Agent Project Initialization Prompt from https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-project-initialization-prompt.md, then follow the complete initialization workflow including: Phase 0 Database Safety Setup (MANDATORY), codebase analysis, requirements discovery, tech stack recommendation, Git repository setup, task management system (TASKS.md + .claude/CLAUDE.md), pre-commit hooks, and issue tracking. Remember: NO AI co-author in commits, MANDATORY database backups before ANY database operations.
+```
+
+**Ultra-Quick Version:**
+```
+Initialize project: Fetch https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-project-initialization-prompt.md and follow the complete initialization workflow. No AI co-author in commits.
+```
+
+---
+
+### 🔄 Self-Update (Without Full Initialization)
+
+**Use this to update your AI agent to the latest CodeAssist guidelines:**
 
 ```
 Please update yourself to the latest CodeAssist documentation:
@@ -37,11 +54,15 @@ Please update yourself to the latest CodeAssist documentation:
 Update to latest CodeAssist: Fetch https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-project-initialization-prompt.md, database-backup-strategy.md, git-branching-strategy-guide.md, and development-tooling-guide.md. Report versions and confirm updated knowledge of database safety, git commit policy (no AI co-author), and best practices.
 ```
 
-## 🚀 Quick Start
+---
+
+## 📖 Documentation
 
 **All documentation is in the [`docs/`](docs/) folder.**
 
-Start here: **[Documentation Index](docs/README.md)**
+**Main Index**: [Documentation Index](docs/README.md)
+
+**Full Guide**: [AI Agent Project Initialization Prompt](docs/ai-agent-project-initialization-prompt.md)
 
 ## 📖 Documentation Suite
 
