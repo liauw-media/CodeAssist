@@ -11,15 +11,479 @@
 - Pre-commit hooks for code quality
 - Git repository (local + remote GitHub/GitLab)
 - Synchronized issue tracking (local TASKS.md ↔️ GitHub/GitLab issues)
+- **MANDATORY database backup procedures** (before tests, commands, and periodic)
 
 **Process Flow**:
 1. Check for existing codebase
 2. Discover project requirements through questions
 3. Recommend tech stack
-4. Set up Git hosting
-5. Initialize task management system
-6. Configure pre-commit hooks
-7. Create initial issues/tasks
+4. **Set up mandatory database backup system**
+5. Set up Git hosting
+6. Initialize task management system
+7. Configure pre-commit hooks
+8. Create initial issues/tasks
+
+---
+
+## 🚫 CRITICAL: Git Commit Authorship Policy
+
+**AI Agents MUST NEVER add themselves as co-author in commits.**
+
+### Commit Authorship Rules
+
+**❌ FORBIDDEN - NEVER include:**
+- `Co-Authored-By: Claude <noreply@anthropic.com>`
+- `Co-Authored-By: AI Agent <...>`
+- Any AI attribution in commit messages
+- Any "Generated with Claude Code" or similar in commit messages
+
+**✅ REQUIRED - ALWAYS:**
+- Use ONLY the developer's Git identity
+- Standard conventional commit format
+- No AI attribution whatsoever
+
+**Reasoning**:
+- The developer is the author who reviews and approves all code
+- AI is a tool, like an IDE or linter
+- Git history reflects human decision-makers, not tools used
+- Professional commit logs for teams and compliance
+
+**Commit Format** (use this and ONLY this):
+```bash
+git commit -m "type(scope): description
+
+Optional longer explanation.
+
+Closes #issue-number"
+```
+
+**Examples**:
+```bash
+git commit -m "feat: add database backup safety system"
+git commit -m "fix(tests): resolve test database isolation issue"
+git commit -m "docs: update AI agent initialization guide"
+```
+
+**This is NON-NEGOTIABLE. Violations of this policy must be corrected immediately.**
+
+---
+
+---
+
+## 📚 Required Reading & Self-Update Protocol
+
+### Self-Update Mechanism
+
+**IMPORTANT**: This prompt references the canonical version stored in GitHub:
+- **Repository**: https://github.com/liauw-media/CodeAssist
+- **This File**: `docs/ai-agent-project-initialization-prompt.md`
+- **Database Guide**: `docs/database-backup-strategy.md`
+
+**Before starting ANY project initialization, AI agents MUST:**
+
+1. **Fetch latest version of this prompt**:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-project-initialization-prompt.md -o /tmp/latest-prompt.md
+
+   # Compare with instructions you were given
+   # If different, USE THE GITHUB VERSION (it's more current)
+   ```
+
+2. **Fetch latest database safety guide**:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/database-backup-strategy.md -o /tmp/database-backup-strategy.md
+   ```
+
+3. **Fetch all referenced guides** (see list below)
+
+4. **Report version status**:
+   ```
+   ✅ Loaded latest initialization prompt (version [from file])
+   ✅ Loaded latest database backup strategy (version [from file])
+   ✅ Ready to proceed with current best practices
+   ```
+
+### CodeAssist Documentation Repository
+
+**All authoritative guides are maintained here**:
+- **Repo**: https://github.com/liauw-media/CodeAssist
+- **Branch**: `main` (always use main branch for latest)
+- **Path**: `docs/` directory
+
+**Key Documents** (AI agents should reference these):
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| **This Prompt** | `docs/ai-agent-project-initialization-prompt.md` | Project initialization workflow |
+| **Database Backup Strategy** | `docs/database-backup-strategy.md` | Comprehensive database safety guide |
+| **Development Tooling** | `docs/development-tooling-guide.md` | Dev environment setup |
+| **Git Branching Strategy** | `docs/git-branching-strategy-guide.md` | Git workflow guidelines |
+| **API Documentation Guide** | `docs/api-documentation-guide.md` | API docs setup |
+| **Repository Security** | `docs/repository-security-guide.md` | Security best practices |
+| **Wiki Setup** | `docs/wiki-setup-guide.md` | Wiki configuration |
+| **GitLab Runners** | `gitlab/GITLAB_RUNNERS_SETUP_V2.md` | CI/CD runner setup |
+| **GitHub Runners** | `github/GITHUB_RUNNERS_SETUP.md` | GitHub Actions runners |
+| **Container Registry** | `docs/private-container-registry-auth.md` | Private registry auth |
+
+**How to fetch any guide**:
+```bash
+# Template
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/[PATH] -o /tmp/[FILENAME]
+
+# Example: Database backup guide
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/database-backup-strategy.md -o /tmp/database-backup-strategy.md
+
+# Example: Git branching guide
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/git-branching-strategy-guide.md -o /tmp/git-branching-strategy.md
+```
+
+---
+
+## 🚨 CRITICAL: Database Safety Protocol
+
+**🔗 FULL GUIDE**: [Database Backup Strategy](https://github.com/liauw-media/CodeAssist/blob/main/docs/database-backup-strategy.md)
+
+**AI agents MUST read the complete guide before any database operations.**
+
+### Quick Reference (See Full Guide for Details)
+
+**MANDATORY RULES - NO EXCEPTIONS:**
+
+**BEFORE running ANY of these, a database backup is MANDATORY:**
+- ❌ Running tests (unit, integration, e2e)
+- ❌ Running database migrations
+- ❌ Running database seeds/fixtures
+- ❌ Running any command that touches the database
+- ❌ Running any deployment scripts
+- ❌ Running any data modification scripts
+
+**NEVER:**
+- ❌ Run tests against production database
+- ❌ Run commands without verifying environment first
+- ❌ Skip backup steps "just this once"
+- ❌ Assume the environment is safe
+- ❌ Trust environment variables without verification
+
+### Pre-Execution Checklist (ALWAYS FOLLOW)
+
+Before running ANY command that touches the database:
+
+1. **Verify Environment**
+   ```bash
+   # Check which environment we're in
+   echo "Current environment: $APP_ENV"
+   echo "Database: $DB_DATABASE"
+   echo "Database host: $DB_HOST"
+
+   # STOP if any of these indicate production:
+   # - APP_ENV=production
+   # - DB_DATABASE contains "prod", "production", "live"
+   # - DB_HOST is not localhost/127.0.0.1
+   ```
+
+2. **Check Database Connection**
+   ```bash
+   # Verify we're connected to the RIGHT database
+   [database-specific command to show current database]
+
+   # Example for PostgreSQL:
+   psql -U $DB_USERNAME -h $DB_HOST -c "SELECT current_database();"
+
+   # Example for MySQL:
+   mysql -u $DB_USERNAME -h $DB_HOST -e "SELECT DATABASE();"
+   ```
+
+3. **MANDATORY: Create Backup**
+   ```bash
+   # See "Database Backup Commands" section below for tech-specific commands
+   ./scripts/backup-database.sh
+   ```
+
+4. **Verify Backup Created**
+   ```bash
+   # Check that backup file exists and is not empty
+   ls -lh backups/
+   ```
+
+5. **ONLY THEN: Run your command**
+
+### Database Backup Scripts
+
+**📖 Complete implementations available in**: [Database Backup Strategy Guide](https://github.com/liauw-media/CodeAssist/blob/main/docs/database-backup-strategy.md)
+
+**Required scripts** (get from GitHub or see full guide):
+
+1. **`scripts/backup-database.sh`** - Mandatory backup before any database operation
+   - Environment verification
+   - Production database protection
+   - Multi-database support (PostgreSQL, MySQL, SQLite, MongoDB)
+   - Automatic cleanup (keeps last 10 backups)
+   - Full script: [See Database Backup Strategy § Backup Scripts](https://github.com/liauw-media/CodeAssist/blob/main/docs/database-backup-strategy.md#backup-scripts-reference)
+
+2. **`scripts/restore-database.sh`** - Database restore from backup
+   - Interactive confirmation
+   - Production restore protection
+   - Full script: [See Database Backup Strategy § Backup Scripts](https://github.com/liauw-media/CodeAssist/blob/main/docs/database-backup-strategy.md#backup-scripts-reference)
+
+3. **`scripts/safe-test.sh`** - Safe test runner with auto-backup
+   - Environment check
+   - Mandatory pre-test backup
+   - Full script: [See Database Backup Strategy § Backup Scripts](https://github.com/liauw-media/CodeAssist/blob/main/docs/database-backup-strategy.md#backup-scripts-reference)
+
+4. **`scripts/setup-periodic-backups.sh`** - Automated periodic backups via cron
+   - Full script: [See Database Backup Strategy § Periodic Backup Strategy](https://github.com/liauw-media/CodeAssist/blob/main/docs/database-backup-strategy.md#periodic-backup-strategy)
+
+**Quick download from GitHub**:
+```bash
+# Download all backup scripts
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/backup-database.sh -o scripts/backup-database.sh
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/restore-database.sh -o scripts/restore-database.sh
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/safe-test.sh -o scripts/safe-test.sh
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/setup-periodic-backups.sh -o scripts/setup-periodic-backups.sh
+
+# Make executable
+chmod +x scripts/*.sh
+```
+
+**Or copy from the Database Backup Strategy guide** (has full implementations).
+
+---
+
+## Phase 0: Database Safety Setup (MANDATORY - Do This First!)
+
+### Step 0.1: Detect If Project Uses Database
+
+**Agent Action**: Check if project will use a database:
+
+```bash
+# Check for existing database config files
+ls -la | grep -E "(\.env|config|database\.yml|knexfile|prisma)"
+
+# Check package files for database dependencies
+grep -E "(mysql|postgres|mongodb|sqlite|prisma|sequelize|typeorm)" package.json composer.json requirements.txt Gemfile Cargo.toml 2>/dev/null
+```
+
+**Agent Question**: If database detected OR if project type from Phase 2 suggests database usage:
+> "I detected this project uses a database (or will use one). I need to set up MANDATORY database backup procedures to prevent data loss. This is critical for safety. Continue? (yes)"
+
+### Step 0.2: Create Backup Scripts Directory
+
+```bash
+mkdir -p scripts
+mkdir -p backups
+
+# Add backups/ to .gitignore (don't commit backups to repo)
+echo "" >> .gitignore
+echo "# Database backups (local only)" >> .gitignore
+echo "backups/" >> .gitignore
+echo "*.sql" >> .gitignore
+echo "*.dump" >> .gitignore
+```
+
+### Step 0.3: Create Database Backup Script
+
+**Agent Action**: Create `scripts/backup-database.sh` with the content from the "Database Backup Commands" section above.
+
+```bash
+# Create the backup script
+cat > scripts/backup-database.sh << 'EOF'
+[Full backup script content from section above]
+EOF
+
+chmod +x scripts/backup-database.sh
+```
+
+### Step 0.4: Create Database Restore Script
+
+**Agent Action**: Create `scripts/restore-database.sh` with the content from the "Database Restore Script" section above.
+
+```bash
+# Create the restore script
+cat > scripts/restore-database.sh << 'EOF'
+[Full restore script content from section above]
+EOF
+
+chmod +x scripts/restore-database.sh
+```
+
+### Step 0.5: Create Safe Test Wrapper
+
+**Agent Action**: Create `scripts/safe-test.sh` with the content from the "Wrapper Script for Test Commands" section above.
+
+```bash
+# Create the safe test wrapper
+cat > scripts/safe-test.sh << 'EOF'
+[Full safe-test script content from section above]
+EOF
+
+chmod +x scripts/safe-test.sh
+```
+
+### Step 0.6: Create Periodic Backup Setup Script
+
+**Agent Action**: Create `scripts/setup-periodic-backups.sh` with the content from the "Periodic Backup Setup" section above.
+
+```bash
+# Create the periodic backup setup script
+cat > scripts/setup-periodic-backups.sh << 'EOF'
+[Full periodic backup script content from section above]
+EOF
+
+chmod +x scripts/setup-periodic-backups.sh
+```
+
+### Step 0.7: Setup Periodic Backups
+
+**Agent Question**:
+> "Would you like to setup automatic periodic backups (every 6 hours via cron)? Recommended for active development. (yes/no/later)"
+
+**If yes**:
+```bash
+./scripts/setup-periodic-backups.sh
+```
+
+### Step 0.8: Create .env.example with Database Safety Checks
+
+**Agent Action**: Add database safety comments to .env.example:
+
+```bash
+cat >> .env.example << 'EOF'
+
+# ===================================
+# DATABASE CONFIGURATION
+# ===================================
+# ⚠️  CRITICAL: Always verify environment before running tests/migrations
+#
+# DEVELOPMENT/TESTING: Use these values
+# - DB_HOST=localhost or 127.0.0.1
+# - DB_DATABASE=your_app_dev or your_app_test
+# - APP_ENV=development or testing
+#
+# PRODUCTION: NEVER run tests against production!
+# - Verify APP_ENV != production before ANY database operation
+# - ALWAYS backup before migrations/schema changes
+#
+# Safety Scripts (ALWAYS USE THESE):
+# - ./scripts/backup-database.sh (before ANY database operation)
+# - ./scripts/safe-test.sh [test-command] (safe test execution)
+# - ./scripts/restore-database.sh [backup-file] (restore if needed)
+
+APP_ENV=development
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=your_app_dev
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+EOF
+```
+
+### Step 0.9: Document Backup Procedures in README
+
+**Agent Action**: Add database safety section to README.md:
+
+```markdown
+## 🛡️ Database Safety
+
+**CRITICAL**: This project has mandatory database backup procedures to prevent data loss.
+
+### Before Running Tests
+
+**NEVER run tests directly. Always use the safe wrapper:**
+
+\`\`\`bash
+# WRONG:
+npm test
+
+# CORRECT:
+./scripts/safe-test.sh npm test
+\`\`\`
+
+### Manual Backup
+
+Before any database operation:
+
+\`\`\`bash
+# Create backup
+./scripts/backup-database.sh
+
+# Verify backup
+ls -lh backups/
+\`\`\`
+
+### Restore Database
+
+If something goes wrong:
+
+\`\`\`bash
+# List backups
+ls -lth backups/
+
+# Restore
+./scripts/restore-database.sh backups/[backup-file].sql
+\`\`\`
+
+### Periodic Backups
+
+Automatic backups run every 6 hours. Check status:
+
+\`\`\`bash
+crontab -l | grep backup
+\`\`\`
+
+**See [Database Safety Protocol](.claude/CLAUDE.md#database-safety-protocol) for full details.**
+```
+
+### Step 0.10: Test Backup System
+
+**Agent Action**: Verify the backup system works:
+
+```bash
+# Test backup script (if .env exists and database is configured)
+if [ -f .env ]; then
+    echo "Testing backup script..."
+    ./scripts/backup-database.sh
+
+    if [ $? -eq 0 ]; then
+        echo "✅ Backup system verified"
+        ls -lh backups/
+    else
+        echo "⚠️  Backup script needs .env configuration to test"
+    fi
+fi
+```
+
+### Step 0.11: Agent Confirmation
+
+**Agent Report**:
+```
+✅ Database Safety System Installed
+
+Created scripts:
+- ✅ scripts/backup-database.sh (create backups)
+- ✅ scripts/restore-database.sh (restore from backup)
+- ✅ scripts/safe-test.sh (safe test execution)
+- ✅ scripts/setup-periodic-backups.sh (cron setup)
+
+Safety measures:
+- ✅ Environment verification
+- ✅ Production database protection
+- ✅ Automatic backup before tests
+- ✅ Periodic backup scheduling (if enabled)
+- ✅ 10-backup rotation (auto-cleanup)
+
+⚠️  IMPORTANT REMINDERS:
+1. ALWAYS use ./scripts/safe-test.sh for running tests
+2. NEVER run tests against production database
+3. Backup scripts verify environment automatically
+4. Backups are stored in backups/ directory (git-ignored)
+5. Last 10 backups are kept, older ones auto-deleted
+
+📚 Documentation added to:
+- README.md (Database Safety section)
+- .claude/CLAUDE.md (will include safety protocol)
+- .env.example (with safety warnings)
+```
 
 ---
 
@@ -535,6 +999,42 @@ gh pr create --base main --head feature/task-name \\
 - ❌ Merge PRs (user approval required)
 - ❌ Push directly to `main`/`develop`
 - ❌ Delete feature branches (user does after merge)
+
+### Git Commit Guidelines for AI Agents
+
+**CRITICAL**: AI agents must NEVER add Claude or themselves as co-author in commits.
+
+**❌ NEVER do this:**
+```bash
+git commit -m "feat: add feature
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+**✅ ALWAYS do this:**
+```bash
+git commit -m "feat: add feature"
+```
+
+**Commit Message Format** (Conventional Commits):
+```
+type(scope): brief description
+
+Optional longer description explaining the changes.
+
+Closes #[issue-number]
+```
+
+**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+**Examples**:
+```bash
+git commit -m "feat(auth): add JWT authentication - closes #12"
+git commit -m "fix(api): resolve null pointer in user endpoint - closes #45"
+git commit -m "docs: update setup guide with Docker instructions"
+```
+
+**NO AI attribution in commits. The developer is the author, period.**
 
 ### Creating Pull Requests (User)
 
@@ -1281,6 +1781,105 @@ pre-commit run --all-files
 ### Service Failures
 
 [Tech-stack-specific troubleshooting]
+
+---
+
+## 🛡️ Database Safety Protocol (MANDATORY)
+
+### CRITICAL RULES - ALWAYS FOLLOW
+
+**BEFORE running ANY command that touches the database:**
+
+1. **Verify Environment**
+   ```bash
+   echo "Environment: $APP_ENV"
+   echo "Database: $DB_DATABASE"
+   echo "Host: $DB_HOST"
+   ```
+   **STOP immediately if:**
+   - APP_ENV=production
+   - DB_DATABASE contains "prod", "production", or "live"
+   - DB_HOST is not localhost or 127.0.0.1
+
+2. **MANDATORY Backup**
+   ```bash
+   ./scripts/backup-database.sh
+   ```
+   **NEVER proceed without successful backup**
+
+3. **Verify Backup**
+   ```bash
+   ls -lh backups/ | head -5
+   ```
+
+### Commands Requiring Backup
+
+**ALWAYS backup before:**
+- ❌ Running tests (unit, integration, e2e)
+- ❌ Running migrations
+- ❌ Running database seeds/fixtures
+- ❌ Running any SQL/database queries
+- ❌ Running deployment scripts
+- ❌ Modifying database schema
+
+### Safe Test Execution
+
+**NEVER run tests directly. ALWAYS use the safe wrapper:**
+
+```bash
+# WRONG - NEVER do this:
+npm test
+pytest
+phpunit
+./vendor/bin/phpunit
+
+# CORRECT - Always use safe wrapper:
+./scripts/safe-test.sh npm test
+./scripts/safe-test.sh pytest
+./scripts/safe-test.sh phpunit
+```
+
+### Database Backup Scripts
+
+Location: `scripts/`
+- `backup-database.sh` - Create backup (run before ANY database operation)
+- `restore-database.sh` - Restore from backup
+- `safe-test.sh` - Safe test runner (auto-backups before tests)
+- `setup-periodic-backups.sh` - Setup automated periodic backups
+
+### Emergency Database Restore
+
+If a test or command damaged the database:
+
+```bash
+# List available backups
+ls -lth backups/ | head -10
+
+# Restore latest backup
+./scripts/restore-database.sh backups/[latest-backup-file].sql
+```
+
+### Periodic Backups
+
+Automatic backups run every 6 hours via cron (configured during setup).
+
+To check backup status:
+```bash
+crontab -l | grep backup
+ls -lth backups/ | head -10
+```
+
+### AI Agent Checklist
+
+Before EVERY database operation:
+
+- [ ] Check environment variables
+- [ ] Verify NOT connected to production
+- [ ] Run backup script
+- [ ] Verify backup succeeded
+- [ ] ONLY THEN proceed with operation
+
+**NO EXCEPTIONS. NO SHORTCUTS.**
 
 ---
 
@@ -2626,15 +3225,26 @@ echo "View at: $(gh repo view --json url -q .url)/issues"
 
 ### ✅ What Was Set Up
 
+0. **🛡️ Database Safety System** (CRITICAL - Highest Priority)
+   - ✅ scripts/backup-database.sh - Mandatory backup before ANY database operation
+   - ✅ scripts/restore-database.sh - Emergency database restore
+   - ✅ scripts/safe-test.sh - Safe test runner (auto-backups)
+   - ✅ scripts/setup-periodic-backups.sh - Automated periodic backups
+   - ✅ backups/ directory (git-ignored, auto-cleanup)
+   - ✅ Environment verification (prevents production accidents)
+   - ✅ Production database protection
+   - ✅ 10-backup rotation (auto-cleanup old backups)
+   - ✅ Periodic backup cron job (every 6 hours) [if enabled]
+
 1. **Task Management System**
    - ✅ TASKS.md created with [N] tasks
-   - ✅ .claude/CLAUDE.md with project context
+   - ✅ .claude/CLAUDE.md with project context + database safety protocol
    - ✅ docs/ directory structure
 
 2. **Git Repository**
    - ✅ Local repository initialized
    - ✅ Remote repository: [URL]
-   - ✅ .gitignore configured for [tech stack]
+   - ✅ .gitignore configured for [tech stack] + backups exclusion
 
 3. **Issue Tracking**
    - ✅ [N] GitHub/GitLab issues created
@@ -2648,13 +3258,14 @@ echo "View at: $(gh repo view --json url -q .url)/issues"
    - ✅ Type checking: [tools]
 
 5. **Documentation** (Complete Professional Structure)
-   - ✅ README.md - Professional project overview with badges
+   - ✅ README.md - Professional project overview with badges + Database Safety section
    - ✅ docs/architecture.md - Full tech stack & system design
    - ✅ docs/setup.md - Detailed installation guide
    - ✅ docs/development.md - Development workflow & best practices
    - ✅ docs/api.md - API documentation (if applicable)
    - ✅ TASKS.md - Task tracking & roadmap
-   - ✅ .claude/CLAUDE.md - AI development guidelines
+   - ✅ .claude/CLAUDE.md - AI development guidelines + Database Safety Protocol
+   - ✅ .env.example - With critical database safety warnings
 
 ### 📊 Project Summary
 
@@ -2666,13 +3277,47 @@ echo "View at: $(gh repo view --json url -q .url)/issues"
 
 ### 🚀 Next Steps
 
-1. **Start Development**:
+1. **🛡️ CRITICAL: Verify Database Safety Setup** (DO THIS FIRST!)
    ```bash
-   # Pick first high-priority task from TASKS.md
-   # View in GitHub: gh issue view 2
+   # Verify backup scripts are in place
+   ls -la scripts/
+
+   # Verify backups directory exists
+   ls -la backups/
+
+   # Test backup script (if database configured)
+   ./scripts/backup-database.sh
+
+   # Check periodic backups (if enabled)
+   crontab -l | grep backup
    ```
 
-2. **Verify Setup**:
+2. **⚠️ REMEMBER: Before ANY Database Operation**
+   ```bash
+   # Check environment
+   echo "APP_ENV: $APP_ENV"
+   echo "DB: $DB_DATABASE @ $DB_HOST"
+
+   # MANDATORY: Create backup
+   ./scripts/backup-database.sh
+
+   # ONLY THEN run your command
+   ```
+
+3. **🧪 Running Tests - ALWAYS Use Safe Wrapper**
+   ```bash
+   # WRONG - NEVER do this:
+   npm test
+   pytest
+   phpunit
+
+   # CORRECT - Always use:
+   ./scripts/safe-test.sh npm test
+   ./scripts/safe-test.sh pytest
+   ./scripts/safe-test.sh phpunit
+   ```
+
+4. **Verify Setup**:
    ```bash
    # Test pre-commit hooks
    pre-commit run --all-files
@@ -2681,26 +3326,34 @@ echo "View at: $(gh repo view --json url -q .url)/issues"
    ./scripts/sync-tasks-to-issues.sh
    ```
 
-3. **First Commit**:
+5. **First Commit**:
    ```bash
    git add .
-   git commit -m "feat: initial project setup - closes #1"
+   git commit -m "feat: initial project setup with database safety - closes #1"
    git push origin main
    ```
 
-4. **Begin Feature Development**:
+6. **Begin Feature Development**:
    - Review high-priority tasks in TASKS.md
    - Check out linked GitHub issues
    - Start with [Feature 1]
+   - **REMEMBER**: Always backup before database operations!
 
 ### 📚 Important Files
 
+**🛡️ Database Safety** (MOST CRITICAL):
+- **scripts/backup-database.sh** - MANDATORY backup before ANY database operation
+- **scripts/restore-database.sh** - Emergency database restore
+- **scripts/safe-test.sh** - Safe test runner (ALWAYS use this for tests)
+- **scripts/setup-periodic-backups.sh** - Setup automated backups
+- **backups/** - Backup storage (last 10 kept, auto-cleanup)
+
 **Task Management**:
 - **TASKS.md** - Your primary task list
-- **.claude/CLAUDE.md** - AI agent instructions
+- **.claude/CLAUDE.md** - AI agent instructions + Database Safety Protocol
 
 **Documentation**:
-- **README.md** - Project overview (links to all docs)
+- **README.md** - Project overview (links to all docs) + Database Safety section
 - **docs/architecture.md** - Tech stack & system design
 - **docs/setup.md** - Installation guide
 - **docs/development.md** - Development workflow
@@ -2712,10 +3365,15 @@ echo "View at: $(gh repo view --json url -q .url)/issues"
 
 ### 💡 Pro Tips
 
+- **🚨 CRITICAL**: ALWAYS use `./scripts/safe-test.sh [test-command]` for tests
+- **🛡️ ALWAYS**: Backup before any database operation: `./scripts/backup-database.sh`
+- **⚠️ VERIFY**: Check environment before commands: `echo $APP_ENV $DB_DATABASE`
+- **📦 RESTORE**: If something goes wrong: `./scripts/restore-database.sh backups/[file].sql`
 - Use `gh issue list` to see all tasks
 - Commit messages with `closes #N` auto-close issues
 - Run `pre-commit run --all-files` before pushing
 - Update TASKS.md regularly - it syncs to issues!
+- Check backups regularly: `ls -lth backups/ | head -10`
 
 ---
 
