@@ -275,6 +275,14 @@ These documents cover common setup phases across all projects:
   - Cross-stack comparisons (auth, databases, testing, API docs)
   - Quick start commands for each scenario
 
+- **[Local Development Infrastructure](local-development-infrastructure.md)** ⭐ **NEW**
+  - Self-hosted development tools
+  - Tailscale secure network mesh
+  - Ollama/ComfyUI local AI for code assistance
+  - n8n workflow automation
+  - Affine knowledge management
+  - Integration scenarios and architecture examples
+
 - **[Database Backup Strategy](database-backup-strategy.md)**
   - Mandatory backup system for all projects
   - Safe test wrappers

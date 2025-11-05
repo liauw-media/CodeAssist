@@ -97,6 +97,10 @@ Update to latest CodeAssist: Fetch https://raw.githubusercontent.com/liauw-media
 
 - **[Project Use-Case Scenarios](docs/project-use-case-scenarios.md)** - Pre-configured tech stacks for Laravel (5 scenarios), Python, JavaScript, Mobile (PWA/Native), and Go projects
 
+### 🆕 Self-Hosted Development Tools (v3.0)
+
+- **[Local Development Infrastructure](docs/local-development-infrastructure.md)** - Tailscale mesh networking, Ollama/ComfyUI local AI, n8n automation, Affine knowledge management
+
 ## 🛡️ Database Safety (CRITICAL)
 
 **MANDATORY for all projects with databases:**
@@ -137,6 +141,13 @@ npm test  # ❌ WRONG - can wipe production database
 - ✅ **Python**: Django/FastAPI setup, JWT authentication, pytest configuration
 - ✅ **JavaScript**: Next.js full-stack, Express APIs, Prisma ORM, TypeScript
 - ✅ **Use-Case Scenarios**: Pre-configured tech stacks for common project types (Hobby, SaaS MVP, Enterprise, Mobile)
+
+### 🆕 v3.0: Self-Hosted Development Tools
+- ✅ **Tailscale**: Secure private network mesh for connecting development services
+- ✅ **Ollama/ComfyUI**: Local AI models for code assistance without API costs
+- ✅ **n8n**: Self-hosted workflow automation (alternative to Zapier)
+- ✅ **Affine**: Self-hosted knowledge management and documentation
+- ✅ **Integration Scenarios**: Complete private development cloud setup
 
 ## 🌐 Platform Support
 
