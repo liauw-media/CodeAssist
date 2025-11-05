@@ -11,7 +11,7 @@ This documentation suite provides everything you need to set up, develop, and ma
 ### Core Documentation
 
 #### 🚀 [AI Agent Project Initialization Prompt](ai-agent-project-initialization-prompt.md)
-**Purpose**: Interactive AI agent workflow for initializing new projects
+**Purpose**: Interactive AI agent workflow for initializing new projects (**v3.0 - Modular Architecture**)
 
 **What you'll learn**:
 - Complete project setup with AI guidance
@@ -20,11 +20,21 @@ This documentation suite provides everything you need to set up, develop, and ma
 - Pre-commit hooks configuration
 - Issue tracking synchronization
 - Tech stack recommendations
+- **Framework-specific configurations** (Laravel, Python, JavaScript)
+- **Modular phase-based setup** (read only what you need)
+
+**New in v3.0**:
+- **Modular documents**: Lean main prompt (~4K tokens vs 26K)
+- **Framework configs**: Laravel/PHP with Paratest, API-first, Supabase
+- **Phase documents**: Git setup, pre-commit, task management
+- **Use-case scenarios**: Pre-configured tech stack combinations
 
 **Use this when**:
 - Starting a new project from scratch
 - Setting up AI-assisted development workflow
 - Need guided project initialization
+
+**Architecture**: Main prompt references specialized documents loaded on-demand
 
 ---
 
@@ -193,6 +203,89 @@ This documentation suite provides everything you need to set up, develop, and ma
 - Setting up API-first development workflow
 
 **Language Coverage**: Python, JavaScript/TypeScript, PHP, Go
+
+---
+
+## 📦 Modular Documentation Architecture (v3.0)
+
+The AI Agent Project Initialization system uses a **modular architecture** for efficiency:
+
+### Framework-Specific Configuration Guides
+These documents provide detailed setup for specific frameworks:
+
+- **[Laravel/PHP Setup Guide](framework-configs/laravel-setup-guide.md)**
+  - API-first architecture configuration
+  - Paratest for parallel testing
+  - Authentication (Sanctum / Passport / Clerk)
+  - Database choices (PostgreSQL / MySQL / Supabase / SQLite)
+  - API documentation (Scramble / L5-Swagger / Scribe)
+  - Mermaid diagram generation from OpenAPI
+
+- **[Python Setup Guide](framework-configs/python-setup-guide.md)**
+  - Django and FastAPI configuration
+  - JWT authentication setup
+  - Database and ORM configuration
+  - pytest and async testing
+
+- **[JavaScript/TypeScript Setup Guide](framework-configs/javascript-setup-guide.md)**
+  - Next.js full-stack configuration
+  - Express.js API setup
+  - NextAuth / JWT / Clerk authentication
+  - Prisma ORM setup
+
+- **[Mobile App Development Guide](framework-configs/mobile-app-guide.md)** ⭐ **NEW**
+  - Progressive Web Apps (PWA) with Next.js
+  - React Native with Expo
+  - Decision matrix (PWA vs Native)
+  - Backend integration (Laravel/Express/FastAPI)
+  - Push notifications, offline storage, biometric auth
+  - Deployment (Vercel, App Store, Google Play)
+
+### Phase-Based Setup Guides
+These documents cover common setup phases across all projects:
+
+- **[Git Repository Setup](phases/git-repository-setup.md)**
+  - Local Git initialization
+  - GitHub/GitLab remote setup
+  - Branch strategy configuration (Simple / Git Flow / GitHub Flow)
+  - .gitignore templates by language
+  - Branch protection rules
+
+- **[Pre-commit Hooks Setup](phases/pre-commit-hooks-setup.md)**
+  - Language-specific hook configuration
+  - Linters, formatters, type checkers
+  - PHP CS Fixer, PHPStan, Paratest hooks
+  - Black, Flake8, MyPy for Python
+  - ESLint, Prettier for JavaScript
+
+- **[Task Management Setup](phases/task-management-setup.md)**
+  - TASKS.md structure and workflow
+  - .claude/CLAUDE.md project documentation
+  - Helper scripts (sync-tasks.sh, create-task.sh)
+  - GitHub/GitLab issue synchronization
+
+### Supporting Guides
+
+- **[Project Use-Case Scenarios](project-use-case-scenarios.md)** ⭐ **NEW**
+  - Pre-configured tech stack combinations
+  - Laravel scenarios (Hobby / SaaS MVP / Enterprise / Mobile Backend / Traditional Web)
+  - Python scenarios (Data Science / Django Web App)
+  - JavaScript scenarios (Next.js / Express API)
+  - Go scenarios (High-performance API)
+  - Cross-stack comparisons (auth, databases, testing, API docs)
+  - Quick start commands for each scenario
+
+- **[Database Backup Strategy](database-backup-strategy.md)**
+  - Mandatory backup system for all projects
+  - Safe test wrappers
+  - Automated backup scripts
+
+**Why Modular?**
+- Main init prompt stays lean (~4K tokens vs 26K)
+- Agents read only relevant documents
+- Easier to maintain and update
+- Better organization
+- Faster initialization
 
 ---
 
@@ -370,6 +463,13 @@ project-root/
 
 ## Version History
 
+- **v3.0** (2025-01-05): Modular architecture, Laravel/PHP enhancements, use-case scenarios
+  - Modular documentation (framework configs + phase guides)
+  - Laravel: Paratest, API-first, Sanctum/Passport/Clerk, Supabase support
+  - Project use-case scenarios document
+  - Framework-specific setup guides (Laravel, Python, JavaScript)
+  - Phase-based setup guides (Git, pre-commit, task management)
+  - Main init prompt reduced from 26K to ~4K tokens
 - **v2.0** (2025-01-10): Added comprehensive GitLab support, development tooling guide
 - **v1.0** (2025-01-09): Initial documentation with GitHub focus
 

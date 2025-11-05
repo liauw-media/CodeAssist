@@ -8,6 +8,8 @@
 
 CodeAssist is a comprehensive collection of documentation, guides, and best practices for professional software development. It provides everything you need to start new projects with proper workflows, tooling, and AI-assisted development.
 
+**Version 3.0** features a modular architecture with framework-specific guides (Laravel, Python, JavaScript, Mobile) and phase-based setup documents for efficient project initialization.
+
 ## 🚀 Quick Start Prompts
 
 ### 🆕 Initialize New Project
@@ -68,15 +70,32 @@ Update to latest CodeAssist: Fetch https://raw.githubusercontent.com/liauw-media
 
 ### Core Guides
 
-- **[AI Agent Project Initialization](docs/ai-agent-project-initialization-prompt.md)** - Interactive AI workflow for setting up new projects with self-update mechanism
+- **[AI Agent Project Initialization](docs/ai-agent-project-initialization-prompt.md)** - 🆕 **v3.0 Modular Architecture** - Interactive AI workflow with framework-specific and phase-based guides
 - **[Database Backup Strategy](docs/database-backup-strategy.md)** - 🛡️ **CRITICAL** - Mandatory backup procedures, disaster recovery, prevents production database wipes
 - **[Git Branching Strategy](docs/git-branching-strategy-guide.md)** - Complete guide to Git workflows (GitHub & GitLab)
-- **[Development Tooling](docs/development-tooling-guide.md)** - Comprehensive CLI tools, linters, formatters reference
+- **[Development Tooling](docs/development-tooling-guide.md)** - Comprehensive CLI tools, linters, formatters reference (includes Paratest for PHP)
 - **[API Documentation Guide](docs/api-documentation-guide.md)** - Automated API docs with OpenAPI/Swagger for all frameworks
 - **[CI/CD Runners Setup](docs/cicd-runners-guide.md)** - Self-hosted runners for GitHub Actions & GitLab CI
 - **[Repository Security](docs/repository-security-guide.md)** - Branch protection, access control, security best practices
 - **[Wiki Setup Guide](docs/wiki-setup-guide.md)** - Using GitHub/GitLab wikis for documentation
 - **[Integration Guides](docs/integration-guides.md)** - System integration patterns and best practices
+
+### 🆕 Framework-Specific Guides (v3.0)
+
+- **[Laravel/PHP Setup](docs/framework-configs/laravel-setup-guide.md)** - API-first, Paratest, Sanctum/Passport/Clerk, Supabase, Scramble/L5-Swagger
+- **[Python Setup](docs/framework-configs/python-setup-guide.md)** - Django/FastAPI, JWT, SQLAlchemy, pytest
+- **[JavaScript/TypeScript Setup](docs/framework-configs/javascript-setup-guide.md)** - Next.js, Express, NextAuth/Clerk, Prisma
+- **[Mobile App Development](docs/framework-configs/mobile-app-guide.md)** - PWA (Next.js) & React Native (Expo), push notifications, deployment
+
+### 🆕 Phase-Based Setup Guides (v3.0)
+
+- **[Git Repository Setup](docs/phases/git-repository-setup.md)** - Local Git init, GitHub/GitLab remote, branch strategies, .gitignore templates
+- **[Pre-commit Hooks Setup](docs/phases/pre-commit-hooks-setup.md)** - Language-specific hooks, linters, formatters (PHP CS Fixer, Black, ESLint)
+- **[Task Management Setup](docs/phases/task-management-setup.md)** - TASKS.md, .claude/CLAUDE.md, issue sync scripts
+
+### 🆕 Use-Case Scenarios (v3.0)
+
+- **[Project Use-Case Scenarios](docs/project-use-case-scenarios.md)** - Pre-configured tech stacks for Laravel (5 scenarios), Python, JavaScript, Mobile (PWA/Native), and Go projects
 
 ## 🛡️ Database Safety (CRITICAL)
 
@@ -99,6 +118,7 @@ npm test  # ❌ WRONG - can wipe production database
 
 ## 🎯 What You'll Learn
 
+### Core Practices
 - ✅ Setting up projects with AI-assisted development workflows
 - ✅ **🛡️ Database safety protocols** - MANDATORY backups before tests, migrations, any database operations
 - ✅ Git branching strategies (Simple, GitHub/GitLab Flow, Git Flow)
@@ -110,6 +130,13 @@ npm test  # ❌ WRONG - can wipe production database
 - ✅ Pre-commit hooks and code quality gates
 - ✅ Task management with TASKS.md and issue tracking
 - ✅ **AI agent self-update mechanism** - Always use latest best practices
+
+### 🆕 v3.0: Framework-Specific Skills
+- ✅ **Laravel/PHP**: API-first architecture, Paratest parallel testing, Sanctum/Passport/Clerk auth, Supabase integration
+- ✅ **Mobile Development**: PWA with Next.js, React Native with Expo, push notifications, offline storage
+- ✅ **Python**: Django/FastAPI setup, JWT authentication, pytest configuration
+- ✅ **JavaScript**: Next.js full-stack, Express APIs, Prisma ORM, TypeScript
+- ✅ **Use-Case Scenarios**: Pre-configured tech stacks for common project types (Hobby, SaaS MVP, Enterprise, Mobile)
 
 ## 🌐 Platform Support
 

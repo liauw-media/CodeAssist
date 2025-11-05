@@ -700,6 +700,68 @@ vendor/bin/phpunit --coverage-html coverage
 
 ---
 
+### PHP - Paratest (Parallel Testing)
+**Installation**:
+```bash
+composer require --dev brianium/paratest
+```
+
+**Usage**:
+```bash
+# Run tests in parallel (auto-detect CPU cores)
+vendor/bin/paratest --processes=auto
+
+# Run with specific number of processes
+vendor/bin/paratest --processes=4
+
+# Run with coverage
+vendor/bin/paratest --coverage-html coverage
+
+# Run specific test suite
+vendor/bin/paratest --testsuite=Feature
+
+# Verbose output
+vendor/bin/paratest -v
+```
+
+**Configuration** (`.paratest.yml` or in `phpunit.xml`):
+```yaml
+# .paratest.yml
+processes: auto
+functional: true
+runner: WrapperRunner
+coverage-html: coverage
+coverage-php: coverage.php
+```
+
+**Laravel Integration**:
+```bash
+# Add to composer.json scripts
+"scripts": {
+    "test": "paratest --processes=auto",
+    "test:unit": "paratest --testsuite=Unit",
+    "test:feature": "paratest --testsuite=Feature",
+    "test:coverage": "paratest --coverage-html coverage"
+}
+
+# Run via composer
+composer test
+```
+
+**Benefits**:
+- **Significantly faster** test execution (2-10x speedup)
+- Auto-detects available CPU cores
+- Works with existing PHPUnit tests (no changes needed)
+- Supports all PHPUnit features
+- Ideal for large test suites (100+ tests)
+
+**Notes**:
+- Requires PHP >= 8.1
+- Tests must be isolated (no shared state between tests)
+- Some tests may need `@group serial` annotation for sequential execution
+
+---
+
 ## CI/CD Tools
 
 ### Pre-commit Hooks
@@ -921,12 +983,18 @@ pre-commit install
 4. **Set up testing framework**:
    - Python: pytest
    - JavaScript: Jest
-   - PHP: PHPUnit
+   - PHP: PHPUnit + **Paratest** (parallel testing)
    - Go: go test
 
 5. **Add EditorConfig** for consistent editor settings
 
 6. **Configure CI/CD** (GitHub Actions or GitLab CI)
+
+7. **Set up API documentation** (if API-first):
+   - Laravel: Scramble or L5-Swagger
+   - FastAPI: Auto-generated (built-in)
+   - Express: swagger-jsdoc + swagger-ui-express
+   - Go: swaggo
 
 ---
 
@@ -938,8 +1006,10 @@ pre-commit install
 | **Formatting** | black | Prettier | PHP CS Fixer | gofmt | Code style |
 | **Type Checking** | mypy | TypeScript | PHPStan, Psalm | Built-in | Static analysis |
 | **Testing** | pytest | Jest, Mocha | PHPUnit | go test | Unit/integration tests |
+| **Parallel Testing** | pytest-xdist | Jest (--maxWorkers) | **Paratest** | go test -parallel | Faster test execution |
 | **Coverage** | pytest-cov | Jest | PHPUnit | go test -cover | Code coverage |
 | **Pre-commit** | pre-commit | pre-commit/husky | pre-commit | pre-commit | Git hooks |
+| **API Docs** | Swagger/Sphinx | Swagger/TypeDoc | Scramble/L5-Swagger | swaggo | Documentation |
 
 ---
 
