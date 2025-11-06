@@ -178,20 +178,19 @@ The session-start hook will automatically load `using-skills` at the beginning o
 
 The skills framework is **additive** and enhances existing workflows without replacing them.
 
-### Known Limitations
+### Complete Implementation
 
-**v3.1.0 includes core skills, with more to come:**
-- ✅ Core workflow skills (6 skills)
-- ✅ Safety skills (database-backup)
-- ✅ Workflow skills (4 skills)
-- ✅ Testing skills (test-driven-development)
-- ✅ Debugging skills (systematic-debugging)
-- ⏳ Additional testing skills (planned: paratest-setup, testing-anti-patterns)
-- ⏳ Additional debugging skills (planned: root-cause-tracing)
-- ⏳ Framework setup skills (planned: laravel-api-setup, nextjs-pwa-setup, etc.)
-- ⏳ Meta skills (planned: writing-skills, testing-skills)
+**v3.1.0 includes ALL 23 skills:**
+- ✅ Core workflow skills (7 skills)
+- ✅ Safety skills (2 skills: database-backup, defense-in-depth)
+- ✅ Workflow skills (5 skills)
+- ✅ Testing skills (3 skills: TDD, condition-based-waiting, testing-anti-patterns)
+- ✅ Debugging skills (2 skills: systematic-debugging, root-cause-tracing)
+- ✅ Meta skills (4 skill directories: writing-skills, testing-skills-with-subagents, sharing-skills, + 2 reference docs)
 
-These will be added in v3.1.1 and v3.1.2.
+**All 21 Superpowers skills implemented** + 2 CodeAssist-specific skills = **23 total skills**
+
+Future additions will include framework-specific setup skills (Laravel, Python, JavaScript, Mobile) in v3.2.0.
 
 ### Performance Notes
 
