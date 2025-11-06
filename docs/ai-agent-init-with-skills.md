@@ -365,58 +365,49 @@ For every new project initialization:
 
 **Before ANY other work:**
 
-1. **Fetch skills index from GitHub**:
+1. **Fetch and read the skills index** to understand all 24 available skills:
    ```bash
-   # Create skills directory
-   mkdir -p skills
-
-   # Fetch skills index
-   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md -o skills/README.md
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md -o /tmp/skills-index.md
+   # Read this file to understand the complete skills framework
    ```
 
-2. **Read the skills index** to identify which skills to install
-
-3. **Fetch required skills for initialization**:
+2. **Fetch the install script**:
    ```bash
-   # Core skills (MANDATORY)
-   mkdir -p skills/using-skills
-   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/using-skills/SKILL.md -o skills/using-skills/SKILL.md
-
-   mkdir -p skills/core/brainstorming
-   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/core/brainstorming/SKILL.md -o skills/core/brainstorming/SKILL.md
-
-   mkdir -p skills/core/writing-plans
-   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/core/writing-plans/SKILL.md -o skills/core/writing-plans/SKILL.md
-
-   mkdir -p skills/core/executing-plans
-   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/core/executing-plans/SKILL.md -o skills/core/executing-plans/SKILL.md
-
-   mkdir -p skills/core/code-review
-   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/core/code-review/SKILL.md -o skills/core/code-review/SKILL.md
-
-   mkdir -p skills/core/verification-before-completion
-   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/core/verification-before-completion/SKILL.md -o skills/core/verification-before-completion/SKILL.md
-
-   # CRITICAL safety skill
-   mkdir -p skills/safety/database-backup
-   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/safety/database-backup/SKILL.md -o skills/safety/database-backup/SKILL.md
-
-   # Git workflow skill
-   mkdir -p skills/workflow/git-workflow
-   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/workflow/git-workflow/SKILL.md -o skills/workflow/git-workflow/SKILL.md
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh -o install-skills.sh
+   chmod +x install-skills.sh
    ```
 
-4. **Report installation**:
+3. **Run the installation script** (installs all 24 skills):
+   ```bash
+   ./install-skills.sh
+   ```
+
+   This will:
+   - Create `skills/` directory
+   - Install all 24 skills in proper structure
+   - Include: 8 core workflow, 4 testing, 5 workflow, 2 safety, 2 debugging, 3 meta skills
+
+4. **Verify installation**:
+   ```bash
+   find skills -name "SKILL.md" -type f | wc -l
+   # Should output: 24
+   ```
+
+5. **Report installation**:
    ```
    ✅ Skills framework installed locally
-   ✅ Core skills: brainstorming, writing-plans, executing-plans, code-review, verification
-   ✅ Safety: database-backup (CRITICAL)
-   ✅ Workflow: git-workflow
+   ✅ Total skills: 24
+   ✅ Core Workflow: 8 skills (using-skills, brainstorming, writing-plans, executing-plans, code-review, requesting-code-review, receiving-code-review, verification-before-completion)
+   ✅ Safety: 2 skills (database-backup CRITICAL, defense-in-depth)
+   ✅ Testing: 4 skills (TDD, condition-based-waiting, testing-anti-patterns, playwright-frontend-testing)
+   ✅ Workflow: 5 skills (git-workflow, git-worktrees, dispatching-parallel-agents, finishing-a-development-branch, subagent-driven-development)
+   ✅ Debugging: 2 skills (systematic-debugging, root-cause-tracing)
+   ✅ Meta: 3 skills (writing-skills, testing-skills-with-subagents, sharing-skills)
 
-   Project now has local skills/ directory.
+   Project now has local skills/ directory with all 24 skills.
    ```
 
-5. **Add skills/ to .gitignore** (optional - or commit for team use)
+6. **Add skills/ to .gitignore** (optional - or commit for team use)
 
 ### Remaining Checklist
 
