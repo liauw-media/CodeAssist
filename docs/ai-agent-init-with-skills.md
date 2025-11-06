@@ -22,9 +22,9 @@ Complete this checklist for EVERY request:
    - Format: "I'm using [Skill Name] to [purpose]"
 4. **Execute**: Follow the skill exactly as documented
 
-### Available Skills (23 Total)
+### Available Skills (24 Total)
 
-#### Core Workflow Skills (7):
+#### Core Workflow Skills (8):
 - `using-skills` - This protocol (you're using it now)
 - `brainstorming` - Discuss approach before implementation
 - `writing-plans` - Break work into actionable tasks
@@ -38,10 +38,11 @@ Complete this checklist for EVERY request:
 - `database-backup` - **MANDATORY** before ANY database operation
 - `defense-in-depth` - Multi-layer validation
 
-#### Testing Skills (3):
+#### Testing Skills (4):
 - `test-driven-development` - RED/GREEN/REFACTOR cycle
 - `condition-based-waiting` - Eliminate flaky tests
 - `testing-anti-patterns` - Critical mistakes to avoid
+- `playwright-frontend-testing` - AI-assisted browser testing with Playwright MCP
 
 #### Debugging Skills (2):
 - `systematic-debugging` - Reproduce → Isolate → Identify → Fix → Verify
@@ -54,7 +55,7 @@ Complete this checklist for EVERY request:
 - `finishing-a-development-branch` - Complete checklist before PR/MR
 - `subagent-driven-development` - Fresh subagent per task with reviews
 
-#### Meta Skills (4):
+#### Meta Skills (3):
 - `writing-skills` - TDD approach to creating skills
 - `testing-skills-with-subagents` - Validate skills with pressure tests
 - `sharing-skills` - Contribute skills upstream
@@ -187,6 +188,7 @@ fetch_skill "safety/defense-in-depth/SKILL.md"
 fetch_skill "testing/test-driven-development/SKILL.md"
 fetch_skill "testing/condition-based-waiting/SKILL.md"
 fetch_skill "testing/testing-anti-patterns/SKILL.md"
+fetch_skill "testing/playwright-frontend-testing/SKILL.md"
 
 # Debugging skills
 fetch_skill "debugging/systematic-debugging/SKILL.md"
@@ -208,7 +210,7 @@ fetch_skill "meta/sharing-skills/SKILL.md"
 
 echo ""
 echo "✅ Skills framework installation complete!"
-echo "📊 Total skills installed: 23"
+echo "📊 Total skills installed: 24"
 echo "📂 Location: ./skills/"
 echo ""
 echo "Next: Read skills/README.md for complete index"
