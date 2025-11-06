@@ -37,6 +37,13 @@ Playwright MCP (Model Context Protocol) enables AI-assisted frontend testing by 
 - ✅ Lightweight (no vision models)
 - ✅ LLM-friendly (text-based)
 - ✅ Accessibility-first (follows a11y best practices)
+- ✅ **Headless-ready** (works on VPS/servers without display)
+
+**Works anywhere:**
+- 💻 Local development (headed mode for debugging)
+- 🖥️ **VPS/Headless Servers** (Claude Code CLI, no display required)
+- 🔄 CI/CD pipelines (automated testing)
+- 🌐 Remote SSH sessions (full browser testing over SSH)
 
 ## Installation & Setup
 
@@ -61,8 +68,75 @@ Add to MCP configuration file:
 - **Claude Desktop**: `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac)
 - **VS Code**: `.vscode/settings.json` (project) or user settings
 - **Cursor**: Similar to VS Code
+- **Claude Code (CLI)**: `.claude/mcp_config.json` (project) or `~/.config/claude-code/mcp_config.json` (global)
 
-### Step 2: Configure Browser Options
+### Step 2: Configure for Claude Code CLI (Headless Servers/VPS)
+
+**Claude Code works perfectly on headless servers** - the MCP server runs browsers in headless mode without requiring a display.
+
+**Recommended configuration for VPS/headless servers:**
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--headless",
+        "--browser", "chromium"
+      ]
+    }
+  }
+}
+```
+
+**For servers without X11/display:**
+
+```bash
+# Install dependencies (Ubuntu/Debian)
+sudo apt-get update
+sudo apt-get install -y \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
+    libxkbcommon0 \
+    libatspi2.0-0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2
+
+# Install Playwright browsers (headless)
+npx playwright install chromium
+```
+
+**Verify headless mode works:**
+
+```bash
+# Test headless browser
+npx playwright test --headed=false
+
+# Or with MCP via Claude Code
+# Playwright MCP automatically uses headless mode on servers without displays
+```
+
+**Key benefits for VPS/server usage:**
+- ✅ No display/X11 required
+- ✅ Runs in background
+- ✅ Perfect for CI/CD pipelines
+- ✅ Lower resource usage than headed mode
+- ✅ Claude Code CLI works identically on server and local
+
+### Step 3: Configure Browser Options (General)
 
 **Headless mode** (CI/CD):
 ```json
