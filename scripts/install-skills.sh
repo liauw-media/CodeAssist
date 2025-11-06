@@ -9,20 +9,20 @@ SKILLS_BASE_URL="https://raw.githubusercontent.com/liauw-media/CodeAssist/main/s
 echo "🎯 Installing CodeAssist Skills Framework..."
 echo ""
 
-# Create base directory
-mkdir -p skills
+# Create base directory in .claude/skills (unified location)
+mkdir -p .claude/skills
 
 # Fetch skills index
 echo "📋 Fetching skills index..."
-curl -fsSL "$SKILLS_BASE_URL/README.md" -o skills/README.md
+curl -fsSL "$SKILLS_BASE_URL/README.md" -o .claude/skills/README.md
 echo "✅ Skills index installed"
 echo ""
 
 # Function to fetch skill
 fetch_skill() {
     local path=$1
-    mkdir -p "skills/$(dirname "$path")"
-    curl -fsSL "$SKILLS_BASE_URL/$path" -o "skills/$path" 2>/dev/null
+    mkdir -p ".claude/skills/$(dirname "$path")"
+    curl -fsSL "$SKILLS_BASE_URL/$path" -o ".claude/skills/$path" 2>/dev/null
     if [ $? -eq 0 ]; then
         echo "✅ $path"
     else
@@ -79,12 +79,12 @@ echo "✅ Skills framework installation complete!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "📊 Total skills installed: 24"
-echo "📂 Location: ./skills/"
+echo "📂 Location: ./.claude/skills/"
 echo ""
 echo "📖 Next steps:"
-echo "   1. Read: skills/README.md (complete index)"
-echo "   2. Start with: skills/using-skills/SKILL.md (mandatory protocol)"
-echo "   3. Critical safety: skills/safety/database-backup/SKILL.md"
+echo "   1. Read: .claude/skills/README.md (complete index)"
+echo "   2. Start with: .claude/skills/using-skills/SKILL.md (mandatory protocol)"
+echo "   3. Critical safety: .claude/skills/safety/database-backup/SKILL.md"
 echo ""
 echo "🎯 Use skills for every task - check using-skills protocol!"
 echo ""

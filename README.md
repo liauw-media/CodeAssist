@@ -112,7 +112,7 @@ chmod +x install-skills.sh
 # Run installation
 ./install-skills.sh
 
-# Skills now available in ./skills/ directory
+# Skills now available in ./.claude/skills/ directory (unified location)
 ```
 
 ### 📚 Skills Breakdown (24 Total)

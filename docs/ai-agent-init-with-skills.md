@@ -8,6 +8,17 @@
 
 **This protocol is NON-NEGOTIABLE. You MUST follow it for EVERY request.**
 
+### ⚠️ CRITICAL: Unified Skills Location
+
+**All skills MUST be installed to `.claude/skills/` directory.**
+
+This is the unified, standardized location for all CodeAssist projects:
+- ✅ **Correct**: `.claude/skills/using-skills/SKILL.md`
+- ❌ **Wrong**: `skills/using-skills/SKILL.md`
+- ❌ **Wrong**: `docs/skills/using-skills/SKILL.md`
+
+The install script automatically creates `.claude/skills/` - never create skills in other locations.
+
 ### Core Principle
 
 Before tackling any task, you MUST identify and execute relevant skills. This is mandatory, not optional.
@@ -156,17 +167,17 @@ SKILLS_BASE_URL="https://raw.githubusercontent.com/liauw-media/CodeAssist/main/s
 
 echo "Installing CodeAssist skills framework..."
 
-# Create base directory
-mkdir -p skills
+# Create base directory in .claude/skills (unified location)
+mkdir -p .claude/skills
 
 # Fetch skills index
-curl -fsSL "$SKILLS_BASE_URL/README.md" -o skills/README.md
+curl -fsSL "$SKILLS_BASE_URL/README.md" -o .claude/skills/README.md
 
 # Function to fetch skill
 fetch_skill() {
     local path=$1
-    mkdir -p "skills/$(dirname "$path")"
-    curl -fsSL "$SKILLS_BASE_URL/$path" -o "skills/$path"
+    mkdir -p ".claude/skills/$(dirname "$path")"
+    curl -fsSL "$SKILLS_BASE_URL/$path" -o ".claude/skills/$path"
     echo "✅ Installed: $path"
 }
 
@@ -211,17 +222,17 @@ fetch_skill "meta/sharing-skills/SKILL.md"
 echo ""
 echo "✅ Skills framework installation complete!"
 echo "📊 Total skills installed: 24"
-echo "📂 Location: ./skills/"
+echo "📂 Location: ./.claude/skills/"
 echo ""
-echo "Next: Read skills/README.md for complete index"
+echo "Next: Read .claude/skills/README.md for complete index"
 ```
 
 Save as `install-skills.sh`, make executable: `chmod +x install-skills.sh`
 
 **Key Skills to Read** (after installation):
-- `skills/using-skills/SKILL.md` - This protocol
-- `skills/core/brainstorming/SKILL.md` - Always first step
-- `skills/safety/database-backup/SKILL.md` - CRITICAL safety
+- `.claude/skills/using-skills/SKILL.md` - This protocol
+- `.claude/skills/core/brainstorming/SKILL.md` - Always first step
+- `.claude/skills/safety/database-backup/SKILL.md` - CRITICAL safety
 
 ---
 
@@ -377,19 +388,19 @@ For every new project initialization:
    chmod +x install-skills.sh
    ```
 
-3. **Run the installation script** (installs all 24 skills):
+3. **Run the installation script** (installs all 24 skills to `.claude/skills/`):
    ```bash
    ./install-skills.sh
    ```
 
    This will:
-   - Create `skills/` directory
+   - Create `.claude/skills/` directory (unified location)
    - Install all 24 skills in proper structure
    - Include: 8 core workflow, 4 testing, 5 workflow, 2 safety, 2 debugging, 3 meta skills
 
 4. **Verify installation**:
    ```bash
-   find skills -name "SKILL.md" -type f | wc -l
+   find .claude/skills -name "SKILL.md" -type f | wc -l
    # Should output: 24
    ```
 
@@ -397,6 +408,7 @@ For every new project initialization:
    ```
    ✅ Skills framework installed locally
    ✅ Total skills: 24
+   ✅ Location: .claude/skills/ (unified location)
    ✅ Core Workflow: 8 skills (using-skills, brainstorming, writing-plans, executing-plans, code-review, requesting-code-review, receiving-code-review, verification-before-completion)
    ✅ Safety: 2 skills (database-backup CRITICAL, defense-in-depth)
    ✅ Testing: 4 skills (TDD, condition-based-waiting, testing-anti-patterns, playwright-frontend-testing)
@@ -404,10 +416,10 @@ For every new project initialization:
    ✅ Debugging: 2 skills (systematic-debugging, root-cause-tracing)
    ✅ Meta: 3 skills (writing-skills, testing-skills-with-subagents, sharing-skills)
 
-   Project now has local skills/ directory with all 24 skills.
+   Project now has .claude/skills/ directory with all 24 skills.
    ```
 
-6. **Add skills/ to .gitignore** (optional - or commit for team use)
+6. **Optional: Commit .claude/skills/ for team use** (or add to .gitignore for per-developer installation)
 
 ### Remaining Checklist
 
