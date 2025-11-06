@@ -143,10 +143,83 @@ Complete this checklist for EVERY request:
 
 **Skills README**: https://github.com/liauw-media/CodeAssist/blob/main/skills/README.md
 
-**Key Skills to Read**:
-- [using-skills](https://github.com/liauw-media/CodeAssist/blob/main/skills/using-skills/SKILL.md) - This protocol
-- [brainstorming](https://github.com/liauw-media/CodeAssist/blob/main/skills/core/brainstorming/SKILL.md) - Always first step
-- [database-backup](https://github.com/liauw-media/CodeAssist/blob/main/skills/safety/database-backup/SKILL.md) - CRITICAL safety
+### Skill Installation Script (Helper)
+
+**For full installation of all 23 skills:**
+
+```bash
+#!/bin/bash
+# install-skills.sh - Install all CodeAssist skills locally
+
+SKILLS_BASE_URL="https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills"
+
+echo "Installing CodeAssist skills framework..."
+
+# Create base directory
+mkdir -p skills
+
+# Fetch skills index
+curl -fsSL "$SKILLS_BASE_URL/README.md" -o skills/README.md
+
+# Function to fetch skill
+fetch_skill() {
+    local path=$1
+    mkdir -p "skills/$(dirname "$path")"
+    curl -fsSL "$SKILLS_BASE_URL/$path" -o "skills/$path"
+    echo "✅ Installed: $path"
+}
+
+# Core skills
+fetch_skill "using-skills/SKILL.md"
+fetch_skill "core/brainstorming/SKILL.md"
+fetch_skill "core/writing-plans/SKILL.md"
+fetch_skill "core/executing-plans/SKILL.md"
+fetch_skill "core/code-review/SKILL.md"
+fetch_skill "core/requesting-code-review/SKILL.md"
+fetch_skill "core/receiving-code-review/SKILL.md"
+fetch_skill "core/verification-before-completion/SKILL.md"
+
+# Safety skills
+fetch_skill "safety/database-backup/SKILL.md"
+fetch_skill "safety/defense-in-depth/SKILL.md"
+
+# Testing skills
+fetch_skill "testing/test-driven-development/SKILL.md"
+fetch_skill "testing/condition-based-waiting/SKILL.md"
+fetch_skill "testing/testing-anti-patterns/SKILL.md"
+
+# Debugging skills
+fetch_skill "debugging/systematic-debugging/SKILL.md"
+fetch_skill "debugging/root-cause-tracing/SKILL.md"
+
+# Workflow skills
+fetch_skill "workflow/git-workflow/SKILL.md"
+fetch_skill "workflow/git-worktrees/SKILL.md"
+fetch_skill "workflow/dispatching-parallel-agents/SKILL.md"
+fetch_skill "workflow/finishing-a-development-branch/SKILL.md"
+fetch_skill "workflow/subagent-driven-development/SKILL.md"
+
+# Meta skills
+fetch_skill "meta/writing-skills/SKILL.md"
+fetch_skill "meta/writing-skills/anthropic-best-practices.md"
+fetch_skill "meta/writing-skills/persuasion-principles.md"
+fetch_skill "meta/testing-skills-with-subagents/SKILL.md"
+fetch_skill "meta/sharing-skills/SKILL.md"
+
+echo ""
+echo "✅ Skills framework installation complete!"
+echo "📊 Total skills installed: 23"
+echo "📂 Location: ./skills/"
+echo ""
+echo "Next: Read skills/README.md for complete index"
+```
+
+Save as `install-skills.sh`, make executable: `chmod +x install-skills.sh`
+
+**Key Skills to Read** (after installation):
+- `skills/using-skills/SKILL.md` - This protocol
+- `skills/core/brainstorming/SKILL.md` - Always first step
+- `skills/safety/database-backup/SKILL.md` - CRITICAL safety
 
 ---
 
@@ -286,7 +359,67 @@ php artisan migrate  # ❌ WRONG
 
 For every new project initialization:
 
+### Step 0: Install Skills Framework Locally (MANDATORY FIRST)
+
+**Before ANY other work:**
+
+1. **Fetch skills index from GitHub**:
+   ```bash
+   # Create skills directory
+   mkdir -p skills
+
+   # Fetch skills index
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md -o skills/README.md
+   ```
+
+2. **Read the skills index** to identify which skills to install
+
+3. **Fetch required skills for initialization**:
+   ```bash
+   # Core skills (MANDATORY)
+   mkdir -p skills/using-skills
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/using-skills/SKILL.md -o skills/using-skills/SKILL.md
+
+   mkdir -p skills/core/brainstorming
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/core/brainstorming/SKILL.md -o skills/core/brainstorming/SKILL.md
+
+   mkdir -p skills/core/writing-plans
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/core/writing-plans/SKILL.md -o skills/core/writing-plans/SKILL.md
+
+   mkdir -p skills/core/executing-plans
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/core/executing-plans/SKILL.md -o skills/core/executing-plans/SKILL.md
+
+   mkdir -p skills/core/code-review
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/core/code-review/SKILL.md -o skills/core/code-review/SKILL.md
+
+   mkdir -p skills/core/verification-before-completion
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/core/verification-before-completion/SKILL.md -o skills/core/verification-before-completion/SKILL.md
+
+   # CRITICAL safety skill
+   mkdir -p skills/safety/database-backup
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/safety/database-backup/SKILL.md -o skills/safety/database-backup/SKILL.md
+
+   # Git workflow skill
+   mkdir -p skills/workflow/git-workflow
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/workflow/git-workflow/SKILL.md -o skills/workflow/git-workflow/SKILL.md
+   ```
+
+4. **Report installation**:
+   ```
+   ✅ Skills framework installed locally
+   ✅ Core skills: brainstorming, writing-plans, executing-plans, code-review, verification
+   ✅ Safety: database-backup (CRITICAL)
+   ✅ Workflow: git-workflow
+
+   Project now has local skills/ directory.
+   ```
+
+5. **Add skills/ to .gitignore** (optional - or commit for team use)
+
+### Remaining Checklist
+
 - [ ] **Read this entire prompt** (you're doing it now)
+- [ ] **Install skills locally** (Step 0 above)
 - [ ] **Announce using-skills**: "I'm using the using-skills protocol"
 - [ ] **Phase 0 - Brainstorming**: Discuss approach with user
 - [ ] **Phase 1 - Planning**: Create detailed plan with TodoWrite
