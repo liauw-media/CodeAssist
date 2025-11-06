@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "hooks": [
+    {
+      "name": "session-start",
+      "type": "session-start",
+      "description": "Loads using-skills skill at the start of every session to ensure mandatory skill usage",
+      "script": "./session-start.sh",
+      "enabled": true,
+      "priority": 1
+    },
+    {
+      "name": "database-operation-guard",
+      "type": "pre-tool-call",
+      "description": "Intercepts database operations to ensure database-backup skill is used first",
+      "script": "./database-operation-guard.sh",
+      "enabled": true,
+      "priority": 10,
+      "triggers": [
+        "bash:.*test.*",
+        "bash:.*migrate.*",
+        "bash:.*artisan.*",
+        "bash:.*npm test.*",
+        "bash:.*pytest.*"
+      ]
+    }
+  ]
+}
