@@ -45,6 +45,111 @@ Playwright MCP (Model Context Protocol) enables AI-assisted frontend testing by 
 - 🔄 CI/CD pipelines (automated testing)
 - 🌐 Remote SSH sessions (full browser testing over SSH)
 
+## Recommended Workflow: Hybrid Approach
+
+**⭐ ALWAYS use this workflow for the best results:**
+
+### Phase 1: Exploratory Testing with MCP (Discovery)
+
+**Purpose**: Find issues quickly through interactive testing
+
+```
+1. Use Playwright MCP interactively with AI assistance
+2. Navigate application, test features manually
+3. Document bugs/issues as you find them
+4. Iterate quickly - no test files needed yet
+```
+
+**Benefits:**
+- ✅ Fast discovery - find issues immediately
+- ✅ Interactive - adjust approach based on findings
+- ✅ No maintenance overhead during exploration
+- ✅ Good for understanding application behavior
+- ✅ AI-assisted - Claude helps navigate via accessibility tree
+
+**When to use:**
+- First-time testing of new features
+- Exploring unfamiliar codebases
+- Quick smoke testing
+- Finding UI/UX issues
+
+### Phase 2: Write Permanent Test Suite (CI/CD)
+
+**Purpose**: Lock in findings as regression protection
+
+```
+1. Based on MCP exploration, write .spec.js/.spec.ts files
+2. Cover critical paths discovered during exploration
+3. Add to CI/CD pipeline
+4. Team can run tests locally
+```
+
+**Benefits:**
+- ✅ Permanent regression protection
+- ✅ Runs in CI/CD automatically
+- ✅ Prevents future bugs
+- ✅ Team collaboration
+- ✅ Documentation of expected behavior
+
+**When to use:**
+- After exploratory testing finds issues
+- For critical user flows
+- When code is changing frequently
+- For long-term quality assurance
+
+### The Hybrid Workflow
+
+```
+Step 1: MCP Exploration (Quick Discovery)
+→ Use Playwright MCP interactively
+→ Find bugs, understand flows
+→ Document issues found
+
+Step 2: Write Permanent Tests (Lock It In)
+→ Create .spec.ts files for critical paths
+→ Add assertions for bugs found in Step 1
+→ Commit to repository
+
+Step 3: CI/CD Integration (Prevent Regressions)
+→ Tests run on every commit
+→ Catch regressions automatically
+→ Team protected from breaking changes
+```
+
+**Example workflow:**
+
+```bash
+# Phase 1: Interactive exploration
+# Use Claude Code with Playwright MCP
+# Test login flow, find validation bug
+
+# Phase 2: Write permanent test
+cat > tests/auth.spec.ts << 'EOF'
+test('login validates email format', async ({ page }) => {
+  await page.goto('https://app.example.com/login');
+  await page.fill('[name="email"]', 'invalid-email');
+  await page.click('button[type="submit"]');
+
+  // Bug found during MCP exploration: error message missing
+  await expect(page.locator('.error')).toContainText('Invalid email format');
+});
+EOF
+
+# Phase 3: Run in CI/CD
+# Add to .github/workflows/test.yml
+# Tests now run on every PR
+```
+
+### Why Hybrid is Best
+
+| Approach | Speed | Permanence | CI/CD | Best For |
+|----------|-------|------------|-------|----------|
+| MCP Only | ⚡ Fast | ❌ No | ❌ No | Quick audits, exploration |
+| Tests Only | 🐢 Slow | ✅ Yes | ✅ Yes | Known requirements |
+| **Hybrid** | ⚡🔒 **Both** | ✅ **Yes** | ✅ **Yes** | **Everything** |
+
+**The Iron Law**: Never write permanent tests blindly - explore with MCP first to understand what actually needs testing.
+
 ## Installation & Setup
 
 ### Step 1: Install Playwright MCP
@@ -630,6 +735,136 @@ test('page has no accessibility violations', async ({ page }) => {
   expect(accessibilityScanResults.violations).toEqual([]);
 });
 ```
+
+## Hybrid Workflow in Practice
+
+### Example: Testing E-commerce Checkout Flow
+
+**Phase 1: MCP Exploration (Interactive Discovery)**
+
+```
+You: "Test the checkout flow on https://shop.example.com"
+
+Claude (via MCP):
+1. Navigating to shop.example.com
+2. Adding item to cart...
+3. Clicking checkout button...
+4. Found issue: checkout button disabled without error message
+5. Filling shipping form...
+6. Found issue: ZIP code doesn't validate Canadian postal codes
+7. Submitting payment...
+8. Success! Order completed.
+
+Issues found:
+- Checkout button provides no feedback when disabled
+- ZIP validation rejects valid Canadian postal codes (H3Z 2Y7)
+- Success message could be clearer
+```
+
+**Phase 2: Write Permanent Tests (Lock In Findings)**
+
+```typescript
+// tests/checkout.spec.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Checkout Flow', () => {
+  test('shows error when checkout clicked with empty cart', async ({ page }) => {
+    // Bug found during MCP exploration
+    await page.goto('https://shop.example.com');
+    await page.click('[data-testid="checkout-btn"]');
+
+    // Should show error, not just disable button
+    await expect(page.locator('.error')).toContainText('Cart is empty');
+  });
+
+  test('accepts Canadian postal codes', async ({ page }) => {
+    // Bug found during MCP exploration
+    await page.goto('https://shop.example.com/checkout');
+    await page.fill('[name="postalCode"]', 'H3Z 2Y7');
+    await page.blur('[name="postalCode"]');
+
+    // Should not show validation error
+    await expect(page.locator('.field-error')).not.toBeVisible();
+  });
+
+  test('shows clear success message after order', async ({ page }) => {
+    // Enhancement from MCP exploration
+    await page.goto('https://shop.example.com');
+
+    // Complete checkout flow
+    await page.click('[data-testid="add-to-cart"]');
+    await page.click('[data-testid="checkout-btn"]');
+    await page.fill('[name="email"]', 'test@example.com');
+    await page.fill('[name="cardNumber"]', '4242424242424242');
+    await page.click('button[type="submit"]');
+
+    // Verify clear success
+    await expect(page.locator('.success-message')).toContainText('Order confirmed');
+    await expect(page.locator('.order-number')).toBeVisible();
+  });
+});
+```
+
+**Phase 3: CI/CD Integration**
+
+```yaml
+# .github/workflows/test.yml
+name: E2E Tests
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+```
+
+### Workflow Summary
+
+```
+MCP Exploration → Found 3 Issues → Wrote 3 Tests → CI/CD Catches Regressions
+
+Before: Manual testing, issues slip through
+After: Automated protection, bugs caught early
+```
+
+**Time investment:**
+- MCP exploration: 10 minutes (found 3 bugs)
+- Writing tests: 15 minutes (permanent protection)
+- CI/CD setup: 5 minutes (one-time)
+- **Total: 30 minutes for permanent regression protection**
+
+**Value:**
+- Bugs found: 3 (before users saw them)
+- Future regressions prevented: ∞
+- Developer confidence: 📈
+
+### When to Skip Permanent Tests
+
+Sometimes MCP exploration is enough:
+
+✅ **Write permanent tests for:**
+- Critical user flows (login, checkout, signup)
+- Frequently changing features
+- Bug-prone areas
+- Compliance requirements
+
+❌ **MCP exploration only for:**
+- One-time audits
+- Prototype testing
+- Features scheduled for removal
+- Quick sanity checks
+
+**The Iron Law (Reminder)**: Explore first with MCP, then lock it in with tests. Never write tests blindly without understanding the actual user flow.
 
 ## Running Tests
 
