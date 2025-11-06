@@ -1,14 +1,25 @@
 # CodeAssist
 
-*Professional software development documentation and project templates*
+*Professional software development with AI-powered skills framework*
 
 ---
 
 ## 📚 What is This?
 
-CodeAssist is a comprehensive collection of documentation, guides, and best practices for professional software development. It provides everything you need to start new projects with proper workflows, tooling, and AI-assisted development.
+CodeAssist combines professional development workflows with the Superpowers skills methodology to create a comprehensive framework for AI-assisted software development.
 
-**Version 3.0** features a modular architecture with framework-specific guides (Laravel, Python, JavaScript, Mobile) and phase-based setup documents for efficient project initialization.
+**Version 3.1** introduces the complete **Skills Framework** - a systematic approach to development with mandatory protocols, TDD-validated skills, and intelligent agent coordination. Built on proven methodologies from [@obra's Superpowers](https://github.com/obra/superpowers) combined with CodeAssist's framework-specific guides for Laravel, Python, JavaScript, and mobile development.
+
+### 🆕 What's New in v3.1
+
+- **10+ Production-Ready Skills**: Core workflow, safety, testing, debugging skills
+- **Complete Infrastructure**: Agents, hooks, commands for Claude Code
+- **Claude Marketplace Ready**: Full plugin configuration
+- **TDD Methodology**: Skills validated with pressure scenarios
+- **Persuasion Principles**: Reliable AI behavior through authority, commitment, scarcity, social proof
+- **Mandatory Protocols**: Critical operations like database backups are enforced
+
+[See complete v3.1 changes in CHANGELOG.md](CHANGELOG.md)
 
 ## 🚀 Quick Start Prompts
 
@@ -240,10 +251,41 @@ pre-commit run --all-files
 
 This documentation is provided as-is for use in your projects.
 
+## 🙏 Attribution
+
+CodeAssist v3.1 Skills Framework is inspired by and builds upon:
+
+### Superpowers by Jesse Vincent
+
+- **Blog Post**: [AI Coding Superpowers](https://blog.fsck.com/2025/10/09/superpowers/)
+- **Repository**: [obra/superpowers](https://github.com/obra/superpowers)
+- **Author**: Jesse Vincent ([@obra](https://github.com/obra))
+- **Concepts**: Skills framework, mandatory protocols, TDD for skills, persuasion principles
+
+CodeAssist extends the Superpowers methodology with:
+- Framework-specific skills (Laravel, Python, JavaScript, Mobile)
+- Production-tested safety protocols (database backup based on real incidents)
+- API-first development workflows
+- Self-hosted development tools integration
+- Comprehensive framework setup guides
+
+### Standing on the Shoulders of Giants
+
+The skills framework represents accumulated wisdom from:
+- **Superpowers**: Systematic AI guidance methodology
+- **CodeAssist**: Framework-specific professional workflows
+- **Industry Best Practices**: TDD, code review, Git workflows
+- **Real Production Experience**: Database safety, testing anti-patterns
+- **Professional Development Teams**: Workflows from enterprise software development
+
+Thank you to Jesse Vincent and the Superpowers project for creating and sharing this methodology with the community.
+
 ## 🤝 Contributing
 
 Contributions welcome! These docs are meant to evolve with best practices.
 
+If you create new skills or improve existing ones, consider contributing back to both CodeAssist and the Superpowers project.
+
 ---
 
-**Start exploring**: [📚 Full Documentation Index](docs/README.md)
+**Start exploring**: [📚 Full Documentation Index](docs/README.md) | [🎯 Skills Index](skills/README.md)
