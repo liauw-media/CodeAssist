@@ -151,6 +151,46 @@ Every task follows this cycle:
 
 **See**: [Skills Index](skills/README.md) for complete guide with triggers and examples.
 
+### 🔄 Keeping Skills Updated
+
+**CodeAssist includes commands to keep your skills framework current:**
+
+**Check for updates:**
+```bash
+/check-updates
+```
+Compares your local skills with the latest GitHub version, reports available updates.
+
+**Update skills:**
+```bash
+/update-skills
+```
+Automatically fetches and installs the latest 24 skills to `.claude/skills/`.
+
+**Session start reminder:**
+```bash
+/session-start
+```
+Shows pre-session checklist and skills protocol reminder.
+
+**Setup project reminder:**
+```bash
+./scripts/setup-session-reminder.sh
+```
+Creates `.claude/SESSION_START.md` for quick reference at session start.
+
+**Recommended maintenance:**
+- ✅ Check for updates monthly
+- ✅ Update before major features
+- ✅ Review session reminder at start of each work session
+- ✅ Commit skills to repo OR add to `.gitignore` (team decision)
+
+**Why update regularly:**
+- 🛡️ Security improvements (database backup enhancements)
+- ✨ New skills added (like Playwright MCP testing)
+- 🐛 Bug fixes in skill protocols
+- 📚 Documentation improvements
+
 ---
 
 ## 📖 Documentation
