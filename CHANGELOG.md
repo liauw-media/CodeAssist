@@ -21,6 +21,8 @@ This release represents a major evolution of CodeAssist, integrating the complet
 - `writing-plans` - Break work into discrete, actionable tasks with TodoWrite integration
 - `executing-plans` - Systematic execution with verification checkpoints (ONE task at a time)
 - `code-review` - Comprehensive self-review before declaring done
+- `requesting-code-review` - Know when and how to request peer review
+- `receiving-code-review` - Technical evaluation and integration of feedback
 - `verification-before-completion` - Final checklist before marking work complete
 
 **Safety Skills (CRITICAL):**
@@ -36,9 +38,13 @@ This release represents a major evolution of CodeAssist, integrating the complet
 - `git-worktrees` - Parallel development in isolated workspaces without branch switching
 - `dispatching-parallel-agents` - Efficient coordination of multiple independent tasks
 - `finishing-a-development-branch` - Complete checklist before creating PR/MR
+- `subagent-driven-development` - Fresh subagents per task with code reviews
 
 **Testing Skills:**
 - `test-driven-development` - RED/GREEN/REFACTOR cycle, write tests first
+- `condition-based-waiting` - Eliminate flaky tests with proper wait conditions
+- `testing-anti-patterns` - Avoid common testing mistakes
+- `playwright-frontend-testing` - AI-assisted browser testing with Playwright MCP
 
 **Debugging Skills:**
 - `systematic-debugging` - Reproduce → Isolate → Identify → Fix → Verify (no random debugging)
@@ -72,7 +78,7 @@ This release represents a major evolution of CodeAssist, integrating the complet
 - `docs/superpowers-repository-analysis.md` - Complete analysis of [obra/superpowers](https://github.com/obra/superpowers) structure
 
 **Skills Index:**
-- `skills/README.md` - Comprehensive index of 10+ skills with discovery guide
+- `skills/README.md` - Comprehensive index of 24 skills with discovery guide
 
 ### Changed
 
@@ -180,17 +186,17 @@ The skills framework is **additive** and enhances existing workflows without rep
 
 ### Complete Implementation
 
-**v3.1.0 includes ALL 23 skills:**
-- ✅ Core workflow skills (7 skills)
+**v3.1.0 includes ALL 24 skills:**
+- ✅ Core workflow skills (8 skills: using-skills, brainstorming, writing-plans, executing-plans, code-review, requesting-code-review, receiving-code-review, verification-before-completion)
 - ✅ Safety skills (2 skills: database-backup, defense-in-depth)
-- ✅ Workflow skills (5 skills)
-- ✅ Testing skills (3 skills: TDD, condition-based-waiting, testing-anti-patterns)
+- ✅ Workflow skills (5 skills: git-workflow, git-worktrees, dispatching-parallel-agents, finishing-a-development-branch, subagent-driven-development)
+- ✅ Testing skills (4 skills: test-driven-development, condition-based-waiting, testing-anti-patterns, playwright-frontend-testing)
 - ✅ Debugging skills (2 skills: systematic-debugging, root-cause-tracing)
-- ✅ Meta skills (4 skill directories: writing-skills, testing-skills-with-subagents, sharing-skills, + 2 reference docs)
+- ✅ Meta skills (3 skills: writing-skills, testing-skills-with-subagents, sharing-skills)
 
-**All 21 Superpowers skills implemented** + 2 CodeAssist-specific skills = **23 total skills**
+**All 21 Superpowers skills implemented** + 3 CodeAssist-specific skills (using-skills wrapper, receiving-code-review, playwright-frontend-testing) = **24 total skills**
 
-Future additions will include framework-specific setup skills (Laravel, Python, JavaScript, Mobile) in v3.2.0.
+Future additions may include framework-specific setup skills (Laravel, Python, JavaScript, Mobile) in v3.2.0.
 
 ### Performance Notes
 
