@@ -2,7 +2,7 @@
 
 **Version**: 3.1.0
 **Last Updated**: 2025-01-06
-**Total Skills**: 23 (Complete Superpowers Implementation)
+**Total Skills**: 24 (Complete Superpowers Implementation + Playwright MCP)
 
 ---
 
@@ -63,39 +63,23 @@
 **File**: `core/code-review/SKILL.md`
 **Benefits**: Catch bugs, improve quality, ensure completeness
 
+### requesting-code-review
+**Use when**: Determining if external code review is needed
+**Purpose**: Know when and how to request peer review
+**File**: `core/requesting-code-review/SKILL.md`
+**Benefits**: Appropriate review requests, team collaboration
+
+### receiving-code-review
+**Use when**: Responding to code review feedback
+**Purpose**: Technical evaluation and integration of feedback
+**File**: `core/receiving-code-review/SKILL.md`
+**Benefits**: Effective feedback integration, continuous improvement
+
 ### verification-before-completion
 **Use when**: Finishing any task
 **Purpose**: Final checklist before marking complete
 **File**: `core/verification-before-completion/SKILL.md`
 **Benefits**: Nothing forgotten, all tests pass, documentation updated
-
----
-
-## 🏗️ Framework Setup Skills
-
-### laravel-api-setup
-**Use when**: Setting up new Laravel API project
-**Purpose**: API-first Laravel with Sanctum, Paratest, Scramble
-**File**: `framework/laravel-api-setup/SKILL.md`
-**Includes**: Auth setup, database config, testing, API docs
-
-### nextjs-pwa-setup
-**Use when**: Creating PWA with Next.js
-**Purpose**: Installable web app with offline support
-**File**: `framework/nextjs-pwa-setup/SKILL.md`
-**Includes**: next-pwa config, manifest, service workers, install prompt
-
-### react-native-setup
-**Use when**: Creating native mobile app
-**Purpose**: React Native with Expo setup
-**File**: `framework/react-native-setup/SKILL.md`
-**Includes**: Expo config, navigation, API client, auth
-
-### python-fastapi-setup
-**Use when**: Setting up Python API project
-**Purpose**: FastAPI with JWT, SQLAlchemy, pytest
-**File**: `framework/python-fastapi-setup/SKILL.md`
-**Includes**: API structure, auth, database, testing
 
 ---
 
@@ -107,12 +91,6 @@
 **File**: `safety/database-backup/SKILL.md`
 **Authority**: Based on 2 production database wipes
 **Triggers**: Tests, migrations, seeders, manual queries
-
-### pre-commit-hooks
-**Use when**: Setting up new project or adding quality gates
-**Purpose**: Automated code quality enforcement
-**File**: `safety/pre-commit-hooks/SKILL.md`
-**Includes**: Language-specific linters, formatters, type checkers
 
 ### defense-in-depth
 **Use when**: Implementing security features
@@ -130,11 +108,11 @@
 **File**: `testing/test-driven-development/SKILL.md`
 **Process**: Write failing test → Minimal implementation → Refactor
 
-### paratest-setup
-**Use when**: Setting up PHP/Laravel project testing
-**Purpose**: Parallel test execution (2-10x faster)
-**File**: `testing/paratest-setup/SKILL.md`
-**Benefits**: Faster feedback, better CI/CD times
+### condition-based-waiting
+**Use when**: Writing tests with async operations
+**Purpose**: Eliminate flaky tests caused by arbitrary timeouts
+**File**: `testing/condition-based-waiting/SKILL.md`
+**Benefits**: Reliable tests, faster execution, clear failures
 
 ### testing-anti-patterns
 **Use when**: Reviewing test code
@@ -142,11 +120,11 @@
 **File**: `testing/testing-anti-patterns/SKILL.md`
 **Examples**: Brittle tests, slow tests, unclear assertions
 
-### testing-skills
-**Use when**: Validating a new skill works correctly
-**Purpose**: Pressure test skills with realistic scenarios
-**File**: `meta/testing-skills/SKILL.md`
-**Process**: RED (pressure) → GREEN (skill) → REFACTOR (improve)
+### playwright-frontend-testing
+**Use when**: Testing frontend applications
+**Purpose**: AI-assisted browser testing with Playwright MCP
+**File**: `testing/playwright-frontend-testing/SKILL.md`
+**Benefits**: Fast, deterministic, accessibility-first testing
 
 ---
 
@@ -177,6 +155,12 @@
 **File**: `workflow/finishing-a-development-branch/SKILL.md`
 **Includes**: Tests pass, docs updated, conflicts resolved
 
+### subagent-driven-development
+**Use when**: Complex tasks requiring fresh perspective
+**Purpose**: Use specialized subagents for focused work
+**File**: `workflow/subagent-driven-development/SKILL.md`
+**Benefits**: Fresh context, specialized expertise, parallel execution
+
 ---
 
 ## 🛠️ Debugging Skills
@@ -204,6 +188,12 @@
 **Process**: RED (pressure test) → GREEN (skill) → REFACTOR (improve)
 **Iron Law**: NO SKILL WITHOUT A FAILING TEST FIRST
 
+### testing-skills-with-subagents
+**Use when**: Validating a new skill works correctly
+**Purpose**: Pressure test skills with realistic scenarios
+**File**: `meta/testing-skills-with-subagents/SKILL.md`
+**Benefits**: Validate skill effectiveness before deployment
+
 ### sharing-skills
 **Use when**: Contributing skills back to community
 **Purpose**: Share knowledge across teams/projects
@@ -218,9 +208,9 @@
 
 **Starting New Project**:
 1. `brainstorming` - Understand requirements
-2. Framework skill (`laravel-api-setup`, `nextjs-pwa-setup`, etc.)
+2. `writing-plans` - Break project into phases
 3. `git-workflow` - Initialize repository
-4. `pre-commit-hooks` - Quality gates
+4. `database-backup` - Set up safety scripts before any DB work
 
 **Adding Feature**:
 1. `brainstorming` - Design approach
@@ -253,10 +243,13 @@
 - `migrate`, `test`, `seed` → `database-backup` ⚠️
 - "new feature" → `brainstorming` → `writing-plans` → `test-driven-development`
 - "bug", "error" → `systematic-debugging`
-- "new project" → Framework skill (`laravel-api-setup`, etc.)
+- "new project" → `brainstorming` → `writing-plans`
+- "frontend test", "browser test" → `playwright-frontend-testing`
+- "flaky test", "timeout" → `condition-based-waiting`
 - "commit", "push" → `git-workflow`
-- "parallel", "multiple features" → `git-worktrees`
+- "parallel", "multiple features" → `git-worktrees` or `dispatching-parallel-agents`
 - "done", "complete" → `code-review` → `verification-before-completion`
+- "code review feedback" → `receiving-code-review`
 
 ---
 
@@ -290,31 +283,32 @@ Skills represent **accumulated wisdom**:
 ## 📊 Skill Statistics
 
 **Critical Skills (ALWAYS)**: 2
-- `using-skills`
-- `database-backup`
+- `using-skills` (mandatory protocol)
+- `database-backup` (mandatory before ANY database operation)
 
-**Core Workflow**: 5
-- `brainstorming`, `writing-plans`, `executing-plans`, `code-review`, `verification-before-completion`
+**Core Workflow**: 7
+- `brainstorming`, `writing-plans`, `executing-plans`
+- `code-review`, `requesting-code-review`, `receiving-code-review`
+- `verification-before-completion`
 
-**Framework Setup**: 4+
-- `laravel-api-setup`, `nextjs-pwa-setup`, `react-native-setup`, `python-fastapi-setup`
-
-**Safety**: 3
-- `database-backup`, `pre-commit-hooks`, `defense-in-depth`
+**Safety**: 2
+- `database-backup`, `defense-in-depth`
 
 **Testing**: 4
-- `test-driven-development`, `paratest-setup`, `testing-anti-patterns`, `testing-skills`
+- `test-driven-development`, `condition-based-waiting`
+- `testing-anti-patterns`, `playwright-frontend-testing`
 
-**Workflow**: 4
-- `git-workflow`, `git-worktrees`, `dispatching-parallel-agents`, `finishing-a-development-branch`
+**Workflow**: 5
+- `git-workflow`, `git-worktrees`, `dispatching-parallel-agents`
+- `finishing-a-development-branch`, `subagent-driven-development`
 
 **Debugging**: 2
 - `systematic-debugging`, `root-cause-tracing`
 
-**Meta**: 2
-- `writing-skills`, `sharing-skills`
+**Meta**: 3
+- `writing-skills`, `testing-skills-with-subagents`, `sharing-skills`
 
-**Total**: 26 skills
+**Total**: 24 skills (1 critical protocol + 23 operational skills)
 
 ---
 
