@@ -30,6 +30,16 @@ CodeAssist combines professional development workflows with the Superpowers skil
 
 ## 🚀 Quick Start Prompts
 
+**Choose the prompt that matches your situation:**
+
+| Situation | Prompt to Use | What It Does |
+|-----------|--------------|--------------|
+| 🆕 **New Project** | [Initialize New Project](#-initialize-new-project-with-skills-framework) | Full setup with skills framework |
+| 🔄 **Update Existing Project** | [Update Project](#-update-project-to-latest-codeassist) | Update skills to latest version |
+| 🤖 **Update Agent Only** | [Self-Update Agent](#-self-update-agent-only-without-project-changes) | Update AI knowledge without files |
+
+---
+
 ### 🆕 Initialize New Project with Skills Framework
 
 **Copy-paste this to start a new project with full AI-guided setup (v3.1 with Skills):**
@@ -59,39 +69,66 @@ Initialize project: Fetch https://raw.githubusercontent.com/liauw-media/CodeAssi
 
 ---
 
-### 🔄 Self-Update (Without Full Initialization)
+### 🔄 Update Project to Latest CodeAssist
 
-**Use this to update your AI agent to the latest CodeAssist v3.1 with Skills Framework:**
+**Use this prompt in any existing project to update CodeAssist integration:**
 
 ```
-Please update yourself to the latest CodeAssist v3.1 documentation:
+Update this project to the latest CodeAssist v3.1 with Skills Framework:
 
-1. Fetch and read the Skills Framework:
-   - Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (all 24 skills)
-   - Install script: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh
-   - Run: bash install-skills.sh (installs skills locally)
+1. Check current skills version:
+   - If .claude/skills/ exists, check: find .claude/skills -name "SKILL.md" | wc -l
+   - Report current count and version
 
-2. Fetch and read the latest guides:
-   - AI Agent Init with Skills: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md
-   - Database Backup Strategy: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/database-backup-strategy.md
-   - Git Branching Strategy: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/git-branching-strategy-guide.md
+2. Update to latest skills:
+   - Fetch: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh
+   - Run: bash install-skills.sh
+   - This installs/updates all 24 skills to .claude/skills/
 
-3. Report:
-   - Number of skills installed (should be 24)
-   - Version/last updated date of each document
+3. Verify installation:
+   - Count: find .claude/skills -name "SKILL.md" | wc -l (should be 24)
+   - Version: read .claude/skills/README.md and report version + last updated
 
-4. Confirm you understand:
+4. Read what's new:
+   - CHANGELOG: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/CHANGELOG.md
+   - Report any breaking changes or new skills
+
+5. Confirm understanding:
    - using-skills protocol (MANDATORY for EVERY task)
    - database-backup skill (MANDATORY before ANY database operation)
-   - Git commit policy (NO AI co-author attribution)
    - Skills workflow: brainstorm → plan → execute → review → verify
+   - Hybrid testing approach for Playwright MCP
 
-5. Acknowledge ready to work with v3.1 skills framework.
+6. Report completion:
+   - Skills updated: [old count] → 24
+   - New skills added: [list any new ones]
+   - Ready to work with latest CodeAssist v3.1
 ```
 
-**Quick Copy-Paste Version:**
+**Ultra-Quick Version:**
 ```
-Update to CodeAssist v3.1: Read https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md, fetch and run https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh, then read ai-agent-init-with-skills.md, database-backup-strategy.md, git-branching-strategy-guide.md. Report 24 skills installed and confirm using-skills protocol for all tasks.
+Update CodeAssist: Check .claude/skills/ count, fetch and run https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh, verify 24 skills installed, read CHANGELOG, confirm using-skills protocol for all tasks. Report what's new.
+```
+
+---
+
+### 🔄 Self-Update Agent Only (Without Project Changes)
+
+**Use this to update the AI agent's knowledge without installing files:**
+
+```
+Update to latest CodeAssist v3.1 documentation:
+
+1. Read Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (all 24 skills)
+2. Read Init Prompt: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md
+3. Read Key Guides: database-backup-strategy.md, git-branching-strategy-guide.md
+4. Confirm understanding: using-skills protocol, database-backup mandatory, workflow cycle
+5. Report version and acknowledge ready to work with v3.1
+```
+
+**Quick Version:**
+```
+Read https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md, ai-agent-init-with-skills.md, database-backup-strategy.md. Confirm using-skills protocol and report ready.
 ```
 
 ---
