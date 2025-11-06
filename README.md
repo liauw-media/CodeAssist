@@ -12,26 +12,38 @@ CodeAssist combines professional development workflows with the Superpowers skil
 
 ### 🆕 What's New in v3.1
 
-- **10+ Production-Ready Skills**: Core workflow, safety, testing, debugging skills
+- **24 Production-Ready Skills**: Complete Superpowers implementation + CodeAssist additions
+  - 8 Core Workflow Skills (brainstorming, planning, execution, code review, verification)
+  - 4 Testing Skills (TDD, condition-based waiting, anti-patterns, Playwright MCP)
+  - 5 Workflow Skills (git, worktrees, parallel agents, branch finishing, subagent-driven)
+  - 2 Safety Skills (database backup, defense-in-depth)
+  - 2 Debugging Skills (systematic debugging, root-cause tracing)
+  - 3 Meta Skills (writing skills, testing skills, sharing skills)
 - **Complete Infrastructure**: Agents, hooks, commands for Claude Code
 - **Claude Marketplace Ready**: Full plugin configuration
+- **Skills Installation**: One-command local installation script (`install-skills.sh`)
+- **Mandatory Protocols**: Database backups enforced, NO AI co-author in commits
 - **TDD Methodology**: Skills validated with pressure scenarios
 - **Persuasion Principles**: Reliable AI behavior through authority, commitment, scarcity, social proof
-- **Mandatory Protocols**: Critical operations like database backups are enforced
 
 [See complete v3.1 changes in CHANGELOG.md](CHANGELOG.md)
 
 ## 🚀 Quick Start Prompts
 
-### 🆕 Initialize New Project
+### 🆕 Initialize New Project with Skills Framework
 
-**Copy-paste this to start a new project with full AI-guided setup:**
+**Copy-paste this to start a new project with full AI-guided setup (v3.1 with Skills):**
 
 ```
-Initialize a new project using the CodeAssist framework. First, fetch and read the latest AI Agent Project Initialization Prompt from https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-project-initialization-prompt.md, then follow the complete initialization workflow including: Phase 0 Database Safety Setup (MANDATORY), codebase analysis, requirements discovery, tech stack recommendation, Git repository setup, task management system (TASKS.md + .claude/CLAUDE.md), pre-commit hooks, and issue tracking. Remember: NO AI co-author in commits, MANDATORY database backups before ANY database operations.
+Initialize a new project using CodeAssist v3.1 with Skills Framework. First, fetch and read https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md, then follow the complete workflow: Install skills locally (Step 0 MANDATORY), use brainstorming skill for approach discussion, write-plans skill for task breakdown, database-backup skill setup (CRITICAL), Git repository, task management, and pre-commit hooks. Remember: NO AI co-author in commits, use skills for EVERY task.
 ```
 
 **Ultra-Quick Version:**
+```
+Initialize project with skills: Fetch https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md and follow. Install skills locally first, use brainstorming → planning → execution cycle.
+```
+
+**Alternative: Without Skills Framework (v3.0 style):**
 ```
 Initialize project: Fetch https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-project-initialization-prompt.md and follow the complete initialization workflow. No AI co-author in commits.
 ```
@@ -69,6 +81,63 @@ Update to latest CodeAssist: Fetch https://raw.githubusercontent.com/liauw-media
 
 ---
 
+## 🎯 Skills Framework (v3.1)
+
+CodeAssist includes a complete skills framework with **24 systematic protocols** for professional development:
+
+### 🚀 Quick Skills Installation
+
+Install all 24 skills locally in any project:
+
+```bash
+# Clone or download the install script
+curl -O https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh
+chmod +x install-skills.sh
+
+# Run installation
+./install-skills.sh
+
+# Skills now available in ./skills/ directory
+```
+
+### 📚 Skills Breakdown (24 Total)
+
+**Critical Skills (MANDATORY):**
+- `using-skills` - Protocol for EVERY task (mandatory first response)
+- `database-backup` - MANDATORY before ANY database operation ⚠️
+
+**Core Workflow (8 skills):**
+- Brainstorming, writing plans, executing plans, code review, requesting review, receiving review, verification
+
+**Testing (4 skills):**
+- Test-driven development, condition-based waiting, testing anti-patterns, **Playwright MCP frontend testing**
+
+**Workflow (5 skills):**
+- Git workflow, git worktrees, parallel agents, branch finishing, subagent-driven development
+
+**Safety (2 skills):**
+- Database backup (CRITICAL), defense-in-depth validation
+
+**Debugging (2 skills):**
+- Systematic debugging, root-cause tracing
+
+**Meta (3 skills):**
+- Writing skills, testing skills with subagents, sharing skills
+
+### 🎓 Skills Philosophy
+
+Every task follows this cycle:
+1. **Check Skills** - Read skills index, identify relevant protocols
+2. **Brainstorm** - Discuss approach before coding
+3. **Plan** - Break into discrete tasks
+4. **Execute** - One task at a time with verification
+5. **Review** - Comprehensive self-review
+6. **Verify** - Final checklist before completion
+
+**See**: [Skills Index](skills/README.md) for complete guide with triggers and examples.
+
+---
+
 ## 📖 Documentation
 
 **All documentation is in the [`docs/`](docs/) folder.**
@@ -81,7 +150,8 @@ Update to latest CodeAssist: Fetch https://raw.githubusercontent.com/liauw-media
 
 ### Core Guides
 
-- **[AI Agent Project Initialization](docs/ai-agent-project-initialization-prompt.md)** - 🆕 **v3.0 Modular Architecture** - Interactive AI workflow with framework-specific and phase-based guides
+- **[AI Agent Project Initialization](docs/ai-agent-project-initialization-prompt.md)** - **v3.0 Modular Architecture** - Interactive AI workflow with framework-specific and phase-based guides
+- **[AI Agent Init with Skills](docs/ai-agent-init-with-skills.md)** - 🆕 **v3.1 Skills Framework** - Complete initialization with 24 skills integration
 - **[Database Backup Strategy](docs/database-backup-strategy.md)** - 🛡️ **CRITICAL** - Mandatory backup procedures, disaster recovery, prevents production database wipes
 - **[Git Branching Strategy](docs/git-branching-strategy-guide.md)** - Complete guide to Git workflows (GitHub & GitLab)
 - **[Development Tooling](docs/development-tooling-guide.md)** - Comprehensive CLI tools, linters, formatters reference (includes Paratest for PHP)
@@ -91,7 +161,15 @@ Update to latest CodeAssist: Fetch https://raw.githubusercontent.com/liauw-media
 - **[Wiki Setup Guide](docs/wiki-setup-guide.md)** - Using GitHub/GitLab wikis for documentation
 - **[Integration Guides](docs/integration-guides.md)** - System integration patterns and best practices
 
-### 🆕 Framework-Specific Guides (v3.0)
+### 🆕 Skills Framework (v3.1)
+
+- **[Skills Index](skills/README.md)** - Complete index of all 24 skills with discovery guide
+- **[Install Script](scripts/install-skills.sh)** - One-command installation of all skills locally
+- **[Using Skills Protocol](skills/using-skills/SKILL.md)** - MANDATORY protocol for every task
+- **[Database Backup Skill](skills/safety/database-backup/SKILL.md)** - CRITICAL safety skill (mandatory before ANY database operation)
+- **[Playwright MCP Testing](skills/testing/playwright-frontend-testing/SKILL.md)** - AI-assisted browser testing
+
+### Framework-Specific Guides (v3.0)
 
 - **[Laravel/PHP Setup](docs/framework-configs/laravel-setup-guide.md)** - API-first, Paratest, Sanctum/Passport/Clerk, Supabase, Scramble/L5-Swagger
 - **[Python Setup](docs/framework-configs/python-setup-guide.md)** - Django/FastAPI, JWT, SQLAlchemy, pytest
@@ -146,7 +224,15 @@ npm test  # ❌ WRONG - can wipe production database
 - ✅ Task management with TASKS.md and issue tracking
 - ✅ **AI agent self-update mechanism** - Always use latest best practices
 
-### 🆕 v3.0: Framework-Specific Skills
+### 🆕 v3.1: Skills Framework
+- ✅ **24 Complete Skills**: All 21 Superpowers skills + 3 CodeAssist additions
+- ✅ **Mandatory Protocols**: using-skills protocol for every task, database-backup before ANY database operation
+- ✅ **Workflow Cycle**: Brainstorm → Plan → Execute → Review → Verify
+- ✅ **Testing Skills**: TDD, condition-based waiting, anti-patterns, Playwright MCP browser testing
+- ✅ **Debugging Skills**: Systematic debugging, root-cause tracing (no random debugging)
+- ✅ **Local Installation**: One-command script to install all skills in any project
+
+### v3.0: Framework-Specific Skills
 - ✅ **Laravel/PHP**: API-first architecture, Paratest parallel testing, Sanctum/Passport/Clerk auth, Supabase integration
 - ✅ **Mobile Development**: PWA with Next.js, React Native with Expo, push notifications, offline storage
 - ✅ **Python**: Django/FastAPI setup, JWT authentication, pytest configuration
