@@ -18,11 +18,73 @@ Maintain clean, readable Git history with meaningful commits and consistent bran
 - Creating pull/merge requests
 - Any Git operation
 
-## The Iron Law
+## The Iron Laws
 
-**NO AI CO-AUTHOR ATTRIBUTION IN COMMITS.**
+### 1. NO AI CO-AUTHOR ATTRIBUTION IN COMMITS
 
 This is a firm policy. Commits represent human accountability.
+
+### 2. NO COMMITS WITHOUT VERIFICATION
+
+**MANDATORY**: Use `verification-before-completion` skill before EVERY commit.
+
+Never commit without:
+- ✅ All tests passing (unit, integration, e2e)
+- ✅ Code quality checks passed
+- ✅ Pre-commit hooks successful
+- ✅ Self-review completed
+- ✅ Verification checklist complete
+
+### 3. SMALL, PRECISE COMMITS
+
+**One logical change per commit.**
+
+✅ **Good commits:**
+- `feat(auth): add email validation to login form`
+- `fix(api): handle null values in user profile endpoint`
+- `test(checkout): add e2e tests for payment flow`
+
+❌ **Bad commits:**
+- `feat: add login, fix bugs, update tests, refactor code`
+- Large commits with multiple unrelated changes
+- Commits without running tests
+
+**Why small commits:**
+- 🔍 Easier to review
+- 🐛 Easier to find bugs (git bisect)
+- ⏪ Easier to revert
+- 📖 Clearer history
+
+### 4. FRONTEND + BACKEND = BOTH TESTS REQUIRED
+
+**When changes affect both frontend and backend:**
+
+```
+MANDATORY before commit:
+1. ✅ Backend tests pass (unit + integration)
+2. ✅ E2E tests pass (full user flow)
+3. ✅ API tests pass (if API changed)
+4. ✅ Frontend tests pass (component + integration)
+```
+
+**Never commit:**
+- ❌ Backend changes without backend tests
+- ❌ Frontend changes without e2e tests
+- ❌ API changes without both backend AND e2e tests
+- ❌ Changes that break existing tests
+
+### 5. PRE-COMMIT HOOKS ARE MANDATORY
+
+**Every project MUST have pre-commit hooks.**
+
+Minimum hooks required:
+- Code formatting (Prettier, Black, PHP CS Fixer)
+- Linting (ESLint, Ruff, PHPStan)
+- Type checking (TypeScript, mypy, Psalm)
+- Test execution (if files changed)
+- No secrets/credentials check
+
+**See**: `.claude/skills/safety/pre-commit-hooks/SKILL.md` for setup
 
 ## Git Commit Message Format
 

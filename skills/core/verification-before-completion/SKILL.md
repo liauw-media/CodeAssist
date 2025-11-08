@@ -13,14 +13,14 @@ Before declaring ANY work "complete" or "done", verify EVERYTHING works. This is
 
 - After completing `code-review` skill
 - User asks "is it done?"
-- Before committing final changes
+- **BEFORE EVERY COMMIT** (mandatory)
 - Before creating pull request
 - Before closing an issue
 - Before marking a feature as complete
 
-## The Iron Law
+## The Iron Laws
 
-**NEVER declare work complete without full verification.**
+### 1. NEVER DECLARE WORK COMPLETE WITHOUT FULL VERIFICATION
 
 Reasons:
 - Ensures nothing was forgotten
@@ -28,6 +28,51 @@ Reasons:
 - Validates against original requirements
 - Prevents "one more thing" scenarios
 - Professional quality gate
+
+### 2. NEVER COMMIT WITHOUT VERIFICATION
+
+**This skill is MANDATORY before ANY git commit.**
+
+If you find yourself typing `git commit` without having completed this verification checklist, **STOP**.
+
+❌ **FORBIDDEN:**
+```bash
+# Making changes
+vim src/file.js
+git add .
+git commit -m "fix stuff"  # ← WRONG! No verification!
+```
+
+✅ **REQUIRED:**
+```bash
+# Making changes
+vim src/file.js
+
+# MANDATORY: Run verification-before-completion skill
+# Complete ALL checklist items
+# Only after FULL verification passes:
+
+git add .
+git commit -m "fix(api): handle null values in user profile"
+```
+
+**Authority**: Professional teams NEVER commit without verification. Unverified commits cause:
+- 🐛 Bugs in production
+- 💥 Broken builds
+- 😡 Wasted team time
+- 💸 Lost customer trust
+
+### 3. FRONTEND + BACKEND = FULL TEST SUITE
+
+**When changes affect both frontend and backend:**
+
+MANDATORY before commit:
+- ✅ Backend tests (unit + integration)
+- ✅ Frontend tests (component + integration)
+- ✅ E2E tests (full user flow)
+- ✅ API tests (if API changed)
+
+**Never commit if ANY test fails.**
 
 ## Verification Protocol
 

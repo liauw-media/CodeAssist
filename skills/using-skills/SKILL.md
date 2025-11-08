@@ -24,15 +24,57 @@ Complete this checklist for EVERY request:
 
 **Skills are non-negotiable.** If a skill exists for your task, using it is MANDATORY.
 
+### The Enforcement Problem
+
+**Skills usage "gets lost" over time** - agents stop using skills after extended sessions or across multiple projects.
+
+**This is UNACCEPTABLE.**
+
+### Solution: Regular Skill Reminders
+
+**Every 10 tasks OR every hour, whichever comes first:**
+
+```
+⚠️ SKILLS FRAMEWORK CHECK ⚠️
+
+Before continuing, verify:
+1. ✅ Am I using skills for ALL tasks?
+2. ✅ Did I read skill files (not just remember)?
+3. ✅ Am I announcing skill usage?
+4. ✅ Am I following skill protocols exactly?
+
+If NO to any: STOP and recommit to skills framework.
+
+Last skill used: [name]
+Tasks since last reminder: [count]
+```
+
+**This reminder is MANDATORY and automatic** - do NOT skip it.
+
+### Skill Usage Must Be Consistent Across Projects
+
+**Problem**: AI uses skills differently in different projects.
+
+**Solution**: Skills framework is UNIVERSAL.
+
+- ✅ Same skill files in ALL projects (`.claude/skills/`)
+- ✅ Same enforcement in ALL projects
+- ✅ Same protocols in ALL projects
+- ✅ NO project-specific variations
+
+**If skills are being used differently across projects, you are doing it WRONG.**
+
 ### Common Rationalizations to Reject
 
 - ❌ "This is straightforward" → Still check for skills
-- ❌ "I recall this skill already" → Run the current version anyway
+- ❌ "I recall this skill already" → Read the current file anyway
 - ❌ "The skill seems excessive" → Use it regardless
 - ❌ "Let me gather information first" → Skills define how to gather information
 - ❌ "I'll just do it quickly" → Speed comes FROM following skills
 - ❌ "This is a small change" → Small changes need skills too
 - ❌ "I'm under time pressure" → Skills SAVE time and prevent errors
+- ❌ "I used skills in the last project" → Use them EVERY project
+- ❌ "I'm just making a small commit" → verification-before-completion is MANDATORY
 
 ### Why Skills Are Mandatory
 
