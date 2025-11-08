@@ -12,11 +12,11 @@ CodeAssist combines professional development workflows with the Superpowers skil
 
 ### 🆕 What's New in v3.1
 
-- **24 Production-Ready Skills**: Complete Superpowers implementation + CodeAssist additions
+- **25 Production-Ready Skills**: Complete Superpowers implementation + CodeAssist additions
   - 8 Core Workflow Skills (brainstorming, planning, execution, code review, verification)
   - 4 Testing Skills (TDD, condition-based waiting, anti-patterns, Playwright MCP)
   - 5 Workflow Skills (git, worktrees, parallel agents, branch finishing, subagent-driven)
-  - 2 Safety Skills (database backup, defense-in-depth)
+  - **3 Safety Skills** (database backup, defense-in-depth, **pre-commit hooks**)
   - 2 Debugging Skills (systematic debugging, root-cause tracing)
   - 3 Meta Skills (writing skills, testing skills, sharing skills)
 - **Complete Infrastructure**: Agents, hooks, commands for Claude Code
@@ -47,9 +47,9 @@ CodeAssist combines professional development workflows with the Superpowers skil
 ```
 Initialize a new project using CodeAssist v3.1 with Skills Framework:
 
-1. Fetch and read the Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (understand all 24 skills)
+1. Fetch and read the Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (understand all 25 skills)
 2. Fetch the install script: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh
-3. Run the script to install all 24 skills locally: bash install-skills.sh
+3. Run the script to install all 25 skills locally: bash install-skills.sh
 4. Fetch and read the init prompt: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md
 5. Use using-skills protocol for EVERY task, brainstorming skill for approach, write-plans for breakdown
 6. Remember: NO AI co-author in commits, MANDATORY database-backup before ANY database operation
@@ -83,7 +83,7 @@ Update this project to the latest CodeAssist v3.1 with Skills Framework:
 2. Update to latest skills:
    - Fetch: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh
    - Run: bash install-skills.sh
-   - This installs/updates all 24 skills to .claude/skills/
+   - This installs/updates all 25 skills to .claude/skills/
 
 3. Verify installation:
    - Count: find .claude/skills -name "SKILL.md" | wc -l (should be 24)
@@ -107,7 +107,7 @@ Update this project to the latest CodeAssist v3.1 with Skills Framework:
 
 **Ultra-Quick Version:**
 ```
-Update CodeAssist: Check .claude/skills/ count, fetch and run https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh, verify 24 skills installed, read CHANGELOG, confirm using-skills protocol for all tasks. Report what's new.
+Update CodeAssist: Check .claude/skills/ count, fetch and run https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh, verify 25 skills installed, read CHANGELOG, confirm using-skills protocol for all tasks. Report what's new.
 ```
 
 ---
@@ -119,7 +119,7 @@ Update CodeAssist: Check .claude/skills/ count, fetch and run https://raw.github
 ```
 Update to latest CodeAssist v3.1 documentation:
 
-1. Read Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (all 24 skills)
+1. Read Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (all 25 skills)
 2. Read Init Prompt: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md
 3. Read Key Guides: database-backup-strategy.md, git-branching-strategy-guide.md
 4. Confirm understanding: using-skills protocol, database-backup mandatory, workflow cycle
@@ -139,7 +139,7 @@ CodeAssist includes a complete skills framework with **24 systematic protocols**
 
 ### 🚀 Quick Skills Installation
 
-Install all 24 skills locally in any project:
+Install all 25 skills locally in any project:
 
 ```bash
 # Clone or download the install script
@@ -152,11 +152,13 @@ chmod +x install-skills.sh
 # Skills now available in ./.claude/skills/ directory (unified location)
 ```
 
-### 📚 Skills Breakdown (24 Total)
+### 📚 Skills Breakdown (25 Total)
 
 **Critical Skills (MANDATORY):**
 - `using-skills` - Protocol for EVERY task (mandatory first response)
 - `database-backup` - MANDATORY before ANY database operation ⚠️
+- `verification-before-completion` - MANDATORY before EVERY commit ⚠️
+- `pre-commit-hooks` - MANDATORY setup for ALL projects ⚠️
 
 **Core Workflow (8 skills):**
 - Brainstorming, writing plans, executing plans, code review, requesting review, receiving review, verification
@@ -165,10 +167,10 @@ chmod +x install-skills.sh
 - Test-driven development, condition-based waiting, testing anti-patterns, **Playwright MCP frontend testing**
 
 **Workflow (5 skills):**
-- Git workflow, git worktrees, parallel agents, branch finishing, subagent-driven development
+- Git workflow (5 Iron Laws), git worktrees, parallel agents, branch finishing, subagent-driven development
 
-**Safety (2 skills):**
-- Database backup (CRITICAL), defense-in-depth validation
+**Safety (3 skills):**
+- Database backup (CRITICAL), defense-in-depth validation, **pre-commit hooks (NEW)**
 
 **Debugging (2 skills):**
 - Systematic debugging, root-cause tracing
@@ -188,6 +190,33 @@ Every task follows this cycle:
 
 **See**: [Skills Index](skills/README.md) for complete guide with triggers and examples.
 
+### ⚠️ Strong Enforcement (NEW)
+
+**Problem**: Skills usage "gets lost" over time and differs across projects.
+
+**Solution**: Stronger enforcement mechanisms
+
+**Mandatory Git Workflow:**
+- ✅ NO commits without `verification-before-completion` skill
+- ✅ ALL projects MUST have pre-commit hooks
+- ✅ Small, precise commits (one logical change)
+- ✅ Frontend + Backend = BOTH tests required
+- ✅ Run `/commit-checklist` before EVERY commit
+
+**Regular Reminders:**
+- Every 10 tasks OR every hour: Skills framework check
+- Verify skills being used consistently
+- Re-read skill files (not just remember them)
+
+**Commands for Enforcement:**
+```bash
+/commit-checklist   # MANDATORY before git commit
+/session-start      # Start of every work session
+/check-updates      # Monthly skills framework updates
+```
+
+**The Iron Law**: Skills framework is UNIVERSAL - same enforcement across ALL projects.
+
 ### 🔄 Keeping Skills Updated
 
 **CodeAssist includes commands to keep your skills framework current:**
@@ -202,7 +231,7 @@ Compares your local skills with the latest GitHub version, reports available upd
 ```bash
 /update-skills
 ```
-Automatically fetches and installs the latest 24 skills to `.claude/skills/`.
+Automatically fetches and installs the latest 25 skills to `.claude/skills/`.
 
 **Session start reminder:**
 ```bash
@@ -243,7 +272,7 @@ Creates `.claude/SESSION_START.md` for quick reference at session start.
 ### Core Guides
 
 - **[AI Agent Project Initialization](docs/ai-agent-project-initialization-prompt.md)** - **v3.0 Modular Architecture** - Interactive AI workflow with framework-specific and phase-based guides
-- **[AI Agent Init with Skills](docs/ai-agent-init-with-skills.md)** - 🆕 **v3.1 Skills Framework** - Complete initialization with 24 skills integration
+- **[AI Agent Init with Skills](docs/ai-agent-init-with-skills.md)** - 🆕 **v3.1 Skills Framework** - Complete initialization with 25 skills integration
 - **[Database Backup Strategy](docs/database-backup-strategy.md)** - 🛡️ **CRITICAL** - Mandatory backup procedures, disaster recovery, prevents production database wipes
 - **[Git Branching Strategy](docs/git-branching-strategy-guide.md)** - Complete guide to Git workflows (GitHub & GitLab)
 - **[Development Tooling](docs/development-tooling-guide.md)** - Comprehensive CLI tools, linters, formatters reference (includes Paratest for PHP)
@@ -255,7 +284,7 @@ Creates `.claude/SESSION_START.md` for quick reference at session start.
 
 ### 🆕 Skills Framework (v3.1)
 
-- **[Skills Index](skills/README.md)** - Complete index of all 24 skills with discovery guide
+- **[Skills Index](skills/README.md)** - Complete index of all 25 skills with discovery guide
 - **[Install Script](scripts/install-skills.sh)** - One-command installation of all skills locally
 - **[Using Skills Protocol](skills/using-skills/SKILL.md)** - MANDATORY protocol for every task
 - **[Database Backup Skill](skills/safety/database-backup/SKILL.md)** - CRITICAL safety skill (mandatory before ANY database operation)

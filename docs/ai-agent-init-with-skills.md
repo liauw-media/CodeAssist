@@ -33,7 +33,7 @@ Complete this checklist for EVERY request:
    - Format: "I'm using [Skill Name] to [purpose]"
 4. **Execute**: Follow the skill exactly as documented
 
-### Available Skills (24 Total)
+### Available Skills (25 Total)
 
 #### Core Workflow Skills (8):
 - `using-skills` - This protocol (you're using it now)
@@ -388,14 +388,14 @@ For every new project initialization:
    chmod +x install-skills.sh
    ```
 
-3. **Run the installation script** (installs all 24 skills to `.claude/skills/`):
+3. **Run the installation script** (installs all 25 skills to `.claude/skills/`):
    ```bash
    ./install-skills.sh
    ```
 
    This will:
    - Create `.claude/skills/` directory (unified location)
-   - Install all 24 skills in proper structure
+   - Install all 25 skills in proper structure
    - Include: 8 core workflow, 4 testing, 5 workflow, 2 safety, 2 debugging, 3 meta skills
 
 4. **Verify installation**:
@@ -416,7 +416,7 @@ For every new project initialization:
    ✅ Debugging: 2 skills (systematic-debugging, root-cause-tracing)
    ✅ Meta: 3 skills (writing-skills, testing-skills-with-subagents, sharing-skills)
 
-   Project now has .claude/skills/ directory with all 24 skills.
+   Project now has .claude/skills/ directory with all 25 skills.
    ```
 
 6. **Optional: Commit .claude/skills/ for team use** (or add to .gitignore for per-developer installation)
