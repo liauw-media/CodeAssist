@@ -8,17 +8,31 @@
 
 CodeAssist combines professional development workflows with the Superpowers skills methodology to create a comprehensive framework for AI-assisted software development.
 
-**Version 3.1** introduces the complete **Skills Framework** - a systematic approach to development with mandatory protocols, TDD-validated skills, and intelligent agent coordination. Built on proven methodologies from [@obra's Superpowers](https://github.com/obra/superpowers) combined with CodeAssist's framework-specific guides for Laravel, Python, JavaScript, and mobile development.
+**Version 3.1.1** introduces the complete **Skills Framework** with **Strong Enforcement** - a systematic approach to development with mandatory protocols, TDD-validated skills, and intelligent agent coordination. Built on proven methodologies from [@obra's Superpowers](https://github.com/obra/superpowers) combined with CodeAssist's framework-specific guides for Laravel, Python, JavaScript, and mobile development.
 
-### 🆕 What's New in v3.1
+### 🆕 What's New in v3.1.1 (2025-11-08)
 
 - **25 Production-Ready Skills**: Complete Superpowers implementation + CodeAssist additions
   - 8 Core Workflow Skills (brainstorming, planning, execution, code review, verification)
   - 4 Testing Skills (TDD, condition-based waiting, anti-patterns, Playwright MCP)
   - 5 Workflow Skills (git, worktrees, parallel agents, branch finishing, subagent-driven)
-  - **3 Safety Skills** (database backup, defense-in-depth, **pre-commit hooks**)
+  - **3 Safety Skills** (database backup, defense-in-depth, **pre-commit hooks** ⚡NEW)
   - 2 Debugging Skills (systematic debugging, root-cause tracing)
   - 3 Meta Skills (writing skills, testing skills, sharing skills)
+
+- **🛡️ Strong Enforcement (NEW)**: Solves "skills getting lost" problem
+  - **Enforcement Guide** (`docs/SKILLS-ENFORCEMENT.md`) - Re-read weekly
+  - **Ultra-Compact Checklist** for `.claude/CLAUDE.md` - Token-optimized (50 tokens vs 200)
+  - **Regular Reminders**: Every 10 tasks OR every hour (lightweight, not full re-read)
+  - **3 Enforcement Checkpoints**: After code, before commit, periodic discipline check
+  - **Mandatory Commands**: `/commit-checklist` before EVERY commit
+  - **Iron Laws Added**: code-review (3), git-workflow (5), verification (3)
+
+- **💰 Token Optimization**:
+  - Lightweight keyword checklist: `USE READ ANNOUNCE REVIEW VERIFY CONSISTENT`
+  - Strategic full reads only (session start, weekly, when lost)
+  - **3-5x more efficient** than re-reading every 10 tasks
+
 - **Complete Infrastructure**: Agents, hooks, commands for Claude Code
 - **Claude Marketplace Ready**: Full plugin configuration
 - **Skills Installation**: One-command local installation script (`install-skills.sh`)
@@ -26,7 +40,7 @@ CodeAssist combines professional development workflows with the Superpowers skil
 - **TDD Methodology**: Skills validated with pressure scenarios
 - **Persuasion Principles**: Reliable AI behavior through authority, commitment, scarcity, social proof
 
-[See complete v3.1 changes in CHANGELOG.md](CHANGELOG.md)
+[See complete v3.1.1 changes in CHANGELOG.md](CHANGELOG.md)
 
 ## 🚀 Quick Start Prompts
 
@@ -42,10 +56,10 @@ CodeAssist combines professional development workflows with the Superpowers skil
 
 ### 🆕 Initialize New Project with Skills Framework
 
-**Copy-paste this to start a new project with full AI-guided setup (v3.1 with Skills):**
+**Copy-paste this to start a new project with full AI-guided setup (v3.1.1 with Skills):**
 
 ```
-Initialize a new project using CodeAssist v3.1 with Skills Framework:
+Initialize a new project using CodeAssist v3.1.1 with Skills Framework:
 
 1. Fetch and read the Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (understand all 25 skills)
 2. Fetch the install script: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh
@@ -74,7 +88,7 @@ Initialize project: Fetch https://raw.githubusercontent.com/liauw-media/CodeAssi
 **Use this prompt in any existing project to update CodeAssist integration:**
 
 ```
-Update this project to the latest CodeAssist v3.1 with Skills Framework:
+Update this project to the latest CodeAssist v3.1.1 with Skills Framework:
 
 1. Check current skills version:
    - If .claude/skills/ exists, check: find .claude/skills -name "SKILL.md" | wc -l
@@ -117,25 +131,26 @@ Update CodeAssist: Check .claude/skills/ count, fetch and run https://raw.github
 **Use this to update the AI agent's knowledge without installing files:**
 
 ```
-Update to latest CodeAssist v3.1 documentation:
+Update to latest CodeAssist v3.1.1 documentation:
 
 1. Read Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (all 25 skills)
 2. Read Init Prompt: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md
-3. Read Key Guides: database-backup-strategy.md, git-branching-strategy-guide.md
-4. Confirm understanding: using-skills protocol, database-backup mandatory, workflow cycle
-5. Report version and acknowledge ready to work with v3.1
+3. Read Enforcement Guide: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/SKILLS-ENFORCEMENT.md (NEW - token-optimized)
+4. Read Key Guides: database-backup-strategy.md, git-branching-strategy-guide.md
+5. Confirm understanding: using-skills protocol, database-backup mandatory, ultra-compact enforcement checklist
+6. Report version and acknowledge ready to work with v3.1.1
 ```
 
 **Quick Version:**
 ```
-Read https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md, ai-agent-init-with-skills.md, database-backup-strategy.md. Confirm using-skills protocol and report ready.
+Read https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md, https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md, https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/SKILLS-ENFORCEMENT.md. Confirm using-skills protocol and ultra-compact enforcement checklist. Report ready with v3.1.1.
 ```
 
 ---
 
-## 🎯 Skills Framework (v3.1)
+## 🎯 Skills Framework (v3.1.1)
 
-CodeAssist includes a complete skills framework with **24 systematic protocols** for professional development:
+CodeAssist includes a complete skills framework with **25 systematic protocols** for professional development:
 
 ### 🚀 Quick Skills Installation
 
@@ -190,23 +205,39 @@ Every task follows this cycle:
 
 **See**: [Skills Index](skills/README.md) for complete guide with triggers and examples.
 
-### ⚠️ Strong Enforcement (NEW)
+### ⚠️ Strong Enforcement (v3.1.1)
 
 **Problem**: Skills usage "gets lost" over time and differs across projects.
 
-**Solution**: Stronger enforcement mechanisms
+**Solution**: Token-optimized enforcement with ultra-compact reminders
 
-**Mandatory Git Workflow:**
+**📋 Ultra-Compact Skills Checklist** (Add to `.claude/CLAUDE.md`):
+```
+⚠️ SKILLS CHECK:
+□ USE □ READ □ ANNOUNCE
+□ WORKFLOW: brainstorm→plan→execute→REVIEW→verify→commit
+□ CONSISTENT
+
+CRITICAL: REVIEW after code? VERIFY before commit?
+```
+**Token cost**: ~50 tokens (4x more efficient than verbose checklist)
+
+**💰 Token Optimization Strategy:**
+- **Lightweight reminders**: Every 10 tasks (ultra-compact checklist above, ~0 tokens)
+- **Full document reads**: Only when needed (session start, weekly, when lost)
+- **3-5x more efficient** than re-reading every 10 tasks
+
+**Mandatory Git Workflow (5 Iron Laws):**
+- ✅ NO AI co-author in commits
 - ✅ NO commits without `verification-before-completion` skill
-- ✅ ALL projects MUST have pre-commit hooks
 - ✅ Small, precise commits (one logical change)
 - ✅ Frontend + Backend = BOTH tests required
-- ✅ Run `/commit-checklist` before EVERY commit
+- ✅ Pre-commit hooks MANDATORY for ALL projects
 
-**Regular Reminders:**
-- Every 10 tasks OR every hour: Skills framework check
-- Verify skills being used consistently
-- Re-read skill files (not just remember them)
+**3 Enforcement Checkpoints:**
+1. **After code implementation**: Did I use code-review? Did I run tests?
+2. **Before every commit**: Code-review done? Verification done? Tests passed?
+3. **Every 10 tasks OR 1 hour**: Ultra-compact skills check (above)
 
 **Commands for Enforcement:**
 ```bash
@@ -214,6 +245,8 @@ Every task follows this cycle:
 /session-start      # Start of every work session
 /check-updates      # Monthly skills framework updates
 ```
+
+**Enforcement Guide**: [docs/SKILLS-ENFORCEMENT.md](docs/SKILLS-ENFORCEMENT.md) - Re-read weekly
 
 **The Iron Law**: Skills framework is UNIVERSAL - same enforcement across ALL projects.
 

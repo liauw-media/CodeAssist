@@ -1,8 +1,8 @@
 # CodeAssist Skills Index
 
-**Version**: 3.1.0
-**Last Updated**: 2025-01-06
-**Total Skills**: 24 (Complete Superpowers Implementation + Playwright MCP)
+**Version**: 3.1.1
+**Last Updated**: 2025-11-08
+**Total Skills**: 25 (Complete Superpowers + CodeAssist + Enforcement)
 
 ---
 

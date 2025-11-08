@@ -11,23 +11,57 @@ Before declaring ANY work "done", perform a thorough self-review. You are your o
 
 ## When to Use This Skill
 
+- **AFTER EVERY code implementation** (mandatory)
 - After completing a feature implementation
 - After fixing a bug
-- Before committing code
+- **BEFORE committing code** (mandatory)
 - Before creating a pull request
 - When user says "is it done?"
-- After executing a plan
+- **IMMEDIATELY after executing-plans skill** (mandatory)
 
-## The Iron Law
+## The Iron Laws
 
-**NEVER declare work "done" without self-review.**
+### 1. NEVER SKIP CODE REVIEW
 
-Reasons:
-- Catches obvious bugs before user sees them
-- Ensures requirements are fully met
-- Improves code quality
-- Identifies missing tests or documentation
-- Prevents "I forgot to..." mistakes
+**This skill is MANDATORY after ANY code implementation.**
+
+❌ **FORBIDDEN sequence:**
+```
+brainstorming → writing-plans → executing-plans → [SKIP REVIEW] → commit
+```
+
+✅ **REQUIRED sequence:**
+```
+brainstorming → writing-plans → executing-plans → code-review → verification → commit
+```
+
+**Authority**: 60% of bugs are caught during code review. Skipping review means shipping bugs.
+
+### 2. NO "DONE" WITHOUT TESTING
+
+**Code review INCLUDES running tests.**
+
+Before declaring review complete:
+- [ ] All tests written
+- [ ] All tests executed
+- [ ] All tests passed
+- [ ] Coverage checked
+
+If tests don't exist: **STOP** - write tests first using `test-driven-development` skill.
+
+If tests fail: **NOT DONE** - fix bugs, don't commit.
+
+### 3. ANNOUNCEMENT IS MANDATORY
+
+You MUST announce when starting code review:
+
+> "I'm using the code-review skill to review the implementation before declaring it complete."
+
+If you find yourself saying "done" without this announcement, **STOP** - you skipped review.
+
+**Common Problem**: Brainstorming works well, code gets created, review gets skipped.
+
+**Solution**: NEVER proceed to verification-before-completion without code-review first.
 
 ## Self-Review Protocol
 

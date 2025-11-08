@@ -1,6 +1,7 @@
-# AI Agent: CodeAssist v3.1 Initialization (Skills Framework Integrated)
+# AI Agent: CodeAssist v3.1.1 Initialization (Skills Framework Integrated)
 
-*Version: 3.1 | Complete Skills-Based Workflow*
+*Version: 3.1.1 | Complete Skills-Based Workflow + Strong Enforcement*
+*Last Updated: 2025-11-08*
 
 ---
 
