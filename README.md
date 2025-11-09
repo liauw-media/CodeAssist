@@ -50,6 +50,7 @@ CodeAssist combines professional development workflows with the Superpowers skil
 |-----------|--------------|--------------|
 | 🆕 **New Project** | [Initialize New Project](#-initialize-new-project-with-skills-framework) | Full setup with skills framework |
 | 🔄 **Update Existing Project** | [Update Project](#-update-project-to-latest-codeassist) | Update skills to latest version |
+| 🛡️ **Install Hybrid Enforcement** | [Install Enforcement](#️-install-hybrid-enforcement-system-existing-projects) | Add blocking hooks to existing project |
 | 🤖 **Update Agent Only** | [Self-Update Agent](#-self-update-agent-only-without-project-changes) | Update AI knowledge without files |
 
 ---
@@ -123,6 +124,74 @@ Update this project to the latest CodeAssist v3.1.1 with Skills Framework:
 ```
 Update CodeAssist: Check .claude/skills/ count, fetch and run https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh, verify 25 skills installed, read CHANGELOG, confirm using-skills protocol for all tasks. Report what's new.
 ```
+
+---
+
+### 🛡️ Install Hybrid Enforcement System (Existing Projects)
+
+**Use this to add the revolutionary blocking hooks system to any existing project:**
+
+```
+Install CodeAssist v3.1.1 Hybrid Enforcement System in this project:
+
+🎯 What This Does:
+- Installs 4-tier hybrid enforcement with blocking hooks
+- BLOCKS database operations without backup
+- BLOCKS commits without code review + verification
+- BLOCKS after 3 edits without review
+- 90% token reduction vs previous approach
+
+📦 Installation Steps:
+
+1. Fetch and run the hooks installer:
+   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-hooks.sh -o install-hooks.sh
+   chmod +x install-hooks.sh
+   ./install-hooks.sh
+
+2. Verify installation:
+   - Check: ls -la .claude/SKILLS-DECISION-TREE.md (decision tree installed?)
+   - Check: ls -la .claude/settings.json (settings installed?)
+   - Check: ls -la hooks/*.sh (4 hooks installed?)
+   - Report what was installed
+
+3. Read the hybrid enforcement guide:
+   https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/SKILLS-ENFORCEMENT.md
+
+4. Test the system (IMPORTANT):
+   - Explain how database operations will now be blocked without backup
+   - Explain how commits will now be blocked without verification
+   - Explain how code edits trigger review enforcement
+
+5. Configure token budget (optional):
+   - Read .claude/settings.json
+   - Explain the 4 presets: unlimited, balanced (default), efficient, minimal
+   - Ask user which preset they prefer
+
+6. Confirm understanding:
+   ✅ Decision tree always loaded (200 tokens)
+   ✅ Blocking hooks enforce safety (0 tokens, system-level)
+   ✅ Periodic reminders every 10 requests (50 tokens)
+   ✅ Critical skills read when justified (3500 tokens)
+   ✅ Total: ~10,700 tokens per 100 requests (vs 100,000+ before)
+
+Report installation complete and enforcement mode active.
+```
+
+**Ultra-Quick Version:**
+```
+Install hybrid enforcement: curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-hooks.sh | bash, verify .claude/SKILLS-DECISION-TREE.md and hooks/*.sh installed, read enforcement guide, explain blocking enforcement now active, report token budget preset (balanced default). Test: explain what happens if I run "php artisan migrate" or "git commit" now.
+```
+
+**What Gets Blocked:**
+- 🛑 `php artisan migrate` without backup → BLOCKED
+- 🛑 `npm test` without backup → BLOCKED
+- 🛑 3+ code edits without review → BLOCKED
+- 🛑 `git commit` without verification → BLOCKED
+
+**Why This Matters:**
+- Based on 2 production database wipes (6 months data lost, 4 hours recovery)
+- 60% of bugs caught during code review (currently being skipped)
+- Skills framework "gets lost" during sessions (now system-enforced)
 
 ---
 
