@@ -205,11 +205,33 @@ Every task follows this cycle:
 
 **See**: [Skills Index](skills/README.md) for complete guide with triggers and examples.
 
-### ⚠️ Strong Enforcement (v3.1.1)
+### ⚠️ Hybrid Enforcement System (v3.1.1)
 
 **Problem**: Skills usage "gets lost" over time and differs across projects.
 
-**Solution**: Token-optimized enforcement with ultra-compact reminders
+**Solution**: 4-Tier HYBRID system with blocking hooks + token optimization
+
+**🎯 How It Works:**
+
+1. **Tier 1: Decision Tree** (Always loaded, 200 tokens)
+   - Pattern matching for automatic skill detection
+   - File: `.claude/SKILLS-DECISION-TREE.md`
+
+2. **Tier 2: Blocking Hooks** (0 tokens - system enforced)
+   - 🛑 BLOCKS database operations without backup
+   - 🛑 BLOCKS 3+ edits without code review
+   - 🛑 BLOCKS commits without verification
+   - NOT relying on agent memory!
+
+3. **Tier 3: Periodic Reminders** (50 tokens every 10 requests)
+   - Ultra-compact checklist
+   - NOT full skill re-reads
+
+4. **Tier 4: Context Injection** (3500 tokens when critical)
+   - Only for safety-critical moments
+   - Full skill content justified
+
+**Token Budget**: ~10,700 tokens per 100 requests (90% reduction vs re-reading)
 
 **📋 Ultra-Compact Skills Checklist** (Add to `.claude/CLAUDE.md`):
 ```
@@ -245,6 +267,23 @@ CRITICAL: REVIEW after code? VERIFY before commit?
 /session-start      # Start of every work session
 /check-updates      # Monthly skills framework updates
 ```
+
+**📦 Install Hybrid Enforcement:**
+```bash
+# One command to install all hooks
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-hooks.sh | bash
+
+# Or download and run:
+curl -O https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-hooks.sh
+chmod +x install-hooks.sh
+./install-hooks.sh
+```
+
+**🎛️ Configure Token Budget** (`.claude/settings.json`):
+- **Unlimited**: No limits (quality first)
+- **Balanced**: ~20K tokens/100 requests (DEFAULT)
+- **Efficient**: ~10K tokens/100 requests
+- **Minimal**: ~5K tokens/100 requests
 
 **Enforcement Guide**: [docs/SKILLS-ENFORCEMENT.md](docs/SKILLS-ENFORCEMENT.md) - Re-read weekly
 

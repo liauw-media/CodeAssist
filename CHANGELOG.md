@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.1.1] - 2025-11-08
 
-### 🛡️ Strong Enforcement Release: Solving "Skills Getting Lost"
+### 🛡️ Hybrid Enforcement Release: Solving "Skills Getting Lost"
 
-This release addresses critical feedback: **skills usage degrades over time** and **differs across projects**. We've implemented comprehensive enforcement mechanisms to ensure skills framework discipline is maintained.
+This release addresses critical feedback: **skills usage degrades over time** and **differs across projects**. We've implemented a revolutionary **4-Tier Hybrid Enforcement System** with blocking hooks that don't rely on agent memory.
 
 ### Problem Statement
 
@@ -24,6 +24,53 @@ This release addresses critical feedback: **skills usage degrades over time** an
 **This is UNACCEPTABLE and has been corrected.**
 
 ### Added
+
+#### 🎯 Hybrid Enforcement System (Revolutionary)
+
+**4-Tier System** combining multiple enforcement mechanisms:
+
+**Tier 1: Skills Decision Tree** (Always loaded, 200 tokens)
+- `.claude/SKILLS-DECISION-TREE.md`
+- Pattern matching for automatic skill detection
+- Always in context (not re-read)
+- Falls back to full skills when needed
+
+**Tier 2: Blocking Hooks** (System enforced, 0 tokens)
+- `hooks/pre-database-operation.sh` - BLOCKS migrate/test/seed without backup
+- `hooks/post-code-write.sh` - BLOCKS after 3 edits without review
+- `hooks/pre-commit-check.sh` - BLOCKS commits without verification
+- `hooks/periodic-reminder.sh` - Ultra-compact reminder every 10 requests
+- Triggered automatically at critical moments
+- NOT relying on agent memory!
+
+**Tier 3: Periodic Reminders** (Ultra-compact, 50 tokens)
+- Every 10 requests: skills framework check
+- NOT full skill re-reads
+- Just: "USE READ ANNOUNCE / REVIEW VERIFY"
+
+**Tier 4: Context Injection** (Strategic, 3500 tokens when justified)
+- Only for CRITICAL skills (database-backup, code-review)
+- Only when pattern detected
+- Full skill content justified for safety
+
+**Token Budget per 100 Requests:**
+- Decision tree: 200 tokens (always)
+- Periodic reminders: 500 tokens (10x @ 50)
+- Critical injections: ~10,000 tokens (2-3x @ 3500)
+- **Total: ~10,700 tokens**
+- **Previous approach: 100,000+ tokens**
+- **Savings: 90% reduction, 10x more efficient**
+
+**Installation:**
+- `scripts/install-hooks.sh` - One-command hook installer
+- `.claude/settings.json` - Configurable token budgets
+- `.claude/hooks.json` - Hook configuration
+
+**User-Configurable Token Budgets:**
+- Unlimited: No limits (quality first)
+- Balanced: ~20K tokens/100 requests (DEFAULT)
+- Efficient: ~10K tokens/100 requests
+- Minimal: ~5K tokens/100 requests
 
 #### New Skills
 

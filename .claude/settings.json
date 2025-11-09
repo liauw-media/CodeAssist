@@ -1,0 +1,163 @@
+{
+  "$schema": "https://raw.githubusercontent.com/liauw-media/CodeAssist/main/schemas/settings-schema.json",
+  "version": "3.1.1",
+
+  "skills": {
+    "enforcement": {
+      "enabled": true,
+      "mode": "hybrid",
+      "description": "Hybrid approach: decision tree + hooks + periodic reminders + context injection"
+    },
+
+    "tokenBudget": {
+      "mode": "configurable",
+      "description": "User-configurable token budget for skills enforcement",
+
+      "presets": {
+        "unlimited": {
+          "name": "Unlimited (Quality First)",
+          "maxTokensPerSession": -1,
+          "alwaysLoadDecisionTree": true,
+          "periodicReminderFrequency": 10,
+          "criticalSkillsFullRead": true,
+          "description": "No token limits. Read full skills whenever needed. Best quality, highest cost."
+        },
+
+        "balanced": {
+          "name": "Balanced (Recommended)",
+          "maxTokensPerSession": 20000,
+          "alwaysLoadDecisionTree": true,
+          "periodicReminderFrequency": 10,
+          "criticalSkillsFullRead": true,
+          "description": "~20K tokens per 100 requests. Lightweight reminders + critical full reads."
+        },
+
+        "efficient": {
+          "name": "Efficient (Token Conscious)",
+          "maxTokensPerSession": 10000,
+          "alwaysLoadDecisionTree": true,
+          "periodicReminderFrequency": 20,
+          "criticalSkillsFullRead": false,
+          "description": "~10K tokens per 100 requests. Compact checklists only, no full skill reads."
+        },
+
+        "minimal": {
+          "name": "Minimal (Ultra-Light)",
+          "maxTokensPerSession": 5000,
+          "alwaysLoadDecisionTree": true,
+          "periodicReminderFrequency": 0,
+          "criticalSkillsFullRead": false,
+          "description": "~5K tokens per 100 requests. Decision tree only, no periodic reminders."
+        }
+      },
+
+      "active": "balanced",
+      "customBudget": null
+    },
+
+    "enforcement": {
+      "blocking": {
+        "enabled": true,
+        "description": "BLOCK dangerous operations until requirements met",
+
+        "databaseOperations": {
+          "enabled": true,
+          "blockWithoutBackup": true,
+          "allowOverride": true,
+          "overrideVariable": "SKIP_BACKUP_CHECK",
+          "description": "Block migrate/test/seed without backup confirmation"
+        },
+
+        "codeReview": {
+          "enabled": true,
+          "blockAfterEdits": 3,
+          "remindAfterEdits": 1,
+          "description": "Block after 3 code edits without review"
+        },
+
+        "verification": {
+          "enabled": true,
+          "blockCommitsWithout": true,
+          "requireCodeReview": true,
+          "requireTestsPass": true,
+          "description": "Block commits without verification-before-completion"
+        }
+      },
+
+      "reminders": {
+        "periodic": {
+          "enabled": true,
+          "frequency": 10,
+          "type": "ultra-compact",
+          "description": "Show ultra-compact checklist every 10 requests"
+        },
+
+        "sessionStart": {
+          "enabled": true,
+          "loadDecisionTree": true,
+          "loadEnforcementGuide": false,
+          "description": "Load decision tree at session start (enforcement guide optional)"
+        }
+      }
+    },
+
+    "hooks": {
+      "enabled": true,
+      "directory": "./hooks",
+
+      "available": {
+        "pre-database-operation": {
+          "enabled": true,
+          "triggers": ["migrate", "test", "seed", "db:", "artisan test", "npm test", "pytest"],
+          "blocking": true,
+          "priority": "critical"
+        },
+
+        "post-code-write": {
+          "enabled": true,
+          "triggers": ["Edit", "Write"],
+          "blocking": false,
+          "escalatesAt": 3,
+          "priority": "high"
+        },
+
+        "pre-commit-check": {
+          "enabled": true,
+          "triggers": ["commit", "done", "finished"],
+          "blocking": true,
+          "priority": "critical"
+        },
+
+        "periodic-reminder": {
+          "enabled": true,
+          "frequency": 10,
+          "blocking": false,
+          "priority": "medium"
+        }
+      }
+    }
+  },
+
+  "documentation": {
+    "skillsIndex": ".claude/skills/README.md",
+    "decisionTree": ".claude/SKILLS-DECISION-TREE.md",
+    "enforcementGuide": "docs/SKILLS-ENFORCEMENT.md",
+    "projectInstructions": ".claude/CLAUDE.md"
+  },
+
+  "tracking": {
+    "requestCounter": ".claude/.request_count",
+    "codeEditsCounter": ".claude/.code_edits_count",
+    "verificationDone": ".claude/.verification_done",
+    "codeReviewDone": ".claude/.code_review_done",
+    "testResults": ".claude/.test_results",
+    "commitChecklistDone": ".claude/.commit_checklist_done"
+  },
+
+  "comments": {
+    "tokenBudget": "Choose preset based on your priorities: 'unlimited' (quality first), 'balanced' (recommended), 'efficient' (token conscious), 'minimal' (ultra-light)",
+    "blocking": "Blocking enforcement prevents dangerous operations. Disable only if you know what you're doing.",
+    "hooks": "Hooks automatically trigger at critical moments. They make enforcement proactive instead of reactive.",
+    "customization": "You can create custom token budgets and override individual hook settings."
+  }
+}

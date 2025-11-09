@@ -418,6 +418,130 @@ git log --since="1 day ago" --oneline
 
 ---
 
+## 🎯 Hybrid Enforcement Approach (v3.1.1)
+
+**Problem**: Skills framework "gets lost" and relies on agent memory.
+
+**Solution**: HYBRID system combining multiple enforcement mechanisms.
+
+### The 4-Tier Hybrid System
+
+**Tier 1: Skills Decision Tree (Always Loaded - 200 tokens)**
+- Pattern matching for common scenarios
+- Always in context (not re-read)
+- Falls back to full skills when needed
+- File: `.claude/SKILLS-DECISION-TREE.md`
+
+**Tier 2: Blocking Hooks (System Enforced - 0 tokens)**
+- `pre-database-operation.sh` → BLOCKS migrate/test/seed without backup
+- `post-code-write.sh` → BLOCKS after 3 edits without review
+- `pre-commit-check.sh` → BLOCKS commits without verification
+- Triggered automatically at critical moments
+- NOT relying on agent memory
+
+**Tier 3: Periodic Reminders (Ultra-Compact - 50 tokens)**
+- Every 10 requests: ultra-compact checklist
+- NOT full skill re-reads
+- Just: "USE READ ANNOUNCE / REVIEW VERIFY"
+- Hook: `periodic-reminder.sh`
+
+**Tier 4: Context Injection (Strategic - 3500 tokens when justified)**
+- Only for CRITICAL skills (database-backup, code-review)
+- Only when pattern detected
+- Full skill content justified for safety
+
+### Token Budget per 100-Request Session
+
+| Component | Frequency | Tokens | Total |
+|-----------|-----------|--------|-------|
+| Decision Tree | Always loaded | 200 | 200 |
+| Periodic Reminders | 10x per 100 | 50 | 500 |
+| Critical Injections | 2-3x per 100 | 3500 | ~10,000 |
+| **Total** | | | **~10,700** |
+
+**Previous approach**: 100,000+ tokens (re-reading every 10)
+**Hybrid approach**: ~10,700 tokens
+**Savings**: **90% reduction, 10x more efficient**
+
+### User-Configurable Token Budgets
+
+Edit `.claude/settings.json` to choose preset:
+
+```json
+{
+  "skills": {
+    "tokenBudget": {
+      "active": "balanced"  // Change to: unlimited, balanced, efficient, minimal
+    }
+  }
+}
+```
+
+**Presets:**
+
+1. **Unlimited** (Quality First)
+   - No token limits
+   - Read full skills whenever needed
+   - Best quality, highest cost
+
+2. **Balanced** (Recommended - DEFAULT)
+   - ~20K tokens per 100 requests
+   - Lightweight reminders + critical full reads
+   - 90% quality at 10% cost
+
+3. **Efficient** (Token Conscious)
+   - ~10K tokens per 100 requests
+   - Compact checklists only
+   - No full skill reads
+
+4. **Minimal** (Ultra-Light)
+   - ~5K tokens per 100 requests
+   - Decision tree only
+   - No periodic reminders
+
+### Blocking Enforcement (Always Active)
+
+Hooks **BLOCK** dangerous operations regardless of token budget:
+
+**🛑 Database Operations:**
+```bash
+$ php artisan migrate
+🛑 DATABASE OPERATION DETECTED - BLOCKED
+⚠️  MANDATORY: database-backup skill REQUIRED
+Create backup NOW: ./scripts/backup-database.sh
+```
+
+**🛑 Code Review (after 3 edits):**
+```bash
+🛑 CODE REVIEW REQUIRED - BLOCKING
+⚠️  You've made 3 code changes without review
+MANDATORY: Use code-review skill NOW
+```
+
+**🛑 Commits Without Verification:**
+```bash
+$ git commit
+🛑 PRE-COMMIT VERIFICATION - BLOCKING
+❌ NO code review found
+❌ NO verification found
+BLOCKED: Cannot commit
+```
+
+### Installation
+
+Install hybrid enforcement system:
+
+```bash
+# Fetch and run installer
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-hooks.sh -o install-hooks.sh
+chmod +x install-hooks.sh
+./install-hooks.sh
+
+# Hooks are now active!
+```
+
+---
+
 ## 💰 Token Optimization Strategy
 
 **Problem**: Re-reading full skills documents every 10 tasks is expensive:
@@ -425,7 +549,7 @@ git log --since="1 day ago" --oneline
 - Multiple skill files: ~10,000+ tokens per re-read
 - In 100-request session: Could waste 100,000+ tokens
 
-**Solution**: Lightweight reminders with strategic full reads
+**Solution**: Hybrid approach (decision tree + hooks + strategic reads)
 
 ### Lightweight Approach (Every 10 Tasks)
 
