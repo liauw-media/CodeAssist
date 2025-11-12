@@ -2,7 +2,7 @@
 
 **Version**: 3.1.1
 **Last Updated**: 2025-11-08
-**Total Skills**: 25 (Complete Superpowers + CodeAssist + Enforcement)
+**Total Skills**: 26 (Complete Superpowers + CodeAssist + Enforcement + Platform CLI)
 
 ---
 
@@ -130,6 +130,14 @@
 
 ## 🔀 Workflow Skills
 
+### git-platform-cli ⚠️
+**Use when**: ALWAYS (session start, creating tasks, committing, creating PR/MR)
+**Purpose**: MANDATORY gh/glab usage for issue/task management
+**File**: `workflow/git-platform-cli/SKILL.md`
+**Includes**: Issue creation from tasks, commit linking, PR/MR creation
+**Policy**: NO manual web UI for issues - ALWAYS use CLI
+**Priority**: CRITICAL - Required for all projects
+
 ### git-workflow
 **Use when**: Making commits, creating branches
 **Purpose**: Consistent Git practices
@@ -240,15 +248,18 @@
 
 ### By Trigger Keyword
 
+- **Session start** → `git-platform-cli` (check gh/glab) ⚠️ MANDATORY
 - `migrate`, `test`, `seed` → `database-backup` ⚠️
-- "new feature" → `brainstorming` → `writing-plans` → `test-driven-development`
-- "bug", "error" → `systematic-debugging`
-- "new project" → `brainstorming` → `writing-plans`
+- "new feature" → `brainstorming` → `writing-plans` → `git-platform-cli` (create issues) → `test-driven-development`
+- "task", "todo", "plan" → `writing-plans` → `git-platform-cli` (create issues)
+- "bug", "error" → `git-platform-cli` (create bug issue) → `systematic-debugging`
+- "new project" → `brainstorming` → `writing-plans` → `git-platform-cli` (create issues)
+- "issue", "feature request" → `git-platform-cli` (use gh/glab, not web UI) ⚠️
 - "frontend test", "browser test" → `playwright-frontend-testing`
 - "flaky test", "timeout" → `condition-based-waiting`
-- "commit", "push" → `git-workflow`
+- "commit", "push" → `git-workflow` + `git-platform-cli` (link issues)
 - "parallel", "multiple features" → `git-worktrees` or `dispatching-parallel-agents`
-- "done", "complete" → `code-review` → `verification-before-completion`
+- "done", "complete" → `code-review` → `verification-before-completion` → `git-platform-cli` (create PR/MR)
 - "code review feedback" → `receiving-code-review`
 
 ---
@@ -282,9 +293,10 @@ Skills represent **accumulated wisdom**:
 
 ## 📊 Skill Statistics
 
-**Critical Skills (ALWAYS)**: 2
+**Critical Skills (ALWAYS)**: 3
 - `using-skills` (mandatory protocol)
 - `database-backup` (mandatory before ANY database operation)
+- `git-platform-cli` (mandatory gh/glab for issues/tasks) ⚠️ NEW
 
 **Core Workflow**: 7
 - `brainstorming`, `writing-plans`, `executing-plans`
@@ -298,8 +310,8 @@ Skills represent **accumulated wisdom**:
 - `test-driven-development`, `condition-based-waiting`
 - `testing-anti-patterns`, `playwright-frontend-testing`
 
-**Workflow**: 5
-- `git-workflow`, `git-worktrees`, `dispatching-parallel-agents`
+**Workflow**: 6
+- `git-platform-cli`, `git-workflow`, `git-worktrees`, `dispatching-parallel-agents`
 - `finishing-a-development-branch`, `subagent-driven-development`
 
 **Debugging**: 2
@@ -308,7 +320,7 @@ Skills represent **accumulated wisdom**:
 **Meta**: 3
 - `writing-skills`, `testing-skills-with-subagents`, `sharing-skills`
 
-**Total**: 24 skills (1 critical protocol + 23 operational skills)
+**Total**: 26 skills (1 critical protocol + 2 mandatory tools + 23 operational skills)
 
 ---
 

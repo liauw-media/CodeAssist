@@ -84,7 +84,46 @@ This release addresses critical feedback: **skills usage degrades over time** an
   - Universal hooks for all languages
   - Frontend + Backend test requirements
 
-**Total Skills: 25** (up from 24)
+**Total Skills: 26** (up from 24)
+
+#### 🔧 MANDATORY Tools Integration (NEW)
+
+**GitHub CLI (`gh`) and GitLab CLI (`glab`) now MANDATORY** for all projects:
+
+**New Skill**: `workflow/git-platform-cli/SKILL.md`
+- MANDATORY for ALL issue/task management
+- NO manual web UI usage - ALWAYS use CLI
+- Session start check: gh/glab installed and authenticated
+- Automatic issue creation from TodoWrite tasks
+- Commit ↔ Issue linking (Closes #X, Fixes #X)
+- Automated PR/MR creation with issue references
+- Unified workflow across GitHub and GitLab
+
+**Installation:**
+```bash
+# GitHub CLI
+winget install GitHub.cli  # Windows
+brew install gh            # macOS/Linux
+
+# GitLab CLI
+brew install glab          # macOS/Linux
+# Windows: https://gitlab.com/gitlab-org/cli/-/releases
+```
+
+**Why MANDATORY**:
+- Professional development standard (34K+ stars gh, 2.8K+ glab)
+- Automation and consistency
+- Traceability (commits linked to issues)
+- Faster than web UI
+- Scriptable and repeatable
+- Integration with TodoWrite tasks
+
+**Workflow Integration**:
+```
+Task creation → gh/glab issue create
+Code commit → references issue (#42)
+Completion → gh/glab pr create (closes all issues)
+```
 
 #### New Documentation
 

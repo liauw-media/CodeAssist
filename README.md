@@ -12,13 +12,21 @@ CodeAssist combines professional development workflows with the Superpowers skil
 
 ### 🆕 What's New in v3.1.1 (2025-11-08)
 
-- **25 Production-Ready Skills**: Complete Superpowers implementation + CodeAssist additions
+- **26 Production-Ready Skills**: Complete Superpowers implementation + CodeAssist additions
   - 8 Core Workflow Skills (brainstorming, planning, execution, code review, verification)
   - 4 Testing Skills (TDD, condition-based waiting, anti-patterns, Playwright MCP)
-  - 5 Workflow Skills (git, worktrees, parallel agents, branch finishing, subagent-driven)
-  - **3 Safety Skills** (database backup, defense-in-depth, **pre-commit hooks** ⚡NEW)
+  - **6 Workflow Skills** (git-platform-cli ⚡NEW, git, worktrees, parallel agents, branch finishing, subagent-driven)
+  - **3 Safety Skills** (database backup, defense-in-depth, pre-commit hooks)
   - 2 Debugging Skills (systematic debugging, root-cause tracing)
   - 3 Meta Skills (writing skills, testing skills, sharing skills)
+
+- **🔧 MANDATORY Tools** (NEW):
+  - **GitHub CLI (`gh`)** - REQUIRED for all projects
+  - **GitLab CLI (`glab`)** - REQUIRED for all projects
+  - Unified issue/task management across platforms
+  - Automatic issue creation from TodoWrite tasks
+  - Commit ↔ Issue linking
+  - Automated PR/MR creation with issue references
 
 - **🛡️ Strong Enforcement (NEW)**: Solves "skills getting lost" problem
   - **Enforcement Guide** (`docs/SKILLS-ENFORCEMENT.md`) - Re-read weekly
@@ -219,11 +227,44 @@ Read https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README
 
 ## 🎯 Skills Framework (v3.1.1)
 
-CodeAssist includes a complete skills framework with **25 systematic protocols** for professional development:
+CodeAssist includes a complete skills framework with **26 systematic protocols** for professional development:
+
+### 🔧 Mandatory Tools (Install First)
+
+**Before installing skills, ensure these CLIs are installed:**
+
+```bash
+# Check if installed
+gh --version   # GitHub CLI (REQUIRED)
+glab --version # GitLab CLI (REQUIRED)
+```
+
+**Installation:**
+
+```bash
+# GitHub CLI
+# Windows:
+winget install GitHub.cli
+
+# macOS/Linux:
+brew install gh
+
+# GitLab CLI
+# Windows: Download from https://gitlab.com/gitlab-org/cli/-/releases
+# macOS/Linux:
+brew install glab
+```
+
+**Why MANDATORY**:
+- Issue/task management integration
+- TodoWrite → GitHub/GitLab issues
+- Commit ↔ Issue linking
+- Automated PR/MR creation
+- Traceability and automation
 
 ### 🚀 Quick Skills Installation
 
-Install all 25 skills locally in any project:
+Install all 26 skills locally in any project:
 
 ```bash
 # Clone or download the install script
@@ -236,11 +277,12 @@ chmod +x install-skills.sh
 # Skills now available in ./.claude/skills/ directory (unified location)
 ```
 
-### 📚 Skills Breakdown (25 Total)
+### 📚 Skills Breakdown (26 Total)
 
 **Critical Skills (MANDATORY):**
 - `using-skills` - Protocol for EVERY task (mandatory first response)
 - `database-backup` - MANDATORY before ANY database operation ⚠️
+- `git-platform-cli` - MANDATORY gh/glab for issues/tasks ⚠️ NEW
 - `verification-before-completion` - MANDATORY before EVERY commit ⚠️
 - `pre-commit-hooks` - MANDATORY setup for ALL projects ⚠️
 
@@ -248,13 +290,13 @@ chmod +x install-skills.sh
 - Brainstorming, writing plans, executing plans, code review, requesting review, receiving review, verification
 
 **Testing (4 skills):**
-- Test-driven development, condition-based waiting, testing anti-patterns, **Playwright MCP frontend testing**
+- Test-driven development, condition-based waiting, testing anti-patterns, Playwright MCP frontend testing
 
-**Workflow (5 skills):**
-- Git workflow (5 Iron Laws), git worktrees, parallel agents, branch finishing, subagent-driven development
+**Workflow (6 skills):**
+- **Git platform CLI (gh/glab)** NEW, Git workflow (5 Iron Laws), git worktrees, parallel agents, branch finishing, subagent-driven development
 
 **Safety (3 skills):**
-- Database backup (CRITICAL), defense-in-depth validation, **pre-commit hooks (NEW)**
+- Database backup (CRITICAL), defense-in-depth validation, pre-commit hooks
 
 **Debugging (2 skills):**
 - Systematic debugging, root-cause tracing

@@ -5,24 +5,35 @@
 ## Pattern Matching (Automatic Skill Detection)
 
 ```
+Session Start (ALWAYS):
+└─> CHECK: gh --version && glab --version (MANDATORY tools)
+    If missing → BLOCK and require installation
+
 User Request Analysis:
 ├─ Contains: migrate|test|seed|db:|artisan test|npm test|pytest
 │  └─> 🛑 BLOCK → database-backup (MANDATORY, read full skill)
 │
 ├─ Contains: new feature|add feature|implement|build
-│  └─> brainstorming → writing-plans → executing-plans
+│  └─> brainstorming → writing-plans → git-platform-cli (create issues) → executing-plans
+│
+├─ Contains: task|todo|plan
+│  └─> writing-plans → git-platform-cli (create issues from tasks)
 │
 ├─ Tool Used: Edit|Write (code was written)
 │  └─> 🛑 BLOCK → code-review (MANDATORY after ANY code)
 │
 ├─ User says: done|finished|complete|commit|push
 │  └─> 🛑 BLOCK → verification-before-completion (MANDATORY)
+│     └─> git-platform-cli (create PR/MR with issue links)
+│
+├─ Contains: issue|bug report|feature request
+│  └─> git-platform-cli (use gh/glab, NOT web UI)
 │
 ├─ Contains: multiple|parallel|independent tasks
 │  └─> dispatching-parallel-agents
 │
 ├─ Contains: bug|error|broken|failing|not working
-│  └─> systematic-debugging → root-cause-tracing
+│  └─> git-platform-cli (create bug issue) → systematic-debugging → root-cause-tracing
 │
 ├─ Contains: frontend test|browser test|e2e test|playwright
 │  └─> playwright-frontend-testing (hybrid: MCP → permanent tests)
@@ -34,6 +45,36 @@ User Request Analysis:
 ```
 
 ## Critical Enforcement Points (BLOCKING)
+
+### 🛑 0. Session Start: gh/glab Check (NEW - MANDATORY)
+**Triggers**: Every session start
+
+**Action**: CHECK if gh and glab are installed:
+```bash
+gh --version  # GitHub CLI - MANDATORY
+glab --version  # GitLab CLI - MANDATORY
+```
+
+**If either missing**: BLOCK and require installation:
+```bash
+# GitHub CLI
+winget install GitHub.cli  # Windows
+brew install gh            # macOS/Linux
+
+# GitLab CLI
+Download from https://gitlab.com/gitlab-org/cli/-/releases
+Or: brew install glab (macOS/Linux)
+```
+
+**Why MANDATORY**:
+- Issue/task management integration
+- Automated workflows
+- Traceability (commits ↔ issues)
+- Professional development standard
+
+**Full Skill**: `.claude/skills/workflow/git-platform-cli/SKILL.md`
+
+---
 
 ### 🛑 1. Before Database Operations
 **Triggers**: migrate, test, seed, db:, artisan test, npm test, pytest
