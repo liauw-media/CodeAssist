@@ -63,7 +63,7 @@ CodeAssist combines professional development workflows with the Superpowers skil
 - **TDD Methodology**: Skills validated with pressure scenarios
 - **Persuasion Principles**: Reliable AI behavior through authority, commitment, scarcity, social proof
 
-[See complete v3.1.1 changes in CHANGELOG.md](CHANGELOG.md)
+[See complete v3.1.4 changes in CHANGELOG.md](CHANGELOG.md)
 
 ## 🚀 Quick Start Prompts
 
@@ -80,10 +80,10 @@ CodeAssist combines professional development workflows with the Superpowers skil
 
 ### 🆕 Initialize New Project with Skills Framework
 
-**Copy-paste this to start a new project with full AI-guided setup (v3.1.1 with Skills):**
+**Copy-paste this to start a new project with full AI-guided setup (v3.1.4 with Skills):**
 
 ```
-Initialize a new project using CodeAssist v3.1.1 with Skills Framework:
+Initialize a new project using CodeAssist v3.1.4 with Skills Framework:
 
 1. Fetch and read the Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (understand all 30 skills)
 2. Fetch the install script: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh
@@ -234,26 +234,26 @@ Install hybrid enforcement: curl -fsSL https://raw.githubusercontent.com/liauw-m
 **Use this to update the AI agent's knowledge without installing files:**
 
 ```
-Update to latest CodeAssist v3.1.1 documentation:
+Update to latest CodeAssist v3.1.4 documentation:
 
-1. Read Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (all 25 skills)
+1. Read Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (all 30 skills)
 2. Read Init Prompt: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md
 3. Read Enforcement Guide: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/SKILLS-ENFORCEMENT.md (NEW - token-optimized)
 4. Read Key Guides: database-backup-strategy.md, git-branching-strategy-guide.md
-5. Confirm understanding: using-skills protocol, database-backup mandatory, ultra-compact enforcement checklist
-6. Report version and acknowledge ready to work with v3.1.1
+5. Confirm understanding: using-skills protocol, database-backup mandatory, ultra-compact enforcement checklist, brand-guidelines integration
+6. Report version and acknowledge ready to work with v3.1.4
 ```
 
 **Quick Version:**
 ```
-Read https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md, https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md, https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/SKILLS-ENFORCEMENT.md. Confirm using-skills protocol and ultra-compact enforcement checklist. Report ready with v3.1.1.
+Read https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md, https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md, https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/SKILLS-ENFORCEMENT.md. Confirm using-skills protocol, ultra-compact enforcement checklist, and brand-guidelines integration. Report ready with v3.1.4.
 ```
 
 ---
 
-## 🎯 Skills Framework (v3.1.1)
+## 🎯 Skills Framework (v3.1.4)
 
-CodeAssist includes a complete skills framework with **26 systematic protocols** for professional development:
+CodeAssist includes a complete skills framework with **30 systematic protocols** for professional development:
 
 ### 🔧 Mandatory Tools (Install First)
 
@@ -290,7 +290,7 @@ brew install glab
 
 ### 🚀 Quick Skills Installation
 
-Install all 26 skills locally in any project:
+Install all 30 skills locally in any project:
 
 ```bash
 # Clone or download the install script
@@ -303,29 +303,30 @@ chmod +x install-skills.sh
 # Skills now available in ./.claude/skills/ directory (unified location)
 ```
 
-### 📚 Skills Breakdown (26 Total)
+### 📚 Skills Breakdown (30 Total)
 
 **Critical Skills (MANDATORY):**
 - `using-skills` - Protocol for EVERY task (mandatory first response)
 - `database-backup` - MANDATORY before ANY database operation ⚠️
-- `git-platform-cli` - MANDATORY gh/glab for issues/tasks ⚠️ NEW
-- `verification-before-completion` - MANDATORY before EVERY commit ⚠️
-- `pre-commit-hooks` - MANDATORY setup for ALL projects ⚠️
+- `git-platform-cli` - MANDATORY gh/glab for issues/tasks ⚠️
 
-**Core Workflow (8 skills):**
+**Core Workflow (7 skills):**
 - Brainstorming, writing plans, executing plans, code review, requesting review, receiving review, verification
 
-**Testing (4 skills):**
-- Test-driven development, condition-based waiting, testing anti-patterns, Playwright MCP frontend testing
+**Testing (5 skills):**
+- Test-driven development, condition-based waiting, testing anti-patterns, Playwright MCP frontend testing, Lighthouse performance optimization
 
 **Workflow (6 skills):**
-- **Git platform CLI (gh/glab)** NEW, Git workflow (5 Iron Laws), git worktrees, parallel agents, branch finishing, subagent-driven development
+- Git platform CLI (gh/glab), Git workflow (5 Iron Laws), git worktrees, parallel agents, branch finishing, subagent-driven development
 
-**Safety (3 skills):**
-- Database backup (CRITICAL), defense-in-depth validation, pre-commit hooks
+**Safety (2 skills):**
+- Database backup (CRITICAL), defense-in-depth validation
 
-**Debugging (2 skills):**
-- Systematic debugging, root-cause tracing
+**Debugging (3 skills):**
+- Systematic debugging, root-cause tracing, browser automation debugging
+
+**Design (2 skills):**
+- Brand guidelines (NEW), Frontend design
 
 **Meta (3 skills):**
 - Writing skills, testing skills with subagents, sharing skills
@@ -342,7 +343,7 @@ Every task follows this cycle:
 
 **See**: [Skills Index](skills/README.md) for complete guide with triggers and examples.
 
-### ⚠️ Hybrid Enforcement System (v3.1.1)
+### ⚠️ Hybrid Enforcement System (v3.1.4)
 
 **Problem**: Skills usage "gets lost" over time and differs across projects.
 
@@ -440,7 +441,7 @@ Compares your local skills with the latest GitHub version, reports available upd
 ```bash
 /update-skills
 ```
-Automatically fetches and installs the latest 25 skills to `.claude/skills/`.
+Automatically fetches and installs the latest 30 skills to `.claude/skills/`.
 
 **Session start reminder:**
 ```bash
@@ -481,7 +482,7 @@ Creates `.claude/SESSION_START.md` for quick reference at session start.
 ### Core Guides
 
 - **[AI Agent Project Initialization](docs/ai-agent-project-initialization-prompt.md)** - **v3.0 Modular Architecture** - Interactive AI workflow with framework-specific and phase-based guides
-- **[AI Agent Init with Skills](docs/ai-agent-init-with-skills.md)** - 🆕 **v3.1 Skills Framework** - Complete initialization with 25 skills integration
+- **[AI Agent Init with Skills](docs/ai-agent-init-with-skills.md)** - 🆕 **v3.1.4 Skills Framework** - Complete initialization with 30 skills integration
 - **[Database Backup Strategy](docs/database-backup-strategy.md)** - 🛡️ **CRITICAL** - Mandatory backup procedures, disaster recovery, prevents production database wipes
 - **[Git Branching Strategy](docs/git-branching-strategy-guide.md)** - Complete guide to Git workflows (GitHub & GitLab)
 - **[Development Tooling](docs/development-tooling-guide.md)** - Comprehensive CLI tools, linters, formatters reference (includes Paratest for PHP)
@@ -491,13 +492,15 @@ Creates `.claude/SESSION_START.md` for quick reference at session start.
 - **[Wiki Setup Guide](docs/wiki-setup-guide.md)** - Using GitHub/GitLab wikis for documentation
 - **[Integration Guides](docs/integration-guides.md)** - System integration patterns and best practices
 
-### 🆕 Skills Framework (v3.1)
+### 🆕 Skills Framework (v3.1.4)
 
-- **[Skills Index](skills/README.md)** - Complete index of all 25 skills with discovery guide
+- **[Skills Index](skills/README.md)** - Complete index of all 30 skills with discovery guide
 - **[Install Script](scripts/install-skills.sh)** - One-command installation of all skills locally
 - **[Using Skills Protocol](skills/using-skills/SKILL.md)** - MANDATORY protocol for every task
 - **[Database Backup Skill](skills/safety/database-backup/SKILL.md)** - CRITICAL safety skill (mandatory before ANY database operation)
-- **[Playwright MCP Testing](skills/testing/playwright-frontend-testing/SKILL.md)** - AI-assisted browser testing
+- **[Brand Guidelines Skill](skills/design/brand-guidelines/SKILL.md)** - NEW: Establish comprehensive brand identity
+- **[Frontend Design Skill](skills/design/frontend-design/SKILL.md)** - Production-grade UI with automatic brand application
+- **[Playwright MCP Testing](skills/testing/playwright-frontend-testing/SKILL.md)** - AI-assisted browser testing with brand validation
 
 ### Framework-Specific Guides (v3.0)
 
@@ -554,12 +557,13 @@ npm test  # ❌ WRONG - can wipe production database
 - ✅ Task management with TASKS.md and issue tracking
 - ✅ **AI agent self-update mechanism** - Always use latest best practices
 
-### 🆕 v3.1: Skills Framework
-- ✅ **24 Complete Skills**: All 21 Superpowers skills + 3 CodeAssist additions
+### 🆕 v3.1.4: Skills Framework
+- ✅ **30 Complete Skills**: Complete Superpowers + MCP Tools + Design + Branding
 - ✅ **Mandatory Protocols**: using-skills protocol for every task, database-backup before ANY database operation
 - ✅ **Workflow Cycle**: Brainstorm → Plan → Execute → Review → Verify
-- ✅ **Testing Skills**: TDD, condition-based waiting, anti-patterns, Playwright MCP browser testing
-- ✅ **Debugging Skills**: Systematic debugging, root-cause tracing (no random debugging)
+- ✅ **Testing Skills**: TDD, condition-based waiting, anti-patterns, Playwright MCP browser testing, Lighthouse performance
+- ✅ **Debugging Skills**: Systematic debugging, root-cause tracing, browser automation debugging
+- ✅ **Design Skills**: Brand guidelines, frontend design with automatic brand application
 - ✅ **Local Installation**: One-command script to install all skills in any project
 
 ### v3.0: Framework-Specific Skills
