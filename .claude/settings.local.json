@@ -21,7 +21,8 @@
       "Bash(echo:*)",
       "WebSearch",
       "WebFetch(domain:mcpcat.io)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "WebFetch(domain:website.claude.com)"
     ],
     "deny": [],
     "ask": []

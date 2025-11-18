@@ -59,15 +59,40 @@ When building frontend interfaces, create distinctive, production-grade designs 
 
 ## Design Implementation Protocol
 
-### Step 1: Context Analysis
+### Step 1: Check Brand Guidelines
 
-**Template:**
+**ALWAYS check first:**
 ```
 I'm using the frontend-design skill to build [component/page/app].
 
+Brand Guidelines Check:
+- Location: .claude/BRAND-GUIDELINES.md
+- Status: [EXISTS / NOT FOUND]
+```
+
+**If guidelines exist:**
+```
+Brand Guidelines Applied:
+- Colors: [Primary: #XXX, Secondary: #XXX, Accent: #XXX]
+- Typography: [Heading: Font A, Body: Font B]
+- Visual Style: [Minimal/Maximal, Rounded/Angular, etc.]
+- Personality: [Adjectives from brand guidelines]
+
+I will design within these brand parameters.
+```
+
+**If no guidelines:**
+```
+No brand guidelines found. Proceeding with context-based design decisions.
+```
+
+### Step 2: Context Analysis
+
+**Template:**
+```
 Context Analysis:
 - Purpose: [What problem does it solve? Who uses it?]
-- Tone: [Chosen aesthetic direction]
+- Tone: [Chosen aesthetic direction OR brand personality]
 - Constraints: [Technical requirements]
 - Differentiation: [What makes it memorable?]
 
@@ -99,7 +124,20 @@ Aesthetic Direction: [Describe the bold direction chosen]
 
 ### Step 3: Color & Theme Strategy
 
-**Commit to a cohesive aesthetic:**
+**If brand guidelines exist: USE BRAND COLORS**
+
+```css
+/* Copy directly from .claude/BRAND-GUIDELINES.md */
+:root {
+  /* Brand colors from guidelines */
+  --color-brand-primary: #[from guidelines];
+  --color-brand-secondary: #[from guidelines];
+  --color-accent-1: #[from guidelines];
+  /* ... complete palette from guidelines */
+}
+```
+
+**If NO brand guidelines: Create cohesive aesthetic**
 
 ✅ **DO:**
 - Use CSS variables for consistency
@@ -324,6 +362,10 @@ const Component = () => (
 
 Before declaring frontend work complete:
 
+- [ ] **Brand guidelines checked** (.claude/BRAND-GUIDELINES.md)
+- [ ] **Brand colors applied** (if guidelines exist)
+- [ ] **Brand typography applied** (if guidelines exist)
+- [ ] **Brand visual style followed** (if guidelines exist)
 - [ ] Context analysis completed and documented
 - [ ] Bold aesthetic direction chosen and executed
 - [ ] Typography is distinctive and appropriate
@@ -351,4 +393,25 @@ Don't hold back. Show what can truly be created when thinking outside the box an
 
 ---
 
+## Integration with Brand Guidelines
+
+**This skill automatically integrates with the brand-guidelines skill:**
+
+1. Checks for `.claude/BRAND-GUIDELINES.md` at start
+2. If found: Applies brand colors, typography, and visual style
+3. If not found: Suggests creating brand guidelines first
+4. Creative interpretation allowed within brand parameters
+5. Never override brand without explicit user request
+
+**Recommended workflow:**
+```
+1. Use brand-guidelines skill first (establish/document brand)
+2. Then use frontend-design skill (applies brand automatically)
+3. Result: Consistent, on-brand, distinctive designs
+```
+
+---
+
 **Attribution**: This skill is adapted from [Anthropic Skills](https://github.com/anthropics/skills/tree/main/frontend-design)
+
+**Integrates with**: brand-guidelines skill for automatic brand application

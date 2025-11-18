@@ -20,6 +20,7 @@ Playwright MCP (Model Context Protocol) enables AI-assisted frontend testing by 
 - Cross-browser compatibility testing
 - Testing interactive features (forms, buttons, navigation)
 - Accessibility testing
+- **Brand compliance testing** (verify colors, fonts match guidelines)
 - Visual regression testing
 - Integration testing with real browser state
 
@@ -442,6 +443,216 @@ test('user can login successfully', async ({ page }) => {
   await expect(page.locator('text=Welcome back')).toBeVisible();
 });
 ```
+
+---
+
+## Brand Compliance Testing
+
+**Validate that implementation matches brand guidelines.**
+
+### When Brand Guidelines Exist
+
+**Check for `.claude/BRAND-GUIDELINES.md` before testing:**
+
+```
+1. If brand guidelines exist:
+   - Read color palette specifications
+   - Read typography specifications
+   - Read visual style requirements
+
+2. Create tests to verify compliance:
+   - Color validation
+   - Typography validation
+   - Spacing/sizing validation
+   - Visual style validation
+```
+
+### Brand Validation Tests
+
+#### Test 1: Color Compliance
+
+```typescript
+test('should use brand colors', async ({ page }) => {
+  await page.goto('https://example.com');
+
+  // Read brand guidelines (manually or from file)
+  const brandPrimary = '#2563EB';  // From .claude/BRAND-GUIDELINES.md
+  const brandSecondary = '#7C3AED';
+
+  // Get computed styles
+  const button = page.locator('button[data-testid="primary-cta"]');
+  const bgColor = await button.evaluate(el =>
+    window.getComputedStyle(el).backgroundColor
+  );
+
+  // Convert RGB to HEX and compare
+  expect(rgbToHex(bgColor)).toBe(brandPrimary);
+});
+```
+
+#### Test 2: Typography Compliance
+
+```typescript
+test('should use brand typography', async ({ page }) => {
+  await page.goto('https://example.com');
+
+  // From brand guidelines
+  const brandHeadingFont = 'Playfair Display';
+  const brandBodyFont = 'Inter';
+
+  // Check heading font
+  const heading = page.locator('h1').first();
+  const headingFont = await heading.evaluate(el =>
+    window.getComputedStyle(el).fontFamily
+  );
+  expect(headingFont).toContain(brandHeadingFont);
+
+  // Check body font
+  const paragraph = page.locator('p').first();
+  const bodyFont = await paragraph.evaluate(el =>
+    window.getComputedStyle(el).fontFamily
+  );
+  expect(bodyFont).toContain(brandBodyFont);
+});
+```
+
+#### Test 3: Spacing System Compliance
+
+```typescript
+test('should use brand spacing system', async ({ page }) => {
+  await page.goto('https://example.com');
+
+  // From brand guidelines: --space-md: 1rem (16px)
+  const brandSpacingMd = '16px';
+
+  const section = page.locator('section').first();
+  const padding = await section.evaluate(el =>
+    window.getComputedStyle(el).padding
+  );
+
+  // Verify consistent spacing
+  expect(padding).toContain(brandSpacingMd);
+});
+```
+
+#### Test 4: Visual Style Compliance
+
+```typescript
+test('should match brand visual style', async ({ page }) => {
+  await page.goto('https://example.com');
+
+  // From brand guidelines: Border radius should be --radius-md: 0.5rem (8px)
+  const brandBorderRadius = '8px';
+
+  const card = page.locator('[data-testid="card"]').first();
+  const borderRadius = await card.evaluate(el =>
+    window.getComputedStyle(el).borderRadius
+  );
+
+  expect(borderRadius).toBe(brandBorderRadius);
+});
+```
+
+### Brand Audit Test Suite
+
+**Complete test file for brand validation:**
+
+```typescript
+// tests/brand-compliance.spec.ts
+import { test, expect } from '@playwright/test';
+
+// Load brand guidelines
+const BRAND_COLORS = {
+  primary: '#2563EB',
+  secondary: '#7C3AED',
+  accent: '#F59E0B',
+};
+
+const BRAND_FONTS = {
+  heading: 'Playfair Display',
+  body: 'Inter',
+};
+
+test.describe('Brand Compliance', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('https://example.com');
+  });
+
+  test('primary buttons use brand primary color', async ({ page }) => {
+    const buttons = page.locator('button.btn-primary');
+    const count = await buttons.count();
+
+    for (let i = 0; i < count; i++) {
+      const bgColor = await buttons.nth(i).evaluate(el =>
+        window.getComputedStyle(el).backgroundColor
+      );
+      expect(rgbToHex(bgColor)).toBe(BRAND_COLORS.primary);
+    }
+  });
+
+  test('all headings use brand heading font', async ({ page }) => {
+    const headings = page.locator('h1, h2, h3, h4, h5, h6');
+    const count = await headings.count();
+
+    for (let i = 0; i < count; i++) {
+      const fontFamily = await headings.nth(i).evaluate(el =>
+        window.getComputedStyle(el).fontFamily
+      );
+      expect(fontFamily).toContain(BRAND_FONTS.heading);
+    }
+  });
+
+  test('body text uses brand body font', async ({ page }) => {
+    const paragraphs = page.locator('p, span, div');
+    const sample = await paragraphs.first().evaluate(el =>
+      window.getComputedStyle(el).fontFamily
+    );
+    expect(sample).toContain(BRAND_FONTS.body);
+  });
+
+  test('links use brand accent color', async ({ page }) => {
+    const links = page.locator('a');
+    const firstLink = links.first();
+    const color = await firstLink.evaluate(el =>
+      window.getComputedStyle(el).color
+    );
+    expect(rgbToHex(color)).toBe(BRAND_COLORS.accent);
+  });
+});
+
+// Helper function
+function rgbToHex(rgb: string): string {
+  const match = rgb.match(/\d+/g);
+  if (!match) return '';
+  const [r, g, b] = match.map(Number);
+  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+```
+
+### Integration with brand-guidelines Skill
+
+**Workflow:**
+```
+1. brand-guidelines skill creates .claude/BRAND-GUIDELINES.md
+2. playwright-frontend-testing reads guidelines
+3. Creates validation tests based on guidelines
+4. Runs tests to verify compliance
+5. Reports deviations as test failures
+```
+
+**Announcing brand testing:**
+```
+I'm using playwright-frontend-testing with brand compliance validation.
+
+Brand guidelines found at .claude/BRAND-GUIDELINES.md:
+- Primary color: #2563EB
+- Heading font: Playfair Display
+- Body font: Inter
+
+I'll create tests to verify these are correctly implemented.
+```
+
+---
 
 ### Best Practices
 

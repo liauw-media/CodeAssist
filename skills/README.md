@@ -1,8 +1,8 @@
 # CodeAssist Skills Index
 
-**Version**: 3.1.3
+**Version**: 3.1.4
 **Last Updated**: 2025-11-17
-**Total Skills**: 29 (Complete Superpowers + CodeAssist + Enforcement + Platform CLI + Design + MCP Tools)
+**Total Skills**: 30 (Complete Superpowers + CodeAssist + Enforcement + Platform CLI + Design + MCP Tools + Branding)
 
 ---
 
@@ -203,12 +203,22 @@
 
 ## 🎨 Design Skills
 
+### brand-guidelines
+**Use when**: Starting projects, rebranding, documenting existing brand
+**Purpose**: Establish comprehensive brand identity that other skills automatically reference
+**File**: `design/brand-guidelines/SKILL.md`
+**Benefits**: Consistent brand across all outputs, automatic application, composable with other skills
+**Features**: Interactive discovery, project analysis, guideline templates, skill integration
+**Integration**: Automatically referenced by frontend-design and playwright-frontend-testing
+**Attribution**: Based on [Anthropic - Package Brand Guidelines](https://website.claude.com/resources/use-cases/package-your-brand-guidelines-in-a-skill)
+
 ### frontend-design
 **Use when**: Building web components, pages, or applications
 **Purpose**: Create distinctive, production-grade frontend interfaces
 **File**: `design/frontend-design/SKILL.md`
 **Benefits**: Avoid generic aesthetics, intentional design, memorable UIs
 **Features**: Typography excellence, color strategy, motion/animation, spatial composition
+**Integration**: Automatically applies brand-guidelines if they exist
 **Attribution**: Adapted from [Anthropic Skills](https://github.com/anthropics/skills/tree/main/frontend-design)
 
 ---
@@ -284,7 +294,8 @@
 - "frontend test", "browser test" → `playwright-frontend-testing`
 - "performance", "lighthouse", "Core Web Vitals" → `lighthouse-performance-optimization`
 - "browser automation", "screenshot", "network debugging" → `browser-automation-debugging`
-- "frontend", "UI", "web component", "design" → `frontend-design`
+- "brand", "branding", "brand identity", "brand guidelines" → `brand-guidelines`
+- "frontend", "UI", "web component", "design" → `brand-guidelines` (first) → `frontend-design`
 - "flaky test", "timeout" → `condition-based-waiting`
 - "commit", "push" → `git-workflow` + `git-platform-cli` (link issues)
 - "parallel", "multiple features" → `git-worktrees` or `dispatching-parallel-agents`
@@ -348,13 +359,13 @@ Skills represent **accumulated wisdom**:
 - `systematic-debugging`, `root-cause-tracing`
 - `browser-automation-debugging`
 
-**Design**: 1
-- `frontend-design`
+**Design**: 2
+- `brand-guidelines`, `frontend-design`
 
 **Meta**: 3
 - `writing-skills`, `testing-skills-with-subagents`, `sharing-skills`
 
-**Total**: 29 skills (1 critical protocol + 2 mandatory tools + 26 operational skills)
+**Total**: 30 skills (1 critical protocol + 2 mandatory tools + 27 operational skills)
 
 ---
 
