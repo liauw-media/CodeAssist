@@ -1,8 +1,8 @@
 # CodeAssist Skills Index
 
-**Version**: 3.1.1
-**Last Updated**: 2025-11-08
-**Total Skills**: 26 (Complete Superpowers + CodeAssist + Enforcement + Platform CLI)
+**Version**: 3.1.3
+**Last Updated**: 2025-11-17
+**Total Skills**: 29 (Complete Superpowers + CodeAssist + Enforcement + Platform CLI + Design + MCP Tools)
 
 ---
 
@@ -126,6 +126,13 @@
 **File**: `testing/playwright-frontend-testing/SKILL.md`
 **Benefits**: Fast, deterministic, accessibility-first testing
 
+### lighthouse-performance-optimization
+**Use when**: Optimizing website performance
+**Purpose**: Run Google Lighthouse audits to measure and improve performance
+**File**: `testing/lighthouse-performance-optimization/SKILL.md`
+**Benefits**: Data-driven optimization, Core Web Vitals, accessibility audits
+**MCP**: Requires Lighthouse MCP server
+
 ---
 
 ## 🔀 Workflow Skills
@@ -184,6 +191,25 @@
 **Purpose**: Trace through layers to find actual cause
 **File**: `workflow/root-cause-tracing/SKILL.md`
 **Benefits**: Fix root cause, not symptoms
+
+### browser-automation-debugging
+**Use when**: Debugging web apps or automating browser tasks
+**Purpose**: Use Chrome DevTools MCP for inspection and automation
+**File**: `debugging/browser-automation-debugging/SKILL.md`
+**Benefits**: Live browser control, screenshots, network analysis, performance profiling
+**MCP**: Requires Chrome DevTools MCP server
+
+---
+
+## 🎨 Design Skills
+
+### frontend-design
+**Use when**: Building web components, pages, or applications
+**Purpose**: Create distinctive, production-grade frontend interfaces
+**File**: `design/frontend-design/SKILL.md`
+**Benefits**: Avoid generic aesthetics, intentional design, memorable UIs
+**Features**: Typography excellence, color strategy, motion/animation, spatial composition
+**Attribution**: Adapted from [Anthropic Skills](https://github.com/anthropics/skills/tree/main/frontend-design)
 
 ---
 
@@ -256,6 +282,9 @@
 - "new project" → `brainstorming` → `writing-plans` → `git-platform-cli` (create issues)
 - "issue", "feature request" → `git-platform-cli` (use gh/glab, not web UI) ⚠️
 - "frontend test", "browser test" → `playwright-frontend-testing`
+- "performance", "lighthouse", "Core Web Vitals" → `lighthouse-performance-optimization`
+- "browser automation", "screenshot", "network debugging" → `browser-automation-debugging`
+- "frontend", "UI", "web component", "design" → `frontend-design`
 - "flaky test", "timeout" → `condition-based-waiting`
 - "commit", "push" → `git-workflow` + `git-platform-cli` (link issues)
 - "parallel", "multiple features" → `git-worktrees` or `dispatching-parallel-agents`
@@ -306,21 +335,26 @@ Skills represent **accumulated wisdom**:
 **Safety**: 2
 - `database-backup`, `defense-in-depth`
 
-**Testing**: 4
+**Testing**: 5
 - `test-driven-development`, `condition-based-waiting`
 - `testing-anti-patterns`, `playwright-frontend-testing`
+- `lighthouse-performance-optimization`
 
 **Workflow**: 6
 - `git-platform-cli`, `git-workflow`, `git-worktrees`, `dispatching-parallel-agents`
 - `finishing-a-development-branch`, `subagent-driven-development`
 
-**Debugging**: 2
+**Debugging**: 3
 - `systematic-debugging`, `root-cause-tracing`
+- `browser-automation-debugging`
+
+**Design**: 1
+- `frontend-design`
 
 **Meta**: 3
 - `writing-skills`, `testing-skills-with-subagents`, `sharing-skills`
 
-**Total**: 26 skills (1 critical protocol + 2 mandatory tools + 23 operational skills)
+**Total**: 29 skills (1 critical protocol + 2 mandatory tools + 26 operational skills)
 
 ---
 

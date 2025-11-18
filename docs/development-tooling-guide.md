@@ -958,6 +958,263 @@ indent_style = tab
 
 ---
 
+## Model Context Protocol (MCP) Servers
+
+MCP servers extend Claude Code's capabilities by providing specialized tools for web development, performance analysis, browser automation, and more.
+
+### What is MCP?
+
+Model Context Protocol (MCP) is a standardized way to connect Claude Code to external tools and services. MCP servers run alongside Claude Code and provide additional functionality through a consistent interface.
+
+### Configuration
+
+MCP servers can be configured in multiple ways:
+
+**Project-scoped** (`.mcp.json` in project root):
+```json
+{
+  "mcpServers": {
+    "serverName": {
+      "command": "npx",
+      "args": ["-y", "package-name@latest"]
+    }
+  }
+}
+```
+
+**User-scoped** (`~/.claude.json` in home directory):
+```json
+{
+  "mcpServers": {
+    "serverName": {
+      "command": "npx",
+      "args": ["-y", "package-name@latest"],
+      "env": {
+        "API_KEY": "${ENV_VAR_NAME}"
+      }
+    }
+  }
+}
+```
+
+### Recommended MCP Servers for Web Development
+
+#### Lighthouse MCP
+
+**Purpose**: Website performance measurement and optimization
+
+**Installation**:
+```json
+{
+  "mcpServers": {
+    "lighthouse": {
+      "command": "npx",
+      "args": ["-y", "lighthouse-mcp@latest"]
+    }
+  }
+}
+```
+
+**Capabilities**:
+- Run Google Lighthouse audits on websites
+- Measure performance metrics (LCP, FID, CLS, etc.)
+- Analyze accessibility issues
+- Check SEO optimization
+- Validate best practices
+- Enable agentic optimization loops
+
+**Use Cases**:
+- Performance benchmarking
+- Pre-deployment quality checks
+- Automated performance regression testing
+- Accessibility compliance validation
+
+**Example Usage**:
+```
+Ask Claude: "Run a Lighthouse audit on https://example.com and identify performance bottlenecks"
+```
+
+---
+
+#### Chrome DevTools MCP
+
+**Purpose**: Browser automation, debugging, and performance analysis
+
+**Installation**:
+```json
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    }
+  }
+}
+```
+
+**Requirements**:
+- Node.js v20.19+ or v22.12+ or v23+
+- Chrome stable (latest version)
+
+**Capabilities** (26 tools total):
+
+**Browser Control & Automation**:
+- Click elements and interact with forms
+- Fill input fields and upload files
+- Navigate pages and wait for results
+- Drag and drop objects
+- Automated testing workflows
+
+**Performance Analysis**:
+- Record performance traces
+- Extract actionable insights
+- Identify bottlenecks
+- Analyze rendering performance
+- Monitor memory usage
+
+**Debugging & Inspection**:
+- Capture screenshots (full page or viewport)
+- Analyze network requests
+- Examine console messages
+- Evaluate JavaScript in browser context
+- Inspect DOM structure
+
+**Use Cases**:
+- End-to-end testing
+- Visual regression testing
+- Performance profiling
+- Browser automation scripts
+- Debugging web applications
+- Network traffic analysis
+
+**Example Usage**:
+```
+Ask Claude: "Navigate to example.com, click the login button, fill the form, and capture a screenshot"
+Ask Claude: "Record a performance trace of the homepage loading and identify slow operations"
+Ask Claude: "Analyze network requests on this page and find which API calls are slowest"
+```
+
+**Notes**:
+- Automatically manages Chrome instances via Puppeteer
+- Results include waiting for operations to complete
+- Supports modern web features (Shadow DOM, dynamic content)
+- Network analysis includes timing, headers, and response data
+
+---
+
+### Setting Up MCP Servers
+
+**1. For This Project (CodeAssist)**:
+
+MCP servers are already configured in `.mcp.json`:
+```bash
+cat .mcp.json
+```
+
+**2. For Other Projects**:
+
+Create a `.mcp.json` file in your project root:
+```bash
+cat > .mcp.json << 'EOF'
+{
+  "mcpServers": {
+    "lighthouse": {
+      "command": "npx",
+      "args": ["-y", "lighthouse-mcp@latest"]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    }
+  }
+}
+EOF
+```
+
+**3. Global Installation** (all projects):
+
+Create `~/.claude.json` in your home directory:
+```bash
+cat > ~/.claude.json << 'EOF'
+{
+  "mcpServers": {
+    "lighthouse": {
+      "command": "npx",
+      "args": ["-y", "lighthouse-mcp@latest"]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    }
+  }
+}
+EOF
+```
+
+---
+
+### MCP Server Best Practices
+
+1. **Project-specific servers**: Use `.mcp.json` for servers needed by specific projects
+2. **Global servers**: Use `~/.claude.json` for servers you use across all projects
+3. **Environment variables**: Store sensitive credentials in env vars, not config files
+4. **Version pinning**: Use `@latest` for automatic updates or pin to specific versions for stability
+5. **Testing**: Verify MCP servers work by asking Claude to use them after configuration
+6. **Documentation**: Document required MCP servers in project README
+
+---
+
+### Finding More MCP Servers
+
+**Official Directory**: [https://cursor.directory/mcp](https://cursor.directory/mcp)
+
+**Categories**:
+- Web development (Lighthouse, Chrome DevTools)
+- Database tools (PostgreSQL, MongoDB)
+- API clients (GitHub, Slack, AWS)
+- File systems (Git, local files)
+- Search & retrieval (web search, documentation)
+
+**Popular Servers**:
+- `@modelcontextprotocol/server-github` - GitHub integration
+- `@modelcontextprotocol/server-postgres` - PostgreSQL database access
+- `@modelcontextprotocol/server-filesystem` - Local file system access
+- `@modelcontextprotocol/server-brave-search` - Web search capabilities
+
+---
+
+### Troubleshooting MCP Servers
+
+**Server Not Found**:
+```bash
+# Verify npm package exists
+npx -y package-name@latest --version
+
+# Check configuration syntax
+cat .mcp.json | jq .
+```
+
+**Connection Issues**:
+- Ensure Node.js version meets requirements
+- Check firewall/antivirus isn't blocking npx
+- Verify package name spelling
+
+**Permission Errors**:
+```bash
+# Clear npm cache
+npm cache clean --force
+
+# Update npm
+npm install -g npm@latest
+```
+
+**Chrome DevTools Specific**:
+- Update Chrome to latest version
+- Ensure Node.js >= 20.19.0 (or use Node 22.12+/23+)
+- Close existing Chrome instances
+
+---
+
 ## Tool Configuration Summary
 
 ### Recommended Setup for New Projects

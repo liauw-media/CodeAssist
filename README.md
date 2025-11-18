@@ -8,17 +8,24 @@
 
 CodeAssist combines professional development workflows with the Superpowers skills methodology to create a comprehensive framework for AI-assisted software development.
 
-**Version 3.1.1** introduces the complete **Skills Framework** with **Strong Enforcement** - a systematic approach to development with mandatory protocols, TDD-validated skills, and intelligent agent coordination. Built on proven methodologies from [@obra's Superpowers](https://github.com/obra/superpowers) combined with CodeAssist's framework-specific guides for Laravel, Python, JavaScript, and mobile development.
+**Version 3.1.3** introduces **MCP Tools Integration** with dedicated skills for Lighthouse performance optimization and Chrome DevTools automation. Built on proven methodologies from [@obra's Superpowers](https://github.com/obra/superpowers) combined with CodeAssist's framework-specific guides for Laravel, Python, JavaScript, and mobile development.
 
-### 🆕 What's New in v3.1.1 (2025-11-08)
+### 🆕 What's New in v3.1.3 (2025-11-17)
 
-- **26 Production-Ready Skills**: Complete Superpowers implementation + CodeAssist additions
+- **29 Production-Ready Skills**: Complete Superpowers + MCP Tools + Design
   - 8 Core Workflow Skills (brainstorming, planning, execution, code review, verification)
-  - 4 Testing Skills (TDD, condition-based waiting, anti-patterns, Playwright MCP)
-  - **6 Workflow Skills** (git-platform-cli ⚡NEW, git, worktrees, parallel agents, branch finishing, subagent-driven)
+  - **5 Testing Skills** (TDD, condition-based waiting, anti-patterns, Playwright, **Lighthouse Performance** ⚡NEW)
+  - **6 Workflow Skills** (git-platform-cli, git, worktrees, parallel agents, branch finishing, subagent-driven)
   - **3 Safety Skills** (database backup, defense-in-depth, pre-commit hooks)
-  - 2 Debugging Skills (systematic debugging, root-cause tracing)
+  - **3 Debugging Skills** (systematic, root-cause tracing, **Browser Automation** ⚡NEW)
+  - **1 Design Skill** (**Frontend Design** ⚡NEW - Adapted from Anthropic Skills)
   - 3 Meta Skills (writing skills, testing skills, sharing skills)
+
+- **🔧 MCP Servers Integrated** (NEW):
+  - **Lighthouse MCP** - Performance auditing via Claude Code
+  - **Chrome DevTools MCP** - Browser automation with 26 tools
+  - Project configuration: `.mcp.json` in root
+  - Full documentation in Development Tooling Guide
 
 - **🔧 MANDATORY Tools** (NEW):
   - **GitHub CLI (`gh`)** - REQUIRED for all projects
@@ -70,9 +77,9 @@ CodeAssist combines professional development workflows with the Superpowers skil
 ```
 Initialize a new project using CodeAssist v3.1.1 with Skills Framework:
 
-1. Fetch and read the Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (understand all 25 skills)
+1. Fetch and read the Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (understand all 29 skills)
 2. Fetch the install script: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh
-3. Run the script to install all 25 skills locally: bash install-skills.sh
+3. Run the script to install all 29 skills locally: bash install-skills.sh
 4. Fetch and read the init prompt: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md
 5. Use using-skills protocol for EVERY task, brainstorming skill for approach, write-plans for breakdown
 6. Remember: NO AI co-author in commits, MANDATORY database-backup before ANY database operation
@@ -97,7 +104,7 @@ Initialize project: Fetch https://raw.githubusercontent.com/liauw-media/CodeAssi
 **Use this prompt in any existing project to update CodeAssist integration:**
 
 ```
-Update this project to the latest CodeAssist v3.1.1 with Skills Framework:
+Update this project to the latest CodeAssist v3.1.3 with MCP Tools Integration:
 
 1. Check current skills version:
    - If .claude/skills/ exists, check: find .claude/skills -name "SKILL.md" | wc -l
@@ -106,31 +113,40 @@ Update this project to the latest CodeAssist v3.1.1 with Skills Framework:
 2. Update to latest skills:
    - Fetch: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh
    - Run: bash install-skills.sh
-   - This installs/updates all 25 skills to .claude/skills/
+   - This installs/updates all 29 skills to .claude/skills/
 
-3. Verify installation:
-   - Count: find .claude/skills -name "SKILL.md" | wc -l (should be 24)
+3. Add MCP servers:
+   - Create .mcp.json with Lighthouse and Chrome DevTools MCP
+   - Fetch config: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/.mcp.json
+   - Copy to project root
+
+4. Verify installation:
+   - Count: find .claude/skills -name "SKILL.md" | wc -l (should be 29)
    - Version: read .claude/skills/README.md and report version + last updated
+   - Check .mcp.json exists
 
-4. Read what's new:
+5. Read what's new:
    - CHANGELOG: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/CHANGELOG.md
    - Report any breaking changes or new skills
 
-5. Confirm understanding:
+6. Confirm understanding:
    - using-skills protocol (MANDATORY for EVERY task)
    - database-backup skill (MANDATORY before ANY database operation)
    - Skills workflow: brainstorm → plan → execute → review → verify
-   - Hybrid testing approach for Playwright MCP
+   - NEW: lighthouse-performance-optimization for web performance
+   - NEW: browser-automation-debugging for Chrome DevTools automation
+   - NEW: frontend-design for distinctive UI development
 
-6. Report completion:
-   - Skills updated: [old count] → 24
+7. Report completion:
+   - Skills updated: [old count] → 29
+   - MCP servers: Lighthouse + Chrome DevTools
    - New skills added: [list any new ones]
-   - Ready to work with latest CodeAssist v3.1
+   - Ready to work with latest CodeAssist v3.1.3
 ```
 
 **Ultra-Quick Version:**
 ```
-Update CodeAssist: Check .claude/skills/ count, fetch and run https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh, verify 25 skills installed, read CHANGELOG, confirm using-skills protocol for all tasks. Report what's new.
+Update CodeAssist: Check .claude/skills/ count, fetch and run https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh, add .mcp.json from repo, verify 29 skills + MCP servers, read CHANGELOG, confirm protocols. Report what's new.
 ```
 
 ---
@@ -140,7 +156,7 @@ Update CodeAssist: Check .claude/skills/ count, fetch and run https://raw.github
 **Use this to add the revolutionary blocking hooks system to any existing project:**
 
 ```
-Install CodeAssist v3.1.1 Hybrid Enforcement System in this project:
+Install CodeAssist v3.1.3 Hybrid Enforcement System in this project:
 
 🎯 What This Does:
 - Installs 4-tier hybrid enforcement with blocking hooks

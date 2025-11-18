@@ -5,6 +5,138 @@ All notable changes to CodeAssist will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.3] - 2025-11-17
+
+### 🔧 MCP Tools Integration: Web Performance & Browser Automation
+
+This release integrates **Model Context Protocol (MCP) servers** for Lighthouse performance auditing and Chrome DevTools browser automation, with dedicated skills for effective usage.
+
+### Added
+
+#### 🎨 Design Skills
+
+**New Skill: `frontend-design`** (Skill #27)
+- **File**: `skills/design/frontend-design/SKILL.md`
+- **Purpose**: Create distinctive, production-grade frontend interfaces
+- **Source**: Adapted from [Anthropic Skills](https://github.com/anthropics/skills/tree/main/frontend-design)
+- **Features**:
+  - Typography excellence (avoid generic fonts like Inter/Arial)
+  - Color strategy with CSS variables
+  - Motion and animation guidelines
+  - Spatial composition patterns
+  - Backgrounds and visual details
+  - Framework-specific implementations (React, Vue, HTML/CSS)
+  - Production checklist
+- **Key Principle**: Bold aesthetic direction with intentional execution
+- **Anti-patterns**: Generic AI aesthetics, cliched colors, predictable layouts
+
+#### 🧪 Testing Skills
+
+**New Skill: `lighthouse-performance-optimization`** (Skill #28)
+- **File**: `skills/testing/lighthouse-performance-optimization/SKILL.md`
+- **Purpose**: Data-driven performance optimization using Lighthouse MCP
+- **MCP**: Requires Lighthouse MCP server
+- **Features**:
+  - Baseline → analyze → optimize → verify workflow
+  - Core Web Vitals focus (LCP, FID, CLS)
+  - Common optimization patterns (images, JavaScript, CSS, caching)
+  - Performance budgets
+  - Pre-deployment checklists
+  - A/B testing performance changes
+  - CI/CD integration guidance
+- **Key Workflows**: Image-heavy sites, JavaScript-heavy SPAs, third-party scripts, accessibility
+- **Authority**: 53% of users abandon slow sites (>3s load time)
+
+#### 🐛 Debugging Skills
+
+**New Skill: `browser-automation-debugging`** (Skill #29)
+- **File**: `skills/debugging/browser-automation-debugging/SKILL.md`
+- **Purpose**: Browser automation and debugging using Chrome DevTools MCP
+- **MCP**: Requires Chrome DevTools MCP server
+- **Capabilities**: 26 Chrome DevTools tools
+  - Browser control (navigate, click, fill forms, upload, drag)
+  - Performance analysis (traces, metrics)
+  - Network debugging (requests, responses, timing)
+  - Screenshots (full page, viewport, element)
+  - Console monitoring (errors, logs)
+  - DOM inspection
+- **Key Workflows**:
+  - Bug investigation (screenshot → console → reproduce → document)
+  - Form testing automation
+  - Performance profiling
+  - Network/API debugging
+  - Visual regression testing
+  - E2E user flows
+- **Common Patterns**: Login automation, shopping cart tests, form validation, responsive testing
+
+#### 🔧 MCP Servers Configuration
+
+**New File: `.mcp.json`**
+- Project-scoped MCP server configuration
+- **Lighthouse MCP**: Performance auditing
+- **Chrome DevTools MCP**: Browser automation with 26 tools
+
+**Documentation: `docs/development-tooling-guide.md`**
+- New MCP Servers section (960+ lines)
+- What is MCP and how to configure it
+- Detailed capabilities of both servers
+- Installation instructions (project-scoped, user-scoped, global)
+- Use cases and examples
+- Best practices
+- Troubleshooting guide
+- Links to official MCP directory (cursor.directory/mcp)
+- Popular MCP servers list
+
+### Changed
+
+**Skills Index Updated** (`skills/README.md`):
+- Version: 3.1.2 → 3.1.3
+- Total skills: 27 → 29
+- Testing skills: 4 → 5 (added lighthouse-performance-optimization)
+- Debugging skills: 2 → 3 (added browser-automation-debugging)
+- Design skills: 1 (new category with frontend-design)
+- Updated trigger keywords:
+  - "performance", "lighthouse", "Core Web Vitals" → `lighthouse-performance-optimization`
+  - "browser automation", "screenshot", "network debugging" → `browser-automation-debugging`
+  - "frontend", "UI", "web component", "design" → `frontend-design`
+
+**Main README.md**:
+- Version: 3.1.1 → 3.1.3
+- Updated "What's New" section
+- Updated skill counts (26 → 29)
+- Updated update prompts for existing projects
+- Added MCP server installation steps
+- Added new skills to feature list
+
+### Summary
+
+**Total Skills: 29** (up from 26)
+- 8 Core Workflow Skills
+- 5 Testing Skills (↑1)
+- 6 Workflow Skills
+- 3 Safety Skills
+- 3 Debugging Skills (↑1)
+- 1 Design Skill (↑1 new category)
+- 3 Meta Skills
+
+**New Capabilities:**
+- Run Lighthouse audits via Claude Code
+- Automate browsers with Chrome DevTools (26 tools)
+- Create distinctive frontend designs with proven methodology
+- Data-driven performance optimization
+- Automated browser testing and debugging
+
+**Documentation:**
+- MCP servers fully documented in Development Tooling Guide
+- Three new comprehensive skills with workflows and examples
+- Updated README with integration instructions
+- Complete CHANGELOG entry
+
+**Resources:**
+- [Lighthouse MCP](https://cursor.directory/mcp/lighthouse-mcp)
+- [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp/)
+- [Anthropic Skills - Frontend Design](https://github.com/anthropics/skills/tree/main/frontend-design)
+
 ## [3.1.1] - 2025-11-08
 
 ### 🛡️ Hybrid Enforcement Release: Solving "Skills Getting Lost"
