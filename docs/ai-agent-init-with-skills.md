@@ -1,7 +1,7 @@
-# AI Agent: CodeAssist v3.1.1 Initialization (Skills Framework Integrated)
+# AI Agent: CodeAssist v3.1.4 Initialization (Skills Framework + Brand Guidelines)
 
-*Version: 3.1.1 | Complete Skills-Based Workflow + Strong Enforcement*
-*Last Updated: 2025-11-08*
+*Version: 3.1.4 | Complete Skills-Based Workflow + Brand Guidelines Integration*
+*Last Updated: 2025-11-17*
 
 ---
 
@@ -34,7 +34,7 @@ Complete this checklist for EVERY request:
    - Format: "I'm using [Skill Name] to [purpose]"
 4. **Execute**: Follow the skill exactly as documented
 
-### Available Skills (25 Total)
+### Available Skills (30 Total)
 
 #### Core Workflow Skills (8):
 - `using-skills` - This protocol (you're using it now)
@@ -50,22 +50,28 @@ Complete this checklist for EVERY request:
 - `database-backup` - **MANDATORY** before ANY database operation
 - `defense-in-depth` - Multi-layer validation
 
-#### Testing Skills (4):
+#### Testing Skills (5):
 - `test-driven-development` - RED/GREEN/REFACTOR cycle
 - `condition-based-waiting` - Eliminate flaky tests
 - `testing-anti-patterns` - Critical mistakes to avoid
-- `playwright-frontend-testing` - AI-assisted browser testing with Playwright MCP
+- `playwright-frontend-testing` - AI-assisted browser testing (validates brand compliance)
+- `lighthouse-performance-optimization` - Lighthouse MCP for performance audits
 
-#### Debugging Skills (2):
+#### Debugging Skills (3):
 - `systematic-debugging` - Reproduce → Isolate → Identify → Fix → Verify
 - `root-cause-tracing` - Backward tracing through call chains
+- `browser-automation-debugging` - Chrome DevTools MCP automation (26 tools)
 
-#### Workflow Skills (5):
+#### Workflow Skills (6):
 - `git-workflow` - Commit conventions, NO AI co-author
 - `git-worktrees` - Parallel development
 - `dispatching-parallel-agents` - Coordinate independent tasks
 - `finishing-a-development-branch` - Complete checklist before PR/MR
 - `subagent-driven-development` - Fresh subagent per task with reviews
+
+#### Design Skills (2):
+- `brand-guidelines` - Establish/document brand identity (composable with other skills)
+- `frontend-design` - Create distinctive, production-grade UI (auto-applies brand)
 
 #### Meta Skills (3):
 - `writing-skills` - TDD approach to creating skills
@@ -95,6 +101,12 @@ Complete this checklist for EVERY request:
 
 **"I'm ready to commit my changes"**
 → Use `git-workflow` skill
+
+**"I'm building a frontend/UI"**
+→ Use `brand-guidelines` first (if not exists) → `frontend-design`
+
+**"I'm optimizing performance"**
+→ Use `lighthouse-performance-optimization` skill
 
 **"I'm finishing a feature"**
 → Use `code-review` → `verification-before-completion`

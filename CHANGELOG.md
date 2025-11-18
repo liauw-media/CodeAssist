@@ -5,6 +5,148 @@ All notable changes to CodeAssist will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.4] - 2025-11-17
+
+### 🎨 Brand Guidelines System: Automatic Brand Application Across Skills
+
+This release introduces a **comprehensive brand guidelines system** with automatic integration across design and testing skills, ensuring consistent brand application without manual reminders.
+
+### Added
+
+#### 🎨 Brand Guidelines Skill
+
+**New Skill: `brand-guidelines`** (Skill #30)
+- **File**: `skills/design/brand-guidelines/SKILL.md`
+- **Purpose**: Establish and maintain brand identity that other skills automatically reference
+- **Source**: Based on [Anthropic - Package Brand Guidelines](https://website.claude.com/resources/use-cases/package-your-brand-guidelines-in-a-skill)
+
+**Three Operating Modes**:
+1. **Interactive Discovery**: Ask strategic questions to establish brand from scratch
+2. **Project Analysis**: Scan existing project to document current branding
+3. **Update Mode**: Modify existing brand guidelines
+
+**Creates**: `.claude/BRAND-GUIDELINES.md` with complete specifications:
+- Color palette with CSS variables and hex codes
+- Typography system (heading, body, monospace fonts)
+- Spacing and sizing system
+- Border radius and shadow specifications
+- Tone and voice guidelines
+- Brand values and personality
+- Visual style direction (minimal/maximal, rounded/angular)
+- Accessibility standards (WCAG compliance)
+- Framework integration code (Tailwind, Styled Components, CSS variables)
+- Usage instructions for AI skills
+
+**Discovery Questions**:
+- Identity & positioning (brand name, tagline, audience, personality)
+- Visual identity (colors, typography, visual style)
+- Communication style (tone, voice, values)
+- Technical constraints (accessibility, browser support, performance)
+
+**Key Features**:
+- Complete guideline template with 16 strategic questions
+- Actionable, specific guidelines (not vague suggestions)
+- Version control and review schedule
+- Composable with other skills
+- Single source of truth for brand identity
+
+### Changed
+
+**frontend-design Skill Enhanced** (Brand Integration):
+- **New Step 0**: Check for brand guidelines BEFORE any design decisions
+- If `.claude/BRAND-GUIDELINES.md` exists:
+  - Automatically applies brand color palette
+  - Uses brand typography (no alternative suggestions)
+  - Follows brand visual style direction
+  - Matches brand personality and tone
+  - Creative interpretation allowed within brand parameters
+- If no guidelines: Suggests creating brand-guidelines first
+- Updated production checklist with brand compliance checks
+- Added integration section explaining automatic brand application
+- **Never overrides brand** without explicit user request
+
+**playwright-frontend-testing Skill Enhanced** (Brand Validation):
+- **New Section**: Brand Compliance Testing (200+ lines)
+- Validates implementation matches brand guidelines
+- Four test types:
+  1. Color compliance (verify brand palette usage)
+  2. Typography compliance (verify font implementation)
+  3. Spacing system compliance (verify spacing values)
+  4. Visual style compliance (border radius, shadows, etc.)
+- Complete brand audit test suite example
+- RGB to HEX conversion helper function
+- Integration with brand-guidelines workflow
+- Announces brand validation when guidelines found
+
+**Skills Index Updated** (`skills/README.md`):
+- Version: 3.1.3 → 3.1.4
+- Total skills: 29 → 30
+- Design skills: 1 → 2 (added brand-guidelines)
+- Updated brand-guidelines entry with integration details
+- Updated frontend-design entry to note brand integration
+- Added brand/branding trigger keywords
+- Updated frontend trigger to suggest brand-guidelines first
+
+**Main README.md**:
+- Version: 3.1.3 → 3.1.4
+- Updated "What's New" section with brand guidelines
+- Updated all skill counts (29 → 30)
+- Updated initialization prompts
+- Updated update prompts for existing projects
+- Updated ultra-quick update prompt
+
+### Integration & Workflow
+
+**Composable Skills System**:
+```
+1. brand-guidelines creates .claude/BRAND-GUIDELINES.md
+2. frontend-design reads and applies brand automatically
+3. playwright-frontend-testing validates brand compliance
+4. Result: Consistent, on-brand execution without manual reminders
+```
+
+**Automatic Discovery**:
+- Skills check for `.claude/BRAND-GUIDELINES.md` at start
+- If found: Read and apply specifications automatically
+- If not found: Suggest establishing guidelines first
+- No explicit instructions needed after setup
+
+**Benefits**:
+- **Consistency**: 75% of brand recognition from consistent visual application
+- **Automatic**: No need to remind skills about brand
+- **Composable**: Skills work together seamlessly
+- **Testable**: Validate brand compliance automatically
+- **Maintainable**: Single source of truth
+
+### Summary
+
+**Total Skills: 30** (up from 29)
+- 8 Core Workflow Skills
+- 5 Testing Skills
+- 6 Workflow Skills
+- 3 Safety Skills
+- 3 Debugging Skills
+- **2 Design Skills** (↑1: brand-guidelines)
+- 3 Meta Skills
+
+**New Capabilities**:
+- Establish brand identity through guided discovery or analysis
+- Automatic brand application in design work
+- Automated brand compliance testing
+- Consistent brand execution across all skills
+- Framework-specific brand integration code
+
+**Documentation**:
+- Comprehensive brand-guidelines skill (700+ lines)
+- Brand integration in frontend-design
+- Brand validation in playwright-frontend-testing
+- Updated README and prompts
+- Complete CHANGELOG entry
+
+**Authority**: Based on Anthropic's best practices for packaging brand guidelines as composable skills
+
+---
+
 ## [3.1.3] - 2025-11-17
 
 ### 🔧 MCP Tools Integration: Web Performance & Browser Automation
