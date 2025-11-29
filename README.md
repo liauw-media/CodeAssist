@@ -8,18 +8,31 @@
 
 CodeAssist combines professional development workflows with the Superpowers skills methodology to create a comprehensive framework for AI-assisted software development.
 
-**Version 3.1.4** introduces **Brand Guidelines Integration** with automatic brand application across design and testing skills. Built on proven methodologies from [@obra's Superpowers](https://github.com/obra/superpowers) combined with CodeAssist's framework-specific guides for Laravel, Python, JavaScript, and mobile development.
+**Version 3.1.5** introduces **Remote Code Agents** for delegating tasks to containerized Claude Code instances, enabling parallel execution and long-running analysis. Built on proven methodologies from [@obra's Superpowers](https://github.com/obra/superpowers) combined with CodeAssist's framework-specific guides for Laravel, Python, JavaScript, and mobile development.
 
-### 🆕 What's New in v3.1.4 (2025-11-17)
+### 🆕 What's New in v3.1.5 (2025-11-29)
 
-- **30 Production-Ready Skills**: Complete Superpowers + MCP Tools + Design + Branding
+- **31 Production-Ready Skills**: Complete Superpowers + MCP Tools + Design + Branding + Remote Agents
   - 8 Core Workflow Skills (brainstorming, planning, execution, code review, verification)
   - **5 Testing Skills** (TDD, condition-based waiting, anti-patterns, Playwright, Lighthouse Performance)
-  - **6 Workflow Skills** (git-platform-cli, git, worktrees, parallel agents, branch finishing, subagent-driven)
+  - **7 Workflow Skills** (git-platform-cli, git, worktrees, parallel agents, branch finishing, subagent-driven, **remote-code-agents** ⚡NEW)
   - **3 Safety Skills** (database backup, defense-in-depth, pre-commit hooks)
   - **3 Debugging Skills** (systematic, root-cause tracing, Browser Automation)
-  - **2 Design Skills** (**Brand Guidelines** ⚡NEW, **Frontend Design**)
+  - **2 Design Skills** (Brand Guidelines, Frontend Design)
   - 3 Meta Skills (writing skills, testing skills, sharing skills)
+
+- **🤖 Remote Code Agents Skill** (NEW):
+  - **remote-code-agents skill** - Delegate tasks to remote Claude Code agent containers
+  - Three agent types: General (coding/debugging), Research (analysis/docs), Testing (reviews/QA)
+  - REST API and CLI integration for task submission
+  - CI/CD pipeline support (GitLab CI, GitHub Actions)
+  - Async execution for long-running tasks without blocking current workflow
+  - Secure credential management via environment variables (safe for public repos)
+  - Ideal for: code reviews, security audits, performance analysis, documentation generation
+
+[See complete v3.1.5 changes in CHANGELOG.md](CHANGELOG.md)
+
+### What Was New in v3.1.4 (2025-11-17)
 
 - **🎨 Brand Guidelines System** (NEW):
   - **brand-guidelines skill** - Establish/document brand identity
@@ -80,14 +93,14 @@ CodeAssist combines professional development workflows with the Superpowers skil
 
 ### 🆕 Initialize New Project with Skills Framework
 
-**Copy-paste this to start a new project with full AI-guided setup (v3.1.4 with Skills):**
+**Copy-paste this to start a new project with full AI-guided setup (v3.1.5 with Skills):**
 
 ```
-Initialize a new project using CodeAssist v3.1.4 with Skills Framework:
+Initialize a new project using CodeAssist v3.1.5 with Skills Framework:
 
-1. Fetch and read the Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (understand all 30 skills)
+1. Fetch and read the Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (understand all 31 skills)
 2. Fetch the install script: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh
-3. Run the script to install all 30 skills locally: bash install-skills.sh
+3. Run the script to install all 31 skills locally: bash install-skills.sh
 4. Fetch and read the init prompt: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md
 5. Use using-skills protocol for EVERY task, brainstorming skill for approach, write-plans for breakdown
 6. Remember: NO AI co-author in commits, MANDATORY database-backup before ANY database operation
@@ -112,7 +125,7 @@ Initialize project: Fetch https://raw.githubusercontent.com/liauw-media/CodeAssi
 **Use this prompt in any existing project to update CodeAssist integration:**
 
 ```
-Update this project to the latest CodeAssist v3.1.4 with Brand Guidelines Integration:
+Update this project to the latest CodeAssist v3.1.5 with Remote Code Agents:
 
 1. Check current skills version:
    - If .claude/skills/ exists, check: find .claude/skills -name "SKILL.md" | wc -l
@@ -121,7 +134,7 @@ Update this project to the latest CodeAssist v3.1.4 with Brand Guidelines Integr
 2. Update to latest skills:
    - Fetch: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-skills.sh
    - Run: bash install-skills.sh
-   - This installs/updates all 30 skills to .claude/skills/
+   - This installs/updates all 31 skills to .claude/skills/
 
 3. Add MCP servers (if not already present):
    - Create .mcp.json with Lighthouse and Chrome DevTools MCP
@@ -236,7 +249,7 @@ Install hybrid enforcement: curl -fsSL https://raw.githubusercontent.com/liauw-m
 ```
 Update to latest CodeAssist v3.1.4 documentation:
 
-1. Read Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (all 30 skills)
+1. Read Skills Index: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md (all 31 skills)
 2. Read Init Prompt: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md
 3. Read Enforcement Guide: https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/SKILLS-ENFORCEMENT.md (NEW - token-optimized)
 4. Read Key Guides: database-backup-strategy.md, git-branching-strategy-guide.md
@@ -290,7 +303,7 @@ brew install glab
 
 ### 🚀 Quick Skills Installation
 
-Install all 30 skills locally in any project:
+Install all 31 skills locally in any project:
 
 ```bash
 # Clone or download the install script
@@ -494,7 +507,7 @@ Creates `.claude/SESSION_START.md` for quick reference at session start.
 
 ### 🆕 Skills Framework (v3.1.4)
 
-- **[Skills Index](skills/README.md)** - Complete index of all 30 skills with discovery guide
+- **[Skills Index](skills/README.md)** - Complete index of all 31 skills with discovery guide
 - **[Install Script](scripts/install-skills.sh)** - One-command installation of all skills locally
 - **[Using Skills Protocol](skills/using-skills/SKILL.md)** - MANDATORY protocol for every task
 - **[Database Backup Skill](skills/safety/database-backup/SKILL.md)** - CRITICAL safety skill (mandatory before ANY database operation)

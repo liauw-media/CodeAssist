@@ -1,8 +1,8 @@
 # CodeAssist Skills Index
 
-**Version**: 3.1.4
-**Last Updated**: 2025-11-17
-**Total Skills**: 30 (Complete Superpowers + CodeAssist + Enforcement + Platform CLI + Design + MCP Tools + Branding)
+**Version**: 3.1.5
+**Last Updated**: 2025-11-29
+**Total Skills**: 31 (Complete Superpowers + CodeAssist + Enforcement + Platform CLI + Design + MCP Tools + Branding + Remote Agents)
 
 ---
 
@@ -176,6 +176,14 @@
 **File**: `workflow/subagent-driven-development/SKILL.md`
 **Benefits**: Fresh context, specialized expertise, parallel execution
 
+### remote-code-agents
+**Use when**: Long-running analysis, resource-intensive tasks, parallel workload distribution
+**Purpose**: Delegate tasks to remote Claude Code agent containers
+**File**: `workflow/remote-code-agents/SKILL.md`
+**Benefits**: Async execution, parallel processing, no workflow blocking
+**Features**: REST API, CLI tool, CI/CD integration, three agent types (general/research/testing)
+**Configuration**: Environment variables (safe for public repos)
+
 ---
 
 ## 🛠️ Debugging Skills
@@ -296,6 +304,7 @@
 - "browser automation", "screenshot", "network debugging" → `browser-automation-debugging`
 - "brand", "branding", "brand identity", "brand guidelines" → `brand-guidelines`
 - "frontend", "UI", "web component", "design" → `brand-guidelines` (first) → `frontend-design`
+- "remote agent", "delegate task", "long-running", "code review automation" → `remote-code-agents`
 - "flaky test", "timeout" → `condition-based-waiting`
 - "commit", "push" → `git-workflow` + `git-platform-cli` (link issues)
 - "parallel", "multiple features" → `git-worktrees` or `dispatching-parallel-agents`
@@ -351,9 +360,9 @@ Skills represent **accumulated wisdom**:
 - `testing-anti-patterns`, `playwright-frontend-testing`
 - `lighthouse-performance-optimization`
 
-**Workflow**: 6
+**Workflow**: 7
 - `git-platform-cli`, `git-workflow`, `git-worktrees`, `dispatching-parallel-agents`
-- `finishing-a-development-branch`, `subagent-driven-development`
+- `finishing-a-development-branch`, `subagent-driven-development`, `remote-code-agents`
 
 **Debugging**: 3
 - `systematic-debugging`, `root-cause-tracing`
@@ -365,7 +374,7 @@ Skills represent **accumulated wisdom**:
 **Meta**: 3
 - `writing-skills`, `testing-skills-with-subagents`, `sharing-skills`
 
-**Total**: 30 skills (1 critical protocol + 2 mandatory tools + 27 operational skills)
+**Total**: 31 skills (1 critical protocol + 2 mandatory tools + 28 operational skills)
 
 ---
 

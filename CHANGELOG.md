@@ -5,6 +5,105 @@ All notable changes to CodeAssist will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.5] - 2025-11-29
+
+### 🤖 Remote Code Agents: Delegate Tasks to Containerized Claude Code Instances
+
+This release introduces **remote-code-agents skill** for delegating tasks to remote Claude Code agent containers, enabling parallel execution, long-running analysis, and resource-intensive operations without blocking current workflow.
+
+### Added
+
+#### 🤖 Remote Code Agents Skill
+
+**New Skill: `remote-code-agents`** (Skill #31)
+- **File**: `skills/workflow/remote-code-agents/SKILL.md`
+- **Purpose**: Delegate tasks to remote Claude Code agent containers for parallel/async execution
+- **Category**: Workflow Skills
+
+**Three Agent Types**:
+1. **General Agent**: Coding, debugging, refactoring, feature implementation
+2. **Research Agent**: Analysis, documentation, architecture review, investigation
+3. **Testing Agent**: Code reviews, test generation, QA analysis
+
+**Key Features**:
+- **REST API Integration**: Submit tasks via HTTP endpoints
+- **CLI Tool Support**: `claude-task` command for easy task management
+- **CI/CD Integration**: Examples for GitLab CI and GitHub Actions
+- **Async Execution**: Submit long-running tasks without blocking current work
+- **Secure Configuration**: Environment variable-based credentials (safe for public repos)
+- **Task Lifecycle Management**: Monitor pending/processing/completed/failed states
+
+**Configuration**:
+- Environment-based setup via `.env` file (gitignored)
+- Variables: `REMOTE_AGENT_API_URL`, `REMOTE_AGENT_API_KEY`
+- Example configuration included: `.env.remote-agents.example`
+
+**Use Cases**:
+- Code review of large pull requests
+- Security audits of entire codebase
+- Performance optimization analysis
+- Documentation generation for multiple modules
+- Test generation for legacy code
+- Background research that doesn't block development
+
+**Integration Patterns**:
+- Command-line delegation with `claude-task` CLI
+- Direct API calls via curl or HTTP clients
+- GitLab CI pipeline integration
+- GitHub Actions workflow integration
+- Delegation from current Claude Code session
+
+**Security**:
+- Never exposes API keys or internal endpoints in code
+- Uses environment variables for all sensitive configuration
+- Supports private networks (Tailscale, WireGuard, ZeroTier)
+- Includes best practices for repository access management
+
+### Changed
+
+**Skills Index Updated** (`skills/README.md`):
+- Version: 3.1.4 → 3.1.5
+- Total skills: 30 → 31
+- Workflow skills: 6 → 7 (added remote-code-agents)
+- Added remote-code-agents entry in Workflow Skills section
+- Updated skill statistics and counts
+- Added trigger keywords: "remote agent", "delegate task", "long-running"
+
+**Main README.md**:
+- Version: 3.1.4 → 3.1.5
+- Updated "What's New" section with remote-code-agents
+- Updated all skill counts (30 → 31)
+- Updated initialization prompts for v3.1.5
+- Updated update prompts for existing projects
+
+**New Files**:
+- `.env.remote-agents.example` - Configuration template for remote agents
+- `.gitignore` - Ensures `.env` files are not committed
+
+### Integration & Workflow
+
+**Composable Skills System**:
+- Combines with `git-platform-cli` for repository URL extraction
+- Integrates with `code-review` for delegated reviews
+- Works with `test-driven-development` for test generation
+- Complements `systematic-debugging` for root cause analysis
+
+**Recommended Workflow**:
+1. Identify resource-intensive or long-running task
+2. Configure remote agent credentials (one-time setup)
+3. Delegate task using skill (API or CLI)
+4. Continue local work while agent processes
+5. Check results when ready
+
+### Notes
+
+- Requires external infrastructure (remote agent containers)
+- Optional skill - not mandatory for basic workflows
+- Enables advanced parallel execution patterns
+- Safe for public repositories (no hardcoded credentials)
+
+---
+
 ## [3.1.4] - 2025-11-17
 
 ### 🎨 Brand Guidelines System: Automatic Brand Application Across Skills
