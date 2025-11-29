@@ -9,6 +9,8 @@ description: "Delegate tasks to remote Claude Code agent containers for parallel
 
 When facing long-running tasks, complex analysis, or workloads better suited for dedicated compute resources, delegate them to remote Claude Code agent containers rather than executing locally.
 
+**Note**: This skill supports both Claude Code agents (production-ready) and OpenRouter agents (⚠️ experimental, multi-model support).
+
 ## When to Use This Skill
 
 ### Always Use When:
