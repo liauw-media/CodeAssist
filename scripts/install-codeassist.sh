@@ -108,12 +108,22 @@ COMMANDS=(
 )
 
 CMD_SUCCESS=0
+CMD_FAILED=0
 for cmd in "${COMMANDS[@]}"; do
-    if curl -fsSL "${BASE_URL}/.claude/commands/${cmd}" -o ".claude/commands/${cmd}" 2>/dev/null; then
+    if curl -fsSL --retry 2 --retry-delay 1 "${BASE_URL}/.claude/commands/${cmd}" -o ".claude/commands/${cmd}" 2>/dev/null; then
         ((CMD_SUCCESS++))
+    else
+        ((CMD_FAILED++))
+        echo -e "${YELLOW}  Failed: ${cmd}${NC}"
     fi
 done
-echo -e "${GREEN}  ${CMD_SUCCESS} commands installed${NC}"
+
+if [ $CMD_FAILED -gt 0 ]; then
+    echo -e "${YELLOW}  ${CMD_SUCCESS} commands installed, ${CMD_FAILED} failed${NC}"
+    echo -e "${YELLOW}  Re-run the install script to retry failed downloads${NC}"
+else
+    echo -e "${GREEN}  ${CMD_SUCCESS} commands installed${NC}"
+fi
 echo ""
 
 # ============================================
