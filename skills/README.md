@@ -38,6 +38,8 @@ These are the most commonly used skills:
 | `writing-plans` | Break work into tasks |
 | `executing-plans` | Execute with verification |
 | `code-review` | Self-review before completing |
+| `receiving-code-review` | Handle review feedback |
+| `requesting-code-review` | Ask for review effectively |
 | `verification-before-completion` | Final checks |
 
 ### Testing
@@ -47,12 +49,16 @@ These are the most commonly used skills:
 | `condition-based-waiting` | Avoid flaky tests |
 | `testing-anti-patterns` | Common mistakes to avoid |
 | `playwright-frontend-testing` | Browser testing |
+| `testing-skills-with-subagents` | Test skills using agents |
 
 ### Workflow
 | Skill | Purpose |
 |-------|---------|
 | `git-workflow` | Commits, branches, merging |
 | `git-worktrees` | Parallel feature development |
+| `git-platform-cli` | GitHub/GitLab CLI usage |
+| `pre-commit-hooks` | Automate checks before commit |
+| `finishing-a-development-branch` | Clean up and merge branches |
 | `systematic-debugging` | Methodical bug fixing |
 | `root-cause-tracing` | Find actual cause |
 
@@ -61,12 +67,26 @@ These are the most commonly used skills:
 |-------|---------|
 | `brand-guidelines` | Establish brand identity |
 | `frontend-design` | Build distinctive UIs |
+| `lighthouse-performance-optimization` | Web performance optimization |
+
+### Browser Automation
+| Skill | Purpose |
+|-------|---------|
+| `browser-automation-debugging` | Debug browser automation scripts |
+
+### Multi-Agent
+| Skill | Purpose |
+|-------|---------|
+| `dispatching-parallel-agents` | Run agents concurrently |
+| `subagent-driven-development` | Delegate tasks to subagents |
+| `remote-code-agents` | Use remote coding agents (experimental) |
 
 ### Meta
 | Skill | Purpose |
 |-------|---------|
 | `writing-skills` | Create new skills |
 | `using-skills` | How to use skills |
+| `sharing-skills` | Share skills with others |
 
 ## Quick Reference
 

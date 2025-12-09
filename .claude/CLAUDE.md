@@ -4,8 +4,6 @@ An assistant library for Claude Code.
 
 ## Action Commands
 
-Commands that do real work:
-
 | Command | Action |
 |---------|--------|
 | `/status` | Show git status, branch, recent commits |
@@ -13,23 +11,50 @@ Commands that do real work:
 | `/test` | Create backup and run tests |
 | `/backup` | Create database backup |
 | `/commit` | Pre-commit checklist and commit |
+| `/update` | Check for CodeAssist updates |
+
+## Workflow Commands
+
+| Command | Action |
+|---------|--------|
+| `/brainstorm [topic]` | Discuss approach before implementing |
+| `/plan [feature]` | Break work into actionable tasks |
+| `/verify` | Final checks before completing work |
 
 ## Framework Commands
 
 | Command | For |
 |---------|-----|
 | `/laravel [task]` | Laravel, Eloquent, Livewire |
+| `/php [task]` | General PHP, Symfony |
 | `/react [task]` | React, Next.js |
 | `/python [task]` | Django, FastAPI |
 | `/db [task]` | Database operations |
+
+## Quality Commands
+
+| Command | Action |
+|---------|--------|
+| `/security [task]` | Security audit |
+| `/refactor [task]` | Code refactoring |
+| `/docs [task]` | Generate documentation |
+
+## Research Commands
+
+| Command | Action |
+|---------|--------|
+| `/explore [task]` | Explore codebase structure |
+| `/research [task]` | Research a topic |
 
 ## Utility Commands
 
 | Command | Purpose |
 |---------|---------|
-| `/mentor [topic]` | Critical analysis |
+| `/mentor [topic]` | Critical analysis - no sugarcoating |
 | `/guide` | Help with what to do next |
-| `/feedback [message]` | Submit feedback |
+| `/feedback [message]` | Submit feedback or report issues |
+| `/agent-select [task]` | Get agent recommendation |
+| `/orchestrate [task]` | Coordinate multiple agents |
 
 ## Skills
 
@@ -45,10 +70,13 @@ Skills are best practices in `.claude/skills/`. Key skills:
 
 ```
 1. /status        - Check current state
-2. Implement      - /laravel, /react, or /python
-3. /test          - Run tests with backup
-4. /review        - Code review
-5. /commit        - Commit changes
+2. /brainstorm    - Discuss approach
+3. /plan          - Break into tasks
+4. Implement      - /laravel, /react, or /python
+5. /test          - Run tests with backup
+6. /review        - Code review
+7. /verify        - Final checks
+8. /commit        - Commit changes
 ```
 
 ## Database Safety
@@ -66,6 +94,7 @@ Before database operations:
 |------|---------|
 | What to do | `/guide` |
 | Critical feedback | `/mentor [topic]` |
+| Which agent to use | `/agent-select [task]` |
 | Report issue | `/feedback [message]` |
 
 ## Version

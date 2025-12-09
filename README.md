@@ -93,9 +93,25 @@ Commands that do real work:
 | Command | For |
 |---------|-----|
 | `/laravel [task]` | Laravel, Eloquent, Livewire |
+| `/php [task]` | General PHP, Symfony |
 | `/react [task]` | React, Next.js |
 | `/python [task]` | Django, FastAPI |
 | `/db [task]` | Database operations |
+
+### Quality Commands
+
+| Command | What it Does |
+|---------|--------------|
+| `/security [task]` | Security audit |
+| `/refactor [task]` | Code refactoring |
+| `/docs [task]` | Generate documentation |
+
+### Research Commands
+
+| Command | What it Does |
+|---------|--------------|
+| `/explore [task]` | Explore codebase structure |
+| `/research [task]` | Research a topic |
 
 ### Utility Commands
 
@@ -104,6 +120,8 @@ Commands that do real work:
 | `/mentor [topic]` | Critical analysis - no sugarcoating |
 | `/guide` | Help with what to do next |
 | `/feedback [message]` | Submit feedback or report issues |
+| `/agent-select [task]` | Get agent recommendation for a task |
+| `/orchestrate [task]` | Coordinate multiple agents for complex tasks |
 
 ---
 
@@ -167,6 +185,35 @@ See [agents/README.md](agents/README.md) for details.
 The `github/` and `gitlab/` folders contain setup scripts for self-hosted runners:
 - **GitHub Actions**: See [github/GITHUB_RUNNERS_SETUP.md](github/GITHUB_RUNNERS_SETUP.md)
 - **GitLab CI**: See [gitlab/GITLAB_RUNNERS_SETUP.md](gitlab/GITLAB_RUNNERS_SETUP.md)
+
+---
+
+## Quick Start Prompts
+
+Copy-paste these prompts to Claude to quickly set up projects.
+
+### Initialize New Project
+
+```
+Initialize a new project using the CodeAssist framework. First, fetch and read the latest AI Agent Project Initialization Prompt from https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-project-initialization-prompt.md, then follow the complete initialization workflow including:
+- Skills framework setup
+- Tech stack selection
+- Git repository setup
+- Pre-commit hooks
+- Database backup safety
+- Task management
+
+Guide me through the process step by step.
+```
+
+### Update to Latest CodeAssist
+
+```
+Please update yourself to the latest CodeAssist documentation:
+1. Fetch and read the skills index from https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md
+2. Fetch and read the using-skills protocol from https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/using-skills/SKILL.md
+3. Report which version you've loaded and what skills are available
+```
 
 ---
 

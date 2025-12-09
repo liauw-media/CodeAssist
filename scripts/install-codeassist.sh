@@ -14,7 +14,7 @@
 
 set -e
 
-VERSION="1.0.1"
+VERSION="1.0.2"
 
 # Colors
 GREEN='\033[0;32m'
@@ -83,6 +83,8 @@ COMMANDS=(
     "refactor.md"
     "explore.md"
     "research.md"
+    "agent-select.md"
+    "orchestrate.md"
 )
 
 CMD_SUCCESS=0

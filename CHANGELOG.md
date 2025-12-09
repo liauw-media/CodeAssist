@@ -2,6 +2,21 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.0.2] - 2025-12-09
+
+### Added
+- All 24 commands now installed (was 22, added `agent-select`, `orchestrate`)
+- Quality Commands section in README (`/security`, `/refactor`, `/docs`)
+- Research Commands section in README (`/explore`, `/research`)
+- Quick Start Prompts section in README
+
+### Changed
+- `skills/README.md` now lists all 31 skills (was ~18)
+- `.claude/CLAUDE.md` updated with all commands and workflow
+- Install script now includes all 24 commands
+
+---
+
 ## [1.0.1] - 2025-12-09
 
 ### Added
