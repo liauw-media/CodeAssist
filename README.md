@@ -2,6 +2,41 @@
 
 An assistant library for Claude Code - skills, commands, and prompts that help Claude work more effectively.
 
+## What is CodeAssist?
+
+CodeAssist is a collection of **skills**, **slash commands**, and **prompt templates** that enhance Claude Code's capabilities. Instead of starting from scratch every session, CodeAssist gives Claude structured workflows and best practices to follow.
+
+### The Problem It Solves
+
+When working with Claude Code on complex projects, you often need to:
+- Remind Claude about database backups before running tests
+- Ensure code reviews happen before commits
+- Apply consistent patterns across Laravel, React, or Python projects
+- Break down work into manageable tasks
+
+CodeAssist packages these workflows into reusable components that Claude can reference automatically.
+
+### What's Included
+
+| Component | Count | Purpose |
+|-----------|-------|---------|
+| **Skills** | 31 | Documented best practices (TDD, code review, database safety) |
+| **Commands** | 24 | Slash commands that do real work (`/status`, `/review`, `/test`) |
+| **Prompt Templates** | 16 | Framework-specific context (Laravel, React, Python) |
+
+### History
+
+CodeAssist started as an experiment in making Claude Code more reliable for professional development. Early versions (v3.x) tried aggressive "enforcement" approaches with git hooks and state tracking. These were over-engineered and didn't work well in practice.
+
+**Version 1.0** is a clean restart with an honest approach:
+- Skills are **guidance**, not enforcement
+- Commands **do real work**, not just prompt engineering
+- Documentation is **practical**, not marketing
+
+The skills framework is based on [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent, adapted for Claude Code workflows.
+
+---
+
 ## Getting Started
 
 ### 1. Install Prerequisites
@@ -51,17 +86,6 @@ CodeAssist is a local development tool - don't commit it to your repo.
 ```
 
 That's it. You're ready to go.
-
----
-
-## What is This?
-
-CodeAssist provides:
-- **Skills** - Documented protocols for common tasks (code review, testing, database safety)
-- **Commands** - Slash commands that do real work (`/status`, `/review`, `/backup`)
-- **Prompt Templates** - Specialized context for different frameworks
-
-Based on [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent.
 
 ---
 
