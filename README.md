@@ -124,6 +124,8 @@ Update:
 curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
 ```
 
+See [CHANGELOG.md](CHANGELOG.md) for what's new.
+
 Report issues:
 ```
 /feedback [your message]
@@ -146,7 +148,3 @@ Report issues:
 ## Attribution
 
 Based on [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent.
-
-## Version
-
-1.0.0

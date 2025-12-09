@@ -96,6 +96,3 @@ See `meta/writing-skills/SKILL.md` for how to create new skills.
 
 Skills framework based on [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent.
 
-## Version
-
-1.0.0
