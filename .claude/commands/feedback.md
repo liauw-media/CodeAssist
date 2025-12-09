@@ -1,174 +1,98 @@
-# CodeAssist Feedback
+# Feedback
 
-Submit feedback, feature requests, or bug reports to the CodeAssist repository.
+Submit feedback, bug reports, or feature requests.
 
 ## Feedback
 $ARGUMENTS
 
-## Feedback Protocol
+## Execute
 
-Help users submit feedback to improve CodeAssist.
+### Step 1: Get version info
 
-### Feedback Types
-
-1. **Feature Request** - New functionality you'd like to see
-2. **Bug Report** - Something isn't working correctly
-3. **Improvement** - Existing feature could be better
-4. **Documentation** - Docs are unclear or missing
-5. **Agent Request** - New specialized agent needed
-
-### Gather Information
-
-If feedback type is unclear, ask:
-
-1. **What type of feedback?**
-   - Feature request
-   - Bug report
-   - Improvement suggestion
-   - Documentation issue
-   - New agent request
-
-2. **What's the context?**
-   - Which command/agent involved?
-   - What were you trying to do?
-   - What happened vs what you expected?
-
-### Issue Templates
-
-#### Feature Request
-```
-## Feature Request: [Title]
-
-### Problem
-[What problem does this solve?]
-
-### Proposed Solution
-[How should it work?]
-
-### Alternatives Considered
-[Other approaches you thought of]
-
-### Additional Context
-[Screenshots, examples, etc.]
+```bash
+cat .claude/VERSION 2>/dev/null || echo "VERSION file not found"
 ```
 
-#### Bug Report
-```
-## Bug Report: [Title]
+### Step 2: Determine feedback type
 
-### Description
-[What's broken?]
+Based on $ARGUMENTS, categorize as:
+- **Bug** - Something broken
+- **Feature** - New functionality wanted
+- **Improvement** - Existing feature could be better
 
-### Steps to Reproduce
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
+### Step 3: Create issue
 
-### Expected Behavior
-[What should happen]
-
-### Actual Behavior
-[What actually happens]
-
-### Environment
-- OS: [Windows/Mac/Linux]
-- Claude Code version: [version]
-- CodeAssist version: [version]
-
-### Additional Context
-[Logs, screenshots, etc.]
-```
-
-#### Agent Request
-```
-## Agent Request: [Agent Name]
-
-### Purpose
-[What would this agent do?]
-
-### When to Deploy
-[Triggers/scenarios]
-
-### Skills Required
-[Which CodeAssist skills should it use?]
-
-### Example Usage
-[How would users invoke it?]
-```
-
-### Create GitHub Issue
-
-Once feedback is gathered, create the issue:
+Using GitHub CLI:
 
 ```bash
 gh issue create \
   --repo liauw-media/CodeAssist \
-  --title "[TYPE]: Title" \
-  --body "Issue body here" \
-  --label "feedback,TYPE"
+  --title "[TYPE]: [brief title]" \
+  --body "[formatted body]"
 ```
 
-### Output Format
+## Issue Templates
+
+### Bug Report
+```
+## Bug Report
+
+**Version:** [from .claude/VERSION]
+**OS:** [Windows/Mac/Linux]
+
+### What happened
+[description]
+
+### Expected behavior
+[what should happen]
+
+### Steps to reproduce
+1. ...
+2. ...
+
+### Additional context
+[any relevant details]
+```
+
+### Feature Request
+```
+## Feature Request
+
+**Version:** [from .claude/VERSION]
+
+### Problem
+[what problem this solves]
+
+### Proposed solution
+[how it should work]
+
+### Alternatives
+[other approaches considered]
+```
+
+## Output Format
 
 ```
-## Feedback Submission
+## Feedback
 
-### Feedback Type
-[Feature/Bug/Improvement/Docs/Agent]
+**Type:** [Bug/Feature/Improvement]
+**Version:** [installed version]
 
-### Summary
-[Brief description]
+### Issue Preview
 
-### GitHub Issue
+Title: [TYPE]: [title]
 
-I'll create the following issue:
+Body:
+[formatted issue content]
 
-**Repository**: liauw-media/CodeAssist
-**Title**: [TYPE]: [Title]
-**Labels**: feedback, [type]
+### Submit
 
-**Body**:
-[Formatted issue body]
-
-### Ready to Submit?
-
-To create this issue, I need GitHub CLI (`gh`) authenticated.
-
-If ready, I'll run:
-\`\`\`bash
+To create this issue:
 gh issue create --repo liauw-media/CodeAssist --title "..." --body "..."
-\`\`\`
 
-[Confirm to proceed or modify the issue first]
+Or manually at: https://github.com/liauw-media/CodeAssist/issues/new
 ```
 
-### After Submission
+If `gh` is available and user confirms, create the issue directly.
 
-```
-## Issue Created!
-
-**Issue URL**: [URL from gh output]
-
-Thank you for your feedback! The CodeAssist maintainers will review it.
-
-Track your issue: [URL]
-```
-
-### Prerequisites
-
-For issue creation to work:
-1. GitHub CLI (`gh`) must be installed
-2. Must be authenticated: `gh auth login`
-
-If not authenticated:
-```
-To submit feedback directly, you need GitHub CLI:
-
-1. Install: https://cli.github.com/
-2. Authenticate: gh auth login
-
-Or manually create an issue at:
-https://github.com/liauw-media/CodeAssist/issues/new
-```
-
-Begin gathering feedback now.
+Process the feedback now.

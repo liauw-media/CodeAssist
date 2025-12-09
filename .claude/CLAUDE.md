@@ -1,152 +1,73 @@
-# CodeAssist Project Instructions
+# CodeAssist
 
-## Agent-First Development
+An assistant library for Claude Code.
 
-This project uses the **CodeAssist Multi-Agent System**. Always consider deploying specialized agents for tasks.
+## Action Commands
 
-### Quick Reference
+Commands that do real work:
 
-```
-HELP & GUIDANCE:
-/guide [question]   - Interactive guidance, what to do next
-/mentor [subject]   - Ruthless critical analysis (no sugarcoating)
-/status             - Check workflow status
-/agent-select [task]- Get agent recommendation
+| Command | Action |
+|---------|--------|
+| `/status` | Show git status, branch, recent commits |
+| `/review` | Run code review with tests and checks |
+| `/test` | Create backup and run tests |
+| `/backup` | Create database backup |
+| `/commit` | Pre-commit checklist and commit |
 
-DEVELOPMENT:
-/laravel [task]     - Laravel/PHP development
-/react [task]       - React/Next.js development
-/python [task]      - Python development
-/db [task]          - Database operations
+## Framework Commands
 
-QUALITY (MANDATORY):
-/test [task]        - Test writing
-/review [task]      - Code review
-/security [task]    - Security audit
+| Command | For |
+|---------|-----|
+| `/laravel [task]` | Laravel, Eloquent, Livewire |
+| `/react [task]` | React, Next.js |
+| `/python [task]` | Django, FastAPI |
+| `/db [task]` | Database operations |
 
-RESEARCH & DOCS:
-/explore [task]     - Codebase exploration
-/research [task]    - Information research
-/docs [task]        - Documentation
-/refactor [task]    - Code refactoring
+## Utility Commands
 
-COORDINATION:
-/orchestrate [task] - Complex multi-agent tasks
-```
+| Command | Purpose |
+|---------|---------|
+| `/mentor [topic]` | Critical analysis |
+| `/guide` | Help with what to do next |
+| `/feedback [message]` | Submit feedback |
 
-### Mandatory Workflow
+## Skills
 
-```
-1. EXPLORE/RESEARCH (if needed)
-   └── /explore or /research
+Skills are best practices in `.claude/skills/`. Key skills:
 
-2. IMPLEMENT
-   └── /laravel, /react, or /python
+| Skill | When |
+|-------|------|
+| `database-backup` | Before tests, migrations |
+| `code-review` | Before completing work |
+| `test-driven-development` | When writing tests |
 
-3. TEST (MANDATORY)
-   └── /test
-
-4. REVIEW (MANDATORY)
-   └── /review
-
-5. COMMIT (only after review)
-```
-
-### Enforcement
-
-- Commits are BLOCKED without `/review` after code changes
-- Commits are BLOCKED if tests haven't passed
-- Database operations are BLOCKED without backup
-
-### Agent State
-
-Check workflow status anytime:
-```
-/status
-```
-
----
-
-## Skills Integration
-
-Agents automatically use these skills:
-
-| Agent | Required Skills |
-|-------|-----------------|
-| `/laravel` | database-backup, test-driven-development, code-review |
-| `/react` | test-driven-development, frontend-design, brand-guidelines |
-| `/python` | test-driven-development, database-backup |
-| `/db` | database-backup (CRITICAL) |
-| `/test` | test-driven-development, condition-based-waiting, testing-anti-patterns |
-| `/review` | code-review, verification-before-completion |
-
----
-
-## Critical Safety Rules
-
-### Database Operations
+## Workflow
 
 ```
-⚠️ BEFORE ANY DATABASE OPERATION:
+1. /status        - Check current state
+2. Implement      - /laravel, /react, or /python
+3. /test          - Run tests with backup
+4. /review        - Code review
+5. /commit        - Commit changes
+```
+
+## Database Safety
+
+Before database operations:
+```bash
 ./scripts/backup-database.sh
-
-⚠️ BEFORE ANY TEST:
-./scripts/safe-test.sh [test command]
+# or
+/backup
 ```
 
-**Authority**: 2 production database wipes. Data is IRREPLACEABLE.
+## Help
 
-### No AI Co-Author
+| Need | Command |
+|------|---------|
+| What to do | `/guide` |
+| Critical feedback | `/mentor [topic]` |
+| Report issue | `/feedback [message]` |
 
-```
-❌ NEVER add to commits:
-Co-Authored-By: Claude
-Co-Authored-By: AI
-```
+## Version
 
----
-
-## When to Use Agents
-
-| Situation | Agent |
-|-----------|-------|
-| "I need to build X" | `/laravel`, `/react`, or `/python` |
-| "I need to understand X" | `/explore` or `/research` |
-| "I need to test X" | `/test` |
-| "I need to review X" | `/review` |
-| "Is this secure?" | `/security` |
-| "This code is messy" | `/refactor` |
-| "I need docs for X" | `/docs` |
-| "Complex feature with API + frontend" | `/orchestrate` |
-| "Which agent should I use?" | `/agent-select [task]` |
-
----
-
-## Reminders
-
-Every 10 interactions, check:
-- [ ] Am I using agents? (not raw implementation)
-- [ ] Did I run `/test` after code changes?
-- [ ] Did I run `/review` before committing?
-- [ ] Is database backed up? (`/status` to check)
-
----
-
-## Getting Help
-
-| Situation | Command |
-|-----------|---------|
-| "What should I do next?" | `/guide` |
-| "Which agent do I use?" | `/agent-select [task]` |
-| "Is my code/idea good?" | `/mentor [subject]` |
-| "What's my workflow status?" | `/status` |
-
-### The Mentor
-
-Use `/mentor` when you want brutal honesty:
-- Analyze your code for weaknesses
-- Stress-test your architecture
-- Find holes in your plan
-- Get a real score (not inflated praise)
-
-**The mentor doesn't sugarcoat. If it's weak, you'll know why.**
+Check: `cat .claude/VERSION`

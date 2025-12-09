@@ -1,47 +1,33 @@
 #!/bin/bash
 
 # ============================================
-# CodeAssist Multi-Agent System Installer
-# Version 3.2.0 - Complete Infrastructure
+# CodeAssist Agents Installer
+# Installs agent definitions and commands only
 # ============================================
 
 set -e
 
-# Colors
-RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo ""
-echo -e "${BLUE}╔═══════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║   CodeAssist Multi-Agent System Installer                 ║${NC}"
-echo -e "${BLUE}║   Version 3.2.0 - Complete Infrastructure                 ║${NC}"
-echo -e "${BLUE}╚═══════════════════════════════════════════════════════════╝${NC}"
+echo "CodeAssist Agents Installer - v1.0.0"
+echo "====================================="
 echo ""
 
 BASE_URL="https://raw.githubusercontent.com/liauw-media/CodeAssist/main"
 
-# ============================================
-# Step 1: Create directories
-# ============================================
-echo -e "${CYAN}Step 1: Creating directories...${NC}"
-
+# Create directories
+echo -e "${CYAN}Creating directories...${NC}"
 mkdir -p .claude/commands
 mkdir -p .claude/agents
-mkdir -p hooks
-
-echo -e "${GREEN}  ✓ .claude/commands/${NC}"
-echo -e "${GREEN}  ✓ .claude/agents/${NC}"
-echo -e "${GREEN}  ✓ hooks/${NC}"
+echo -e "${GREEN}  Done${NC}"
 echo ""
 
-# ============================================
-# Step 2: Install Agent Definitions
-# ============================================
-echo -e "${CYAN}Step 2: Installing agent definitions...${NC}"
+# Install agents
+echo -e "${CYAN}Installing agent definitions...${NC}"
 
 AGENTS=(
     "README.md"
@@ -66,19 +52,14 @@ AGENTS=(
 AGENT_SUCCESS=0
 for agent in "${AGENTS[@]}"; do
     if curl -fsSL "${BASE_URL}/agents/${agent}" -o ".claude/agents/${agent}" 2>/dev/null; then
-        echo -e "${GREEN}  ✓ ${agent}${NC}"
         ((AGENT_SUCCESS++))
-    else
-        echo -e "${RED}  ✗ ${agent}${NC}"
     fi
 done
-echo -e "  Installed: ${GREEN}${AGENT_SUCCESS}/${#AGENTS[@]}${NC} agents"
+echo -e "${GREEN}  ${AGENT_SUCCESS} agents installed${NC}"
 echo ""
 
-# ============================================
-# Step 3: Install Slash Commands
-# ============================================
-echo -e "${CYAN}Step 3: Installing slash commands...${NC}"
+# Install commands
+echo -e "${CYAN}Installing slash commands...${NC}"
 
 COMMANDS=(
     "guide.md"
@@ -104,144 +85,37 @@ COMMANDS=(
 CMD_SUCCESS=0
 for cmd in "${COMMANDS[@]}"; do
     if curl -fsSL "${BASE_URL}/.claude/commands/${cmd}" -o ".claude/commands/${cmd}" 2>/dev/null; then
-        echo -e "${GREEN}  ✓ /${cmd%.md}${NC}"
         ((CMD_SUCCESS++))
-    else
-        echo -e "${RED}  ✗ /${cmd%.md}${NC}"
     fi
 done
-echo -e "  Installed: ${GREEN}${CMD_SUCCESS}/${#COMMANDS[@]}${NC} commands"
+echo -e "${GREEN}  ${CMD_SUCCESS} commands installed${NC}"
 echo ""
 
-# ============================================
-# Step 4: Install Enforcement Hooks
-# ============================================
-echo -e "${CYAN}Step 4: Installing enforcement hooks...${NC}"
-
-HOOKS=(
-    "pre-commit-agent-check.sh"
-    "post-agent-run.sh"
-)
-
-HOOK_SUCCESS=0
-for hook in "${HOOKS[@]}"; do
-    if curl -fsSL "${BASE_URL}/hooks/${hook}" -o "hooks/${hook}" 2>/dev/null; then
-        chmod +x "hooks/${hook}"
-        echo -e "${GREEN}  ✓ ${hook}${NC}"
-        ((HOOK_SUCCESS++))
-    else
-        echo -e "${RED}  ✗ ${hook}${NC}"
-    fi
-done
-echo -e "  Installed: ${GREEN}${HOOK_SUCCESS}/${#HOOKS[@]}${NC} hooks"
-echo ""
-
-# ============================================
-# Step 5: Install CLAUDE.md
-# ============================================
-echo -e "${CYAN}Step 5: Installing CLAUDE.md...${NC}"
-
+# Install CLAUDE.md
+echo -e "${CYAN}Installing CLAUDE.md...${NC}"
 if curl -fsSL "${BASE_URL}/.claude/CLAUDE.md" -o ".claude/CLAUDE.md" 2>/dev/null; then
-    echo -e "${GREEN}  ✓ .claude/CLAUDE.md${NC}"
-else
-    echo -e "${RED}  ✗ .claude/CLAUDE.md${NC}"
+    echo -e "${GREEN}  Done${NC}"
 fi
 echo ""
 
-# ============================================
-# Step 6: Install Agent State Documentation
-# ============================================
-echo -e "${CYAN}Step 6: Installing agent state system...${NC}"
-
-if curl -fsSL "${BASE_URL}/.claude/AGENT-STATE.md" -o ".claude/AGENT-STATE.md" 2>/dev/null; then
-    echo -e "${GREEN}  ✓ .claude/AGENT-STATE.md${NC}"
-else
-    echo -e "${RED}  ✗ .claude/AGENT-STATE.md${NC}"
-fi
-
-# Initialize empty state
-echo '{}' > .claude/agent-state.json
-echo -e "${GREEN}  ✓ .claude/agent-state.json (initialized)${NC}"
-echo ""
-
-# ============================================
-# Step 7: Setup Git Hook (optional)
-# ============================================
-echo -e "${CYAN}Step 7: Git hook setup...${NC}"
-
-if [ -d ".git" ]; then
-    echo -e "${YELLOW}  Git repository detected.${NC}"
-    echo -e "${YELLOW}  To enable commit enforcement, run:${NC}"
-    echo ""
-    echo "    cp hooks/pre-commit-agent-check.sh .git/hooks/pre-commit"
-    echo "    chmod +x .git/hooks/pre-commit"
-    echo ""
-else
-    echo -e "${YELLOW}  No .git directory found. Skipping git hook setup.${NC}"
-fi
-echo ""
-
-# ============================================
 # Summary
-# ============================================
-echo -e "${BLUE}╔═══════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║   Installation Complete!                                   ║${NC}"
-echo -e "${BLUE}╚═══════════════════════════════════════════════════════════╝${NC}"
+echo "====================================="
+echo "Installation Complete"
+echo "====================================="
 echo ""
-echo -e "${GREEN}Installed:${NC}"
-echo "  • ${AGENT_SUCCESS} specialized agents"
-echo "  • ${CMD_SUCCESS} slash commands"
-echo "  • ${HOOK_SUCCESS} enforcement hooks"
-echo "  • Agent state tracking system"
-echo "  • CLAUDE.md project instructions"
+echo "Installed:"
+echo "  - ${AGENT_SUCCESS} agent definitions"
+echo "  - ${CMD_SUCCESS} slash commands"
+echo "  - CLAUDE.md"
 echo ""
-
-echo -e "${CYAN}Available Commands:${NC}"
+echo "Commands:"
+echo "  /guide      - Get help"
+echo "  /laravel    - Laravel development"
+echo "  /react      - React development"
+echo "  /python     - Python development"
+echo "  /test       - Write tests"
+echo "  /review     - Code review"
+echo "  /mentor     - Critical analysis"
 echo ""
-echo "  Help & Guidance:"
-echo "    /guide [question]   Interactive guidance, what to do next"
-echo "    /mentor [subject]   Ruthless critical analysis (no sugarcoating)"
-echo "    /feedback [topic]   Submit feedback/issues to GitHub"
-echo "    /status             Check workflow status"
-echo "    /agent-select [task] Get agent recommendation"
-echo ""
-echo "  Development:"
-echo "    /laravel [task]     Laravel/PHP specialist"
-echo "    /react [task]       React/Next.js specialist"
-echo "    /python [task]      Python specialist"
-echo "    /db [task]          Database specialist"
-echo ""
-echo "  Quality:"
-echo "    /test [task]        Test writing & TDD"
-echo "    /review [task]      Code review"
-echo "    /security [task]    Security audit"
-echo "    /refactor [task]    Code refactoring"
-echo ""
-echo "  Research & Docs:"
-echo "    /explore [task]     Codebase exploration"
-echo "    /research [task]    Web research"
-echo "    /docs [task]        Documentation"
-echo ""
-echo "  Coordination:"
-echo "    /orchestrate [task] Multi-agent workflows"
-echo ""
-
-echo -e "${YELLOW}Mandatory Workflow:${NC}"
-echo ""
-echo "  1. /explore or /research  (understand first)"
-echo "  2. /laravel, /react, /python  (implement)"
-echo "  3. /test  (verify - MANDATORY)"
-echo "  4. /review  (quality check - MANDATORY)"
-echo "  5. git commit  (only after review passes)"
-echo ""
-
-echo -e "${RED}Enforcement Active:${NC}"
-echo ""
-echo "  • Commits blocked without /review"
-echo "  • Commits blocked if tests fail"
-echo "  • DB operations require backup"
-echo ""
-
-echo -e "${GREEN}Ready to use! Start with:${NC}"
-echo "  /agent-select [describe your task]"
+echo "Restart Claude Code to activate."
 echo ""

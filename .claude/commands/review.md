@@ -1,120 +1,100 @@
-# Code Review Agent
+# Review
 
-Deploy the code-reviewer agent for comprehensive review.
+Review code changes for quality, security, and correctness.
 
-## Review Scope
+## Scope
 $ARGUMENTS
 
-## Agent Protocol
+## Execute
 
-You are now operating as the **code-reviewer** agent with MANDATORY enforcement.
+### Step 1: Get changes
 
-### Pre-Flight Checks (BLOCKING)
+```bash
+# What files changed
+git diff --name-only HEAD~1
+git status --short
 
-1. **Read the agent definition**: Read `agents/code-reviewer.md` or fetch from https://raw.githubusercontent.com/liauw-media/CodeAssist/main/agents/code-reviewer.md
-2. **Read the code-review skill**: `skills/core/code-review/SKILL.md`
-3. **Read verification skill**: `skills/core/verification-before-completion/SKILL.md`
+# Show the diff
+git diff
+```
 
-### Review Protocol
+### Step 2: Review each changed file
 
-1. **Identify Changes**
-   ```bash
-   git diff --name-only HEAD~1  # Recent changes
-   git status                    # Uncommitted changes
-   ```
+For each modified file:
+1. Read the full file (not just diff)
+2. Check the checklist below
+3. Note any issues
 
-2. **Review Each File**
-   - Read the ENTIRE file (not just diff)
-   - Check against requirements
-   - Security review (OWASP)
-   - Performance review
-   - Test coverage
+### Step 3: Run tests
 
-3. **Run Verification**
-   ```bash
-   # MANDATORY - with database backup
-   ./scripts/safe-test.sh [test command]
-   ```
+```bash
+# Detect and run tests
+npm test 2>/dev/null || vendor/bin/pest 2>/dev/null || vendor/bin/phpunit 2>/dev/null || pytest 2>/dev/null || echo "No test framework detected"
+```
 
-### Review Checklist (ALL REQUIRED)
+### Step 4: Check for common issues
 
-#### Requirements
-- [ ] All requirements implemented
-- [ ] Edge cases handled
-- [ ] No missing functionality
+Scan for:
+```bash
+# Debug statements
+grep -rn "console\.log\|dd(\|dump(\|print_r\|var_dump" --include="*.php" --include="*.js" --include="*.ts" .
 
-#### Security (OWASP Top 10)
-- [ ] No SQL injection vectors
-- [ ] No XSS vulnerabilities
+# Hardcoded secrets (basic check)
+grep -rn "password.*=.*['\"]" --include="*.php" --include="*.js" --include="*.env" . 2>/dev/null | head -5
+```
+
+## Checklist
+
+### Security
+- [ ] No SQL injection (parameterized queries used)
+- [ ] No XSS (output escaped)
 - [ ] Input validation present
-- [ ] Authorization checks in place
-- [ ] Sensitive data protected
+- [ ] No hardcoded secrets
 
-#### Code Quality
-- [ ] DRY - no unnecessary duplication
-- [ ] SOLID principles followed
-- [ ] Clear naming conventions
-- [ ] Appropriate error handling
-- [ ] No dead code
+### Code Quality
+- [ ] No debug code left
+- [ ] Clear naming
+- [ ] Error handling present
+- [ ] No obvious duplication
 
-#### Testing
-- [ ] Tests exist for new code
-- [ ] Tests are meaningful (not just coverage)
-- [ ] Edge cases tested
-- [ ] All tests passing
+### Tests
+- [ ] Tests exist for changes
+- [ ] Tests pass
 
-#### Documentation
-- [ ] Code is self-documenting OR has comments
-- [ ] Public APIs documented
-- [ ] README updated (if needed)
-
-### Output Format (MANDATORY)
+## Output Format
 
 ```
-## Code Review: [Scope]
+## Code Review
 
-### Summary
-**Verdict**: [APPROVED | NEEDS CHANGES | REJECTED]
+### Files Changed
+[list from git diff --name-only]
 
-### Files Reviewed
+### Review Results
+
 | File | Status | Issues |
 |------|--------|--------|
-| [file] | [OK/Issues] | [count] |
+| path/file.ext | OK / Issues | count |
 
-### Critical Issues (MUST FIX)
-1. **[Issue]** - [file:line]
-   - Problem: [description]
-   - Fix: [solution]
+### Issues Found
 
-### Major Issues (SHOULD FIX)
-1. **[Issue]** - [file:line]
-   - Problem: [description]
-   - Fix: [solution]
+**Critical:**
+- [issue] at [file:line] - [how to fix]
 
-### Minor Issues (NICE TO FIX)
-1. [Issue] - [file:line]
+**Minor:**
+- [issue] at [file:line]
 
-### Security Review
-- [x] SQL Injection: Clear
-- [x] XSS: Clear
-- [x] Auth: Verified
-- [ ] [Any issues]
+### Tests
+**Result:** [Pass / Fail / Not Run]
+[summary if relevant]
 
-### Test Results
-- Tests run: [count]
-- Passing: [count]
-- Coverage: [%]
+### Debug Code Check
+[any console.log/dd() found]
 
-### Recommendation
-[Specific next steps]
+### Verdict
+**[APPROVED / NEEDS CHANGES]**
+
+### Next Steps
+[what to do next]
 ```
 
-### Enforcement
-
-**DO NOT approve if:**
-- Any critical issues exist
-- Tests are failing
-- Security vulnerabilities found
-- Database operations ran without backup
-
-Execute the review now.
+Run the review now.

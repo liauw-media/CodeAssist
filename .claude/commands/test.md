@@ -1,107 +1,76 @@
-# Testing Agent
+# Test
 
-Deploy the testing agent for test writing and coverage improvement.
+Run tests with database backup.
 
-## Testing Task
+## Context
 $ARGUMENTS
 
-## Agent Protocol
+## Execute
 
-You are now operating as the **testing-agent** with MANDATORY safety protocols.
+### Step 1: Detect test framework
 
-### Pre-Flight Checks (BLOCKING)
+Check which test framework is available:
 
-1. **Read the agent definition**: Read `agents/testing-agent.md` or fetch from https://raw.githubusercontent.com/liauw-media/CodeAssist/main/agents/testing-agent.md
-2. **Read required skills**:
-   - `skills/testing/test-driven-development/SKILL.md`
-   - `skills/testing/condition-based-waiting/SKILL.md`
-   - `skills/testing/testing-anti-patterns/SKILL.md`
-   - `skills/safety/database-backup/SKILL.md` (MANDATORY)
-
-### CRITICAL: Database Safety
-
+```bash
+# Check for common test frameworks
+ls package.json 2>/dev/null && grep -q '"test"' package.json && echo "npm"
+ls composer.json 2>/dev/null && (ls vendor/bin/pest 2>/dev/null && echo "pest" || ls vendor/bin/phpunit 2>/dev/null && echo "phpunit")
+ls pytest.ini pyproject.toml 2>/dev/null && echo "pytest"
 ```
-⚠️ ═══════════════════════════════════════════════════════ ⚠️
-    BEFORE RUNNING ANY TESTS - BACKUP THE DATABASE
-⚠️ ═══════════════════════════════════════════════════════ ⚠️
 
+### Step 2: Create backup (if database involved)
+
+```bash
 ./scripts/backup-database.sh
-./scripts/safe-test.sh [your test command]
-
-NEVER run tests directly. EVER.
 ```
 
-### Testing Protocol
+If backup script doesn't exist, warn but continue.
 
-1. **Announce**: "Deploying testing-agent for: [task summary]"
-2. **Backup**: Run database backup FIRST
-3. **Analyze**: Understand code to be tested
-4. **Write Tests**: Following TDD principles
-5. **Run Safe**: Always use safe-test wrapper
-6. **Verify**: Check coverage improvement
+### Step 3: Run tests
 
-### Anti-Patterns to AVOID
+Based on detected framework:
 
-```
-❌ NEVER DO:
-- sleep(5000)           → Use waitFor/polling
-- test interdependence  → Each test isolated
-- testing implementation → Test behavior
-- skipping edge cases   → Test boundaries
-- ignoring failures     → Fix or delete
-```
+```bash
+# npm
+npm test
 
-### Test Structure (AAA Pattern)
+# pest
+vendor/bin/pest
 
-```javascript
-it('should [expected behavior] when [condition]', () => {
-  // Arrange - Setup test data
-  const input = createTestData();
+# phpunit
+vendor/bin/phpunit
 
-  // Act - Execute the code
-  const result = functionUnderTest(input);
+# pytest
+pytest
 
-  // Assert - Verify results
-  expect(result).toBe(expectedValue);
-});
+# Or if argument provided, run that
+$ARGUMENTS
 ```
 
-### Output Format (MANDATORY)
+### Step 4: Report results
+
+## Output Format
 
 ```
-## Testing Agent: [Task]
+## Test Results
 
-### Database Safety
-- Backup taken: [timestamp]
-- Backup location: [path]
+**Framework:** [detected framework]
+**Backup:** [created / skipped / failed]
 
-### Tests Written
-| Test File | Tests | Coverage |
-|-----------|-------|----------|
-| [file] | [count] | [%] |
+### Results
+[test output summary]
 
-### Test Scenarios
-1. **[Scenario]**: [what it tests]
-2. **[Scenario]**: [what it tests]
+**Total:** X tests
+**Passed:** X
+**Failed:** X
+**Duration:** Xs
 
-### Anti-Patterns Avoided
-- [x] No sleep() calls
-- [x] No test interdependence
-- [x] No implementation testing
-- [x] Edge cases covered
-
-### Coverage Change
-- Before: [X]%
-- After: [Y]%
-- Improvement: +[Z]%
-
-### Test Run Output
-\`\`\`
-[test summary output]
-\`\`\`
+### Failed Tests
+[list any failures with file:line]
 
 ### Next Steps
-[If any, or "All tests passing"]
+[if failures: "Fix failing tests before committing"]
+[if pass: "All tests pass - ready for review"]
 ```
 
-Execute the testing task now.
+Run the tests now.

@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# Git commit-msg hook
+# Validates commit message format
+#
+# Install: cp git-hooks/commit-msg .git/hooks/commit-msg && chmod +x .git/hooks/commit-msg
+#
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Check for minimum length
+if [ ${#COMMIT_MSG} -lt 10 ]; then
+    echo "Commit message too short (minimum 10 characters)."
+    exit 1
+fi
+
+# Block AI co-author (optional - uncomment to enable)
+# if echo "$COMMIT_MSG" | grep -qi "co-authored-by.*claude\|co-authored-by.*ai\|co-authored-by.*anthropic"; then
+#     echo "Commit message contains AI co-author attribution."
+#     echo "Remove Co-Authored-By lines referencing AI."
+#     exit 1
+# fi
+
+exit 0

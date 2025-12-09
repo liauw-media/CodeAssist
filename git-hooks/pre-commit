@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# Git pre-commit hook
+# Runs checks before allowing a commit
+#
+# Install: cp git-hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+#
+
+# Run tests if test command exists
+if [ -f "package.json" ] && grep -q '"test"' package.json; then
+    echo "Running tests..."
+    npm test
+    if [ $? -ne 0 ]; then
+        echo "Tests failed. Commit aborted."
+        exit 1
+    fi
+fi
+
+if [ -f "composer.json" ]; then
+    if [ -f "vendor/bin/pest" ]; then
+        echo "Running Pest tests..."
+        vendor/bin/pest
+        if [ $? -ne 0 ]; then
+            echo "Tests failed. Commit aborted."
+            exit 1
+        fi
+    elif [ -f "vendor/bin/phpunit" ]; then
+        echo "Running PHPUnit tests..."
+        vendor/bin/phpunit
+        if [ $? -ne 0 ]; then
+            echo "Tests failed. Commit aborted."
+            exit 1
+        fi
+    fi
+fi
+
+if [ -f "pytest.ini" ] || [ -f "pyproject.toml" ] || [ -d "tests" ]; then
+    if command -v pytest &> /dev/null; then
+        echo "Running pytest..."
+        pytest
+        if [ $? -ne 0 ]; then
+            echo "Tests failed. Commit aborted."
+            exit 1
+        fi
+    fi
+fi
+
+# Run linters if available
+if [ -f "package.json" ] && grep -q '"lint"' package.json; then
+    echo "Running linter..."
+    npm run lint
+    if [ $? -ne 0 ]; then
+        echo "Linting failed. Commit aborted."
+        exit 1
+    fi
+fi
+
+echo "Pre-commit checks passed."
+exit 0

@@ -1,53 +1,41 @@
-# Agent Status
+# Status
 
-Check current agent workflow status and what's needed before commit.
+Show current project status.
 
-## Check Status
+## Execute
 
-Read the agent state and report workflow compliance.
+Run these commands and report the results:
 
-### Protocol
+```bash
+# Current branch
+git branch --show-current
 
-1. Read `.claude/agent-state.json`
-2. Analyze workflow completion
-3. Report what's done and what's needed
+# Git status
+git status --short
 
-### Output Format
+# Recent commits
+git log --oneline -5
 
-```
-## Agent Workflow Status
-
-### Current State
-| Checkpoint | Status | Timestamp |
-|------------|--------|-----------|
-| Last Code Change | [agent] | [time] |
-| Tests Run | [pass/fail/not run] | [time] |
-| Code Review | [done/needed] | [time] |
-| DB Backup | [taken/not needed] | [time] |
-
-### Workflow Compliance
-
-✓ / ✗ Code changed → Tests run
-✓ / ✗ Tests passed
-✓ / ✗ Review after changes
-✓ / ✗ DB backup (if needed)
-
-### Commit Status
-[READY TO COMMIT] or [BLOCKED - reasons]
-
-### Next Steps
-[What needs to be done, if anything]
+# Uncommitted changes summary
+git diff --stat
 ```
 
-### Execution
+## Output Format
 
-Read the state file at `.claude/agent-state.json` and provide the status report.
-
-If file doesn't exist, report:
 ```
-No agent state found. This is either:
-1. A fresh project (run any agent to initialize)
-2. State was reset
+## Project Status
 
-Run `/[agent] [task]` to begin tracking.
+**Branch:** [branch name]
+**Status:** [clean / X uncommitted files]
+
+### Uncommitted Changes
+[list files or "Working tree clean"]
+
+### Recent Commits
+[last 5 commits]
+
+### Suggested Next Steps
+[based on status - e.g., "Ready to commit" or "Review changes first"]
 ```
+
+Run the commands now and provide the status report.
