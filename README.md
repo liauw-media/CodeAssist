@@ -2,6 +2,55 @@
 
 An assistant library for Claude Code - skills, commands, and prompts that help Claude work more effectively.
 
+## Getting Started
+
+### 1. Install Prerequisites
+
+**Windows** (PowerShell as Administrator):
+```powershell
+irm https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/setup-windows.ps1 | iex
+```
+
+**macOS**:
+```bash
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/setup-macos.sh | bash
+```
+
+**Linux**:
+```bash
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/setup-linux.sh | bash
+```
+
+This installs Git, GitHub CLI, and other tools needed for CodeAssist.
+
+### 2. Install CodeAssist
+
+In your project directory (use Git Bash on Windows):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
+```
+
+### 3. Add to .gitignore
+
+```bash
+echo ".claude/" >> .gitignore
+```
+
+CodeAssist is a local development tool - don't commit it to your repo.
+
+### 4. Try It
+
+```
+/status          # See git status
+/review          # Review your code
+/mentor my code  # Get critical feedback
+```
+
+That's it. You're ready to go.
+
+---
+
 ## What is This?
 
 CodeAssist provides:
@@ -11,26 +60,7 @@ CodeAssist provides:
 
 Based on [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent.
 
-## Install
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
-```
-
-**Important:** Add `.claude/` to your `.gitignore`:
-
-```bash
-echo ".claude/" >> .gitignore
-```
-
-CodeAssist is a development tool - it shouldn't be committed to your repository.
-
-### Windows
-
-Use Git Bash or WSL:
-```bash
-curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
-```
+---
 
 ## Commands
 
@@ -40,11 +70,11 @@ Commands that do real work:
 
 | Command | What it Does |
 |---------|--------------|
-| `/status` | Shows git status, branch, recent commits, uncommitted changes |
-| `/review` | Runs code review: checks diff, runs tests, reports issues |
-| `/test` | Creates backup, runs test suite, shows results |
-| `/backup` | Creates timestamped database backup |
-| `/commit` | Pre-commit checklist, then commits with proper message |
+| `/status` | Shows git status, branch, recent commits |
+| `/review` | Runs code review with tests and checks |
+| `/test` | Creates backup, runs test suite |
+| `/backup` | Creates database backup |
+| `/commit` | Pre-commit checklist, then commits |
 
 ### Framework Commands
 
@@ -63,11 +93,12 @@ Commands that do real work:
 | `/guide` | Help with what to do next |
 | `/feedback [message]` | Submit feedback or report issues |
 
+---
+
 ## Skills
 
 Skills are documented best practices Claude follows when relevant.
 
-**Core Skills:**
 | Skill | When |
 |-------|------|
 | `database-backup` | Before tests, migrations |
@@ -76,22 +107,26 @@ Skills are documented best practices Claude follows when relevant.
 
 See [skills/README.md](skills/README.md) for all skills.
 
+---
+
 ## Version & Updates
 
-Check installed version:
+Check version:
 ```bash
 cat .claude/VERSION
 ```
 
-Update to latest:
+Update:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
 ```
 
-Submit feedback:
+Report issues:
 ```
 /feedback [your message]
 ```
+
+---
 
 ## Structure
 
@@ -103,10 +138,7 @@ Submit feedback:
   CLAUDE.md        # Project config
 ```
 
-## Requirements
-
-- Claude Code CLI
-- Bash (Git Bash on Windows)
+---
 
 ## Attribution
 
