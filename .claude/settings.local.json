@@ -13,7 +13,10 @@
       "Bash(git push)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(for skill in \"safety/pre-commit-hooks\" \"testing/lighthouse-performance-optimization\" \"debugging/browser-automation-debugging\" \"workflow/git-platform-cli\" \"workflow/remote-code-agents\" \"design/brand-guidelines\" \"design/frontend-design\")",
+      "Bash(do)",
+      "Bash(echo:*)"
     ]
   }
 }

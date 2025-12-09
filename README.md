@@ -184,15 +184,32 @@ Report issues:
 
 ---
 
-## Structure
+## What Gets Installed
+
+When you run the install script, it creates a `.claude/` folder in your project:
 
 ```
-.claude/           # Add to .gitignore
-  commands/        # Slash commands
-  skills/          # Skill protocols
-  VERSION          # Installed version
-  CLAUDE.md        # Project config
+your-project/
+├── .claude/                    # CodeAssist installation (add to .gitignore)
+│   ├── commands/               # 24 slash commands
+│   │   ├── status.md           #   /status - git status
+│   │   ├── review.md           #   /review - code review
+│   │   ├── test.md             #   /test - run tests
+│   │   ├── mentor.md           #   /mentor - critical feedback
+│   │   ├── laravel.md          #   /laravel - Laravel dev
+│   │   └── ...                 #   (24 total)
+│   ├── skills/                 # 31 skill protocols
+│   │   ├── safety/             #   database-backup, defense-in-depth
+│   │   ├── core/               #   brainstorming, code-review, etc.
+│   │   ├── testing/            #   TDD, playwright, etc.
+│   │   ├── workflow/           #   git-workflow, etc.
+│   │   └── ...                 #   (31 total)
+│   ├── CLAUDE.md               # Project config (Claude reads this)
+│   └── VERSION                 # Installed version (e.g., 1.0.3)
+└── .gitignore                  # Should contain: .claude/
 ```
+
+**Why `.claude/`?** This is the standard location Claude Code looks for project configuration and custom commands. The dot prefix keeps it hidden from normal directory listings but Claude finds it automatically.
 
 ---
 
@@ -214,29 +231,42 @@ The `github/` and `gitlab/` folders contain setup scripts for self-hosted runner
 
 ## Quick Start Prompts
 
-Copy-paste these prompts to Claude to quickly set up projects.
+Copy-paste these prompts to Claude to quickly set up or update CodeAssist.
 
 ### Initialize New Project
 
 ```
-Initialize a new project using the CodeAssist framework. First, fetch and read the latest AI Agent Project Initialization Prompt from https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-project-initialization-prompt.md, then follow the complete initialization workflow including:
-- Skills framework setup
-- Tech stack selection
-- Git repository setup
-- Pre-commit hooks
-- Database backup safety
-- Task management
+Initialize this project with CodeAssist. Run this command:
 
-Guide me through the process step by step.
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
+
+Then read .claude/CLAUDE.md to see available commands and workflows.
 ```
 
-### Update to Latest CodeAssist
+### Update CodeAssist
 
 ```
-Please update yourself to the latest CodeAssist documentation:
-1. Fetch and read the skills index from https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md
-2. Fetch and read the using-skills protocol from https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/using-skills/SKILL.md
-3. Report which version you've loaded and what skills are available
+Update CodeAssist to the latest version. Run this command:
+
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
+
+This will:
+- Remove old skills and commands
+- Install latest 31 skills and 24 commands
+- Update .claude/CLAUDE.md configuration
+
+After running, check .claude/VERSION for the new version number.
+```
+
+### Load CodeAssist Context (No Install)
+
+If you just want Claude to know about CodeAssist without installing files:
+
+```
+Read the CodeAssist documentation to understand available workflows:
+1. Fetch https://raw.githubusercontent.com/liauw-media/CodeAssist/main/README.md
+2. Fetch https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md
+3. Summarize the available commands and skills
 ```
 
 ---
