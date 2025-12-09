@@ -6,22 +6,25 @@ An assistant library for Claude Code - skills, commands, and prompts that help C
 
 ### 1. Install Prerequisites
 
-**Windows** (PowerShell as Administrator):
-```powershell
-irm https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/setup-windows.ps1 | iex
-```
+You need Git and GitHub CLI installed. Choose automatic or manual install:
 
-**macOS**:
-```bash
-curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/setup-macos.sh | bash
-```
+**Automatic Install** (runs setup script):
 
-**Linux**:
-```bash
-curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/setup-linux.sh | bash
-```
+| Platform | Command |
+|----------|---------|
+| Windows (PowerShell as Admin) | `irm https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/setup-windows.ps1 \| iex` |
+| macOS | `curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/setup-macos.sh \| bash` |
+| Linux | `curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/setup-linux.sh \| bash` |
 
-This installs Git, GitHub CLI, and other tools needed for CodeAssist.
+**Manual Install** (if you prefer to review scripts first):
+
+1. Download the script for your platform from [scripts/](https://github.com/liauw-media/CodeAssist/tree/main/scripts)
+2. Review the script contents
+3. Run it locally
+
+Or install the tools yourself:
+- **Git**: https://git-scm.com/downloads
+- **GitHub CLI**: https://cli.github.com/
 
 ### 2. Install CodeAssist
 

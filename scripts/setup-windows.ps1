@@ -91,17 +91,64 @@ if ($hasWT) {
 }
 Write-Host ""
 
-# Summary
+# Verification
 Write-Host "========================" -ForegroundColor Cyan
-Write-Host "Setup Complete" -ForegroundColor Cyan
+Write-Host "Verifying Installation" -ForegroundColor Cyan
 Write-Host "========================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Installed:" -ForegroundColor Green
-Write-Host "  - Git for Windows (includes Git Bash)"
-Write-Host "  - GitHub CLI (gh)"
-Write-Host "  - Windows Terminal"
+
+$allGood = $true
+
+# Refresh PATH one more time
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+# Verify Git
+Write-Host "Checking git..." -NoNewline
+if (Get-Command git -ErrorAction SilentlyContinue) {
+    $gitVer = git --version
+    Write-Host " OK ($gitVer)" -ForegroundColor Green
+} else {
+    Write-Host " NOT FOUND" -ForegroundColor Red
+    Write-Host "  Restart your terminal and try: git --version" -ForegroundColor Yellow
+    $allGood = $false
+}
+
+# Verify GitHub CLI
+Write-Host "Checking gh..." -NoNewline
+if (Get-Command gh -ErrorAction SilentlyContinue) {
+    $ghVer = (gh --version | Select-Object -First 1)
+    Write-Host " OK ($ghVer)" -ForegroundColor Green
+} else {
+    Write-Host " NOT FOUND" -ForegroundColor Red
+    Write-Host "  Restart your terminal and try: gh --version" -ForegroundColor Yellow
+    $allGood = $false
+}
+
+# Verify curl (needed for install script)
+Write-Host "Checking curl..." -NoNewline
+if (Get-Command curl -ErrorAction SilentlyContinue) {
+    Write-Host " OK" -ForegroundColor Green
+} else {
+    Write-Host " NOT FOUND" -ForegroundColor Red
+    Write-Host "  curl is required. Install via: winget install curl" -ForegroundColor Yellow
+    $allGood = $false
+}
+
 Write-Host ""
-Write-Host "Next steps:" -ForegroundColor Yellow
+
+if ($allGood) {
+    Write-Host "========================" -ForegroundColor Green
+    Write-Host "All tools verified!" -ForegroundColor Green
+    Write-Host "========================" -ForegroundColor Green
+} else {
+    Write-Host "========================" -ForegroundColor Yellow
+    Write-Host "Some tools need attention" -ForegroundColor Yellow
+    Write-Host "========================" -ForegroundColor Yellow
+    Write-Host "Restart your terminal, then re-run this script to verify." -ForegroundColor Yellow
+}
+
+Write-Host ""
+Write-Host "Next steps:" -ForegroundColor Cyan
 Write-Host "  1. Open Git Bash or Windows Terminal"
 Write-Host "  2. Authenticate GitHub: gh auth login"
 Write-Host "  3. Install CodeAssist:"
