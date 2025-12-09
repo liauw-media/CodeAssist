@@ -2,7 +2,7 @@
 
 # ============================================
 # CodeAssist Installation Script
-# Version 1.0.0
+# Version 1.0.3
 # ============================================
 #
 # An assistant library for Claude Code
@@ -14,7 +14,7 @@
 
 set -e
 
-VERSION="1.0.2"
+VERSION="1.0.3"
 
 # Colors
 GREEN='\033[0;32m'
@@ -30,9 +30,29 @@ echo ""
 BASE_URL="https://raw.githubusercontent.com/liauw-media/CodeAssist/main"
 
 # ============================================
-# Step 1: Create directories
+# Step 1: Clean up old installation
 # ============================================
-echo -e "${CYAN}[1/6] Creating directories...${NC}"
+echo -e "${CYAN}[1/7] Cleaning up old installation...${NC}"
+
+if [ -d ".claude/skills" ]; then
+    rm -rf .claude/skills
+    echo -e "${GREEN}  Removed old skills${NC}"
+else
+    echo -e "${GREEN}  No old skills to remove${NC}"
+fi
+
+if [ -d ".claude/commands" ]; then
+    rm -rf .claude/commands
+    echo -e "${GREEN}  Removed old commands${NC}"
+else
+    echo -e "${GREEN}  No old commands to remove${NC}"
+fi
+echo ""
+
+# ============================================
+# Step 2: Create directories
+# ============================================
+echo -e "${CYAN}[2/7] Creating directories...${NC}"
 
 mkdir -p .claude/commands
 mkdir -p .claude/skills
@@ -41,9 +61,9 @@ echo -e "${GREEN}  Done${NC}"
 echo ""
 
 # ============================================
-# Step 2: Install Skills
+# Step 3: Install Skills
 # ============================================
-echo -e "${CYAN}[2/6] Installing skills...${NC}"
+echo -e "${CYAN}[3/7] Installing skills...${NC}"
 
 if curl -fsSL "${BASE_URL}/scripts/install-skills.sh" -o "/tmp/install-skills.sh" 2>/dev/null; then
     chmod +x /tmp/install-skills.sh
@@ -56,9 +76,9 @@ fi
 echo ""
 
 # ============================================
-# Step 3: Install Slash Commands
+# Step 4: Install Slash Commands
 # ============================================
-echo -e "${CYAN}[3/6] Installing commands...${NC}"
+echo -e "${CYAN}[4/7] Installing commands...${NC}"
 
 COMMANDS=(
     "guide.md"
@@ -97,9 +117,9 @@ echo -e "${GREEN}  ${CMD_SUCCESS} commands installed${NC}"
 echo ""
 
 # ============================================
-# Step 4: Install CLAUDE.md
+# Step 5: Install CLAUDE.md
 # ============================================
-echo -e "${CYAN}[4/6] Installing configuration...${NC}"
+echo -e "${CYAN}[5/7] Installing configuration...${NC}"
 
 if curl -fsSL "${BASE_URL}/.claude/CLAUDE.md" -o ".claude/CLAUDE.md" 2>/dev/null; then
     echo -e "${GREEN}  CLAUDE.md installed${NC}"
@@ -107,18 +127,18 @@ fi
 echo ""
 
 # ============================================
-# Step 5: Create VERSION file
+# Step 6: Create VERSION file
 # ============================================
-echo -e "${CYAN}[5/6] Creating version file...${NC}"
+echo -e "${CYAN}[6/7] Creating version file...${NC}"
 
 echo "${VERSION}" > .claude/VERSION
 echo -e "${GREEN}  Version ${VERSION}${NC}"
 echo ""
 
 # ============================================
-# Step 6: .gitignore reminder
+# Step 7: .gitignore reminder
 # ============================================
-echo -e "${CYAN}[6/6] Checking .gitignore...${NC}"
+echo -e "${CYAN}[7/7] Checking .gitignore...${NC}"
 
 if [ -f .gitignore ]; then
     if grep -q "^\.claude/" .gitignore 2>/dev/null; then

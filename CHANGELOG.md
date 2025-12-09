@@ -2,6 +2,19 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.0.3] - 2025-12-09
+
+### Changed
+- Install script now **cleans up old installation** before installing
+  - Removes old `.claude/skills/` and `.claude/commands/` to prevent stale v3.x files
+  - Ensures clean upgrade from any previous version
+- Added step 1 "Cleaning up old installation" (now 7 steps total)
+
+### Fixed
+- Projects with old v3.x skills framework now properly upgrade to v1.x
+
+---
+
 ## [1.0.2] - 2025-12-09
 
 ### Added

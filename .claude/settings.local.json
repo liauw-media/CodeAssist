@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(git rm:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(for cmd in status test update verify security)",
+      "Bash(do echo -n \"$cmd: \")",
+      "Bash(done)",
+      "Bash(head:*)",
+      "Bash(git push)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
