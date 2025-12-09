@@ -2,6 +2,32 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.0.1] - 2025-12-09
+
+### Added
+- `/update` command - Check for CodeAssist updates
+- `/brainstorm` command - Discuss approach before implementing
+- `/plan` command - Break work into actionable tasks
+- `/verify` command - Final checks before completing work
+- "Workflow Commands" section in README
+- "Advanced" section in README documenting prompt templates and CI/CD runners
+- Verification steps to all platform setup scripts (confirms tools work after install)
+- Manual install option in README for security-conscious users
+
+### Changed
+- Simplified `docs/README.md` from 552 lines to 75 lines
+- Consolidated all commands into `.claude/commands/` (single source of truth)
+- Version now only in `.claude/VERSION` (removed from README, skills/README, agents/README)
+
+### Removed
+- Old `commands/` folder (merged into `.claude/commands/`)
+- `docs/SKILLS-ENFORCEMENT.md` (referenced removed fake enforcement)
+- `docs/ai-agent-project-initialization-prompt.md.backup`
+- `UPDATE-TO-v3.1.4.md`
+- `scripts/setup-session-reminder.sh` (orphaned, referenced non-existent commands)
+
+---
+
 ## [1.0.0] - 2025-12-09
 
 Initial release as an assistant library for Claude Code.
