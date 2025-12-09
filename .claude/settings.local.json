@@ -22,7 +22,10 @@
       "WebSearch",
       "WebFetch(domain:mcpcat.io)",
       "Bash(curl:*)",
-      "WebFetch(domain:website.claude.com)"
+      "WebFetch(domain:website.claude.com)",
+      "Bash(ls:*)",
+      "Bash(xargs:*)",
+      "Bash(git rebase:*)"
     ],
     "deny": [],
     "ask": []

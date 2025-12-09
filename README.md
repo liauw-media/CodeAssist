@@ -8,9 +8,46 @@
 
 CodeAssist combines professional development workflows with the Superpowers skills methodology to create a comprehensive framework for AI-assisted software development.
 
-**Version 3.1.5** introduces **Remote Code Agents** for delegating tasks to containerized Claude Code instances, enabling parallel execution and long-running analysis. Built on proven methodologies from [@obra's Superpowers](https://github.com/obra/superpowers) combined with CodeAssist's framework-specific guides for Laravel, Python, JavaScript, and mobile development.
+**Version 3.2.0** introduces the **Multi-Agent System** - 16 specialized AI agents with slash commands, enforcement hooks, and state tracking. Built on proven methodologies from [@obra's Superpowers](https://github.com/obra/superpowers) combined with CodeAssist's framework-specific guides for Laravel, Python, JavaScript, and mobile development.
 
-### 🆕 What's New in v3.1.5 (2025-11-29)
+### 🆕 What's New in v3.2.0 (2025-12-09)
+
+- **🤖 Multi-Agent System**: 16 specialized agents with real infrastructure
+  - **18 Slash Commands**: `/laravel`, `/react`, `/python`, `/test`, `/review`, `/mentor`, etc.
+  - **Agent State Tracking**: Workflow compliance enforcement
+  - **Git Hooks**: Block commits without review/tests
+  - **Orchestration**: `/orchestrate` for complex multi-agent workflows
+
+- **🎯 Key Commands**:
+  ```
+  /guide [question]   - Interactive guidance
+  /mentor [subject]   - Ruthless critical analysis (no sugarcoating)
+  /laravel [task]     - Laravel specialist agent
+  /react [task]       - React/Next.js specialist agent
+  /python [task]      - Python specialist agent
+  /test [task]        - Testing agent (TDD)
+  /review [task]      - Code review agent
+  /feedback [topic]   - Submit feedback to GitHub
+  ```
+
+- **🛡️ Enforcement System**:
+  - Commits BLOCKED without `/review`
+  - Commits BLOCKED if tests fail
+  - Database operations BLOCKED without backup
+  - State machine tracks workflow compliance
+
+- **📦 One-Command Install** (Everything):
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
+  ```
+
+  This installs: 31 skills + 16 agents + 18 commands + hooks + CLAUDE.md
+
+[See Multi-Agent System documentation](agents/README.md)
+
+---
+
+### What's in v3.1.5 (2025-11-29)
 
 - **31 Production-Ready Skills**: Complete Superpowers + MCP Tools + Design + Branding + Remote Agents
   - 8 Core Workflow Skills (brainstorming, planning, execution, code review, verification)
@@ -261,6 +298,125 @@ Update to latest CodeAssist v3.1.4 documentation:
 ```
 Read https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md, https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/ai-agent-init-with-skills.md, https://raw.githubusercontent.com/liauw-media/CodeAssist/main/docs/SKILLS-ENFORCEMENT.md. Confirm using-skills protocol, ultra-compact enforcement checklist, and brand-guidelines integration. Report ready with v3.1.4.
 ```
+
+---
+
+## 🤖 Multi-Agent System (v3.2.0)
+
+CodeAssist v3.2.0 introduces a complete multi-agent system with **16 specialized agents** and **17 slash commands**.
+
+### Why Agents + Skills?
+
+```
+SKILLS = The "HOW" (protocols, checklists, workflows)
+AGENTS = The "WHO" (specialized workers that USE skills)
+
+They're COMPLEMENTARY, not competing!
+
+Example: /laravel agent automatically uses:
+  • database-backup skill (MANDATORY)
+  • test-driven-development skill
+  • code-review skill
+```
+
+### Quick Install (Any Project)
+
+**One command installs EVERYTHING:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
+```
+
+This installs:
+- **30 Skills** - Protocols, checklists, workflows (the "HOW")
+- **16 Agents** - Specialized workers (the "WHO")
+- **18 Slash Commands** - Invokable actions (`/laravel`, `/mentor`, etc.)
+- **Enforcement Hooks** - Block bad commits
+- **CLAUDE.md** - Project instructions (auto-loaded)
+- **Safety Scripts** - Database backup, safe-test wrappers
+
+**Restart Claude Code after installing to activate commands.**
+
+### Alternative: Install Components Separately
+
+```bash
+# Skills only (30 protocols)
+curl -fsSL .../scripts/install-skills.sh | bash
+
+# Agents + Commands only (no skills)
+curl -fsSL .../scripts/install-agents.sh | bash
+```
+
+### All Commands
+
+| Category | Command | Description |
+|----------|---------|-------------|
+| **Help** | `/guide [question]` | Interactive guidance, what to do next |
+| | `/mentor [subject]` | Ruthless critical analysis (no sugarcoating) |
+| | `/status` | Check workflow status |
+| | `/agent-select [task]` | Get agent recommendation |
+| | `/feedback [topic]` | Submit feedback to GitHub |
+| **Dev** | `/laravel [task]` | Laravel ecosystem specialist |
+| | `/react [task]` | React/Next.js development |
+| | `/python [task]` | Python/Django/FastAPI |
+| | `/db [task]` | Database operations |
+| **Quality** | `/test [task]` | Test writing (TDD) |
+| | `/review [task]` | Code review |
+| | `/security [task]` | Security audit |
+| | `/refactor [task]` | Code refactoring |
+| **Research** | `/explore [task]` | Codebase exploration |
+| | `/research [task]` | Web research |
+| | `/docs [task]` | Documentation |
+| **Coord** | `/orchestrate [task]` | Multi-agent workflows |
+
+### Mandatory Workflow
+
+```
+1. /explore or /research  (understand first)
+         ↓
+2. /laravel, /react, /python  (implement)
+         ↓
+3. /test  (MANDATORY)
+         ↓
+4. /review  (MANDATORY)
+         ↓
+5. git commit  (only allowed after review)
+```
+
+### Enforcement
+
+The system BLOCKS bad behavior:
+
+| Action | Blocked If |
+|--------|------------|
+| `git commit` | No `/review` after code changes |
+| `git commit` | Tests haven't passed |
+| `git commit` (with DB changes) | No database backup |
+
+### The Mentor
+
+Use `/mentor` when you want brutal honesty:
+
+```
+/mentor analyze my authentication code
+/mentor is this architecture solid?
+/mentor this entire project
+```
+
+The mentor doesn't sugarcoat. Scores honestly (7/10 = good, 10/10 = rare).
+
+### Feedback Loop
+
+Found a bug? Want a feature? New agent idea?
+
+```
+/feedback I want a Go developer agent
+/feedback Bug: /laravel doesn't check for Sanctum
+```
+
+This creates a GitHub issue in the CodeAssist repo.
+
+[Full Agent Documentation](agents/README.md)
 
 ---
 
