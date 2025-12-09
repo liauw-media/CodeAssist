@@ -45,6 +45,3 @@ Templates reference skills from `.claude/skills/`. For example, `laravel-develop
 - `test-driven-development` - TDD workflow
 - `code-review` - Self-review checklist
 
-## Version
-
-1.0.0

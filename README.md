@@ -78,6 +78,15 @@ Commands that do real work:
 | `/test` | Creates backup, runs test suite |
 | `/backup` | Creates database backup |
 | `/commit` | Pre-commit checklist, then commits |
+| `/update` | Check for CodeAssist updates |
+
+### Workflow Commands
+
+| Command | What it Does |
+|---------|--------------|
+| `/brainstorm [topic]` | Discuss approach before implementing |
+| `/plan [feature]` | Break work into actionable tasks |
+| `/verify` | Final checks before completing work |
 
 ### Framework Commands
 
@@ -142,6 +151,22 @@ Report issues:
   VERSION          # Installed version
   CLAUDE.md        # Project config
 ```
+
+---
+
+## Advanced
+
+### Prompt Templates
+
+The `agents/` folder contains specialized prompt templates for different contexts (Laravel, React, Python, etc.). These are loaded automatically when you use framework commands like `/laravel`.
+
+See [agents/README.md](agents/README.md) for details.
+
+### Self-Hosted CI/CD Runners
+
+The `github/` and `gitlab/` folders contain setup scripts for self-hosted runners:
+- **GitHub Actions**: See [github/GITHUB_RUNNERS_SETUP.md](github/GITHUB_RUNNERS_SETUP.md)
+- **GitLab CI**: See [gitlab/GITLAB_RUNNERS_SETUP.md](gitlab/GITLAB_RUNNERS_SETUP.md)
 
 ---
 
