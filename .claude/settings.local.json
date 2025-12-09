@@ -16,7 +16,8 @@
       "Bash(curl:*)",
       "Bash(for skill in \"safety/pre-commit-hooks\" \"testing/lighthouse-performance-optimization\" \"debugging/browser-automation-debugging\" \"workflow/git-platform-cli\" \"workflow/remote-code-agents\" \"design/brand-guidelines\" \"design/frontend-design\")",
       "Bash(do)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(ls:*)"
     ]
   }
 }

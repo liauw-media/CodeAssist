@@ -2,6 +2,24 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.0.4] - 2025-12-09
+
+### Changed
+- **Commands moved to `commands/`** - now consistent with `skills/` at repo root
+  - Both commands and skills are visible when browsing the repo
+  - Install script copies from `commands/` to `.claude/commands/`
+- Added `commands/README.md` with full command reference and links
+
+### Removed
+- `.claude-plugin/` - outdated v3.x plugin metadata
+- `backups/` - empty leftover folder
+
+### Kept
+- `.mcp.json` - MCP server configs for Lighthouse and Chrome DevTools (used by skills)
+- `.env.remote-agents.example` - config template for remote-code-agents skill
+
+---
+
 ## [1.0.3] - 2025-12-09
 
 ### Changed
