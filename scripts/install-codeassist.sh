@@ -110,7 +110,7 @@ COMMANDS=(
 CMD_SUCCESS=0
 CMD_FAILED=0
 for cmd in "${COMMANDS[@]}"; do
-    if curl -fsSL --retry 2 --retry-delay 1 "${BASE_URL}/.claude/commands/${cmd}" -o ".claude/commands/${cmd}" 2>/dev/null; then
+    if curl -fsSL --retry 2 --retry-delay 1 "${BASE_URL}/commands/${cmd}" -o ".claude/commands/${cmd}" 2>/dev/null; then
         ((CMD_SUCCESS++))
     else
         ((CMD_FAILED++))

@@ -184,32 +184,40 @@ Report issues:
 
 ---
 
+## Repository Structure
+
+```
+CodeAssist/
+├── commands/                   # 24 slash commands (source)
+│   ├── status.md               #   /status - git status
+│   ├── review.md               #   /review - code review
+│   ├── mentor.md               #   /mentor - critical feedback
+│   └── ...                     #   See commands/README.md
+├── skills/                     # 31 skill protocols (source)
+│   ├── safety/                 #   database-backup, defense-in-depth
+│   ├── core/                   #   brainstorming, code-review, etc.
+│   ├── testing/                #   TDD, playwright, etc.
+│   └── ...                     #   See skills/README.md
+├── agents/                     # Prompt templates for framework commands
+├── scripts/                    # Installation scripts
+└── docs/                       # Additional documentation
+```
+
 ## What Gets Installed
 
-When you run the install script, it creates a `.claude/` folder in your project:
+When you run the install script, it copies files to `.claude/` in your project:
 
 ```
 your-project/
-├── .claude/                    # CodeAssist installation (add to .gitignore)
-│   ├── commands/               # 24 slash commands
-│   │   ├── status.md           #   /status - git status
-│   │   ├── review.md           #   /review - code review
-│   │   ├── test.md             #   /test - run tests
-│   │   ├── mentor.md           #   /mentor - critical feedback
-│   │   ├── laravel.md          #   /laravel - Laravel dev
-│   │   └── ...                 #   (24 total)
-│   ├── skills/                 # 31 skill protocols
-│   │   ├── safety/             #   database-backup, defense-in-depth
-│   │   ├── core/               #   brainstorming, code-review, etc.
-│   │   ├── testing/            #   TDD, playwright, etc.
-│   │   ├── workflow/           #   git-workflow, etc.
-│   │   └── ...                 #   (31 total)
-│   ├── CLAUDE.md               # Project config (Claude reads this)
-│   └── VERSION                 # Installed version (e.g., 1.0.3)
-└── .gitignore                  # Should contain: .claude/
+├── .claude/                    # Add to .gitignore
+│   ├── commands/               # Copied from CodeAssist/commands/
+│   ├── skills/                 # Copied from CodeAssist/skills/
+│   ├── CLAUDE.md               # Project config
+│   └── VERSION                 # e.g., 1.0.3
+└── .gitignore
 ```
 
-**Why `.claude/`?** This is the standard location Claude Code looks for project configuration and custom commands. The dot prefix keeps it hidden from normal directory listings but Claude finds it automatically.
+**Why `.claude/`?** This is the standard location Claude Code looks for project configuration and custom commands.
 
 ---
 
