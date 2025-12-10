@@ -141,6 +141,27 @@ If you want this to be solid:
 2. [Step 2]
 3. [Step 3]
 
+### Recommended Skills & Commands
+
+Based on the issues found, use these CodeAssist resources:
+
+| Issue | Skill/Command | Why |
+|-------|---------------|-----|
+| [issue found] | `skill-name` or `/command` | [how it helps] |
+
+**Common recommendations:**
+
+| Problem Area | Recommendation |
+|--------------|----------------|
+| No tests | `/test` + `test-driven-development` skill |
+| No code review | `/review` + `code-review` skill |
+| Database risks | `/backup` + `database-backup` skill |
+| Shared server | `./scripts/safe-test.sh` + `resource-limiting` skill |
+| Security concerns | `/security` + `defense-in-depth` skill |
+| Messy code | `/refactor` + `systematic-debugging` skill |
+| No planning | `/brainstorm` + `/plan` + `writing-plans` skill |
+| Complex feature | `/orchestrate` to coordinate multiple agents |
+
 ### Final Word
 [One paragraph of honest, direct feedback]
 ```
