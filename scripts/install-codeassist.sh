@@ -2,7 +2,7 @@
 
 # ============================================
 # CodeAssist Installation Script
-# Version 1.0.4
+# Version 1.0.5
 # ============================================
 #
 # An assistant library for Claude Code
@@ -14,7 +14,7 @@
 
 set -e
 
-VERSION="1.0.4"
+VERSION="1.0.5"
 
 # Colors
 GREEN='\033[0;32m'

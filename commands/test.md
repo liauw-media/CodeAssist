@@ -1,15 +1,24 @@
 # Test
 
-Run tests with database backup.
+Run tests with database backup and resource protection.
 
 ## Context
 $ARGUMENTS
 
 ## Execute
 
-### Step 1: Detect test framework
+### Step 0: Check environment
 
-Check which test framework is available:
+**CRITICAL for shared servers:** Detect if this is a shared/production environment.
+
+```bash
+# Check if other sites are running (common indicators)
+pgrep -c nginx 2>/dev/null || pgrep -c apache2 2>/dev/null || pgrep -c httpd 2>/dev/null
+```
+
+If web servers are running, ask: **"This appears to be a shared server. Run tests with resource limits? (recommended)"**
+
+### Step 1: Detect test framework
 
 ```bash
 # Check for common test frameworks
@@ -26,26 +35,72 @@ ls pytest.ini pyproject.toml 2>/dev/null && echo "pytest"
 
 If backup script doesn't exist, warn but continue.
 
-### Step 3: Run tests
+### Step 3: Run tests WITH RESOURCE LIMITS
 
-Based on detected framework:
+**On shared/production servers, ALWAYS use resource limits:**
+
+#### Option A: Using `nice` + `cpulimit` (recommended)
 
 ```bash
-# npm
-npm test
+# PHP (pest/phpunit) - limit to 50% CPU, low priority
+nice -n 19 cpulimit -l 50 -- vendor/bin/pest
+nice -n 19 cpulimit -l 50 -- vendor/bin/phpunit
 
-# pest
-vendor/bin/pest
+# npm - limit to 50% CPU
+nice -n 19 cpulimit -l 50 -- npm test
 
-# phpunit
-vendor/bin/phpunit
-
-# pytest
-pytest
-
-# Or if argument provided, run that
-$ARGUMENTS
+# pytest - limit to 50% CPU
+nice -n 19 cpulimit -l 50 -- pytest
 ```
+
+#### Option B: Using `nice` only (if cpulimit not available)
+
+```bash
+# Run with lowest priority (19 = nicest)
+nice -n 19 vendor/bin/pest
+nice -n 19 vendor/bin/phpunit
+nice -n 19 npm test
+nice -n 19 pytest
+```
+
+#### Option C: Using `systemd-run` (Linux with systemd)
+
+```bash
+# Limit to 50% CPU and 1GB RAM
+systemd-run --scope -p CPUQuota=50% -p MemoryMax=1G vendor/bin/pest
+systemd-run --scope -p CPUQuota=50% -p MemoryMax=1G npm test
+```
+
+#### Option D: Reduce parallel processes
+
+```bash
+# PHPUnit/Pest - single process
+vendor/bin/pest --processes=1
+vendor/bin/phpunit --processes=1
+
+# pytest - single process
+pytest -n 1
+
+# npm - depends on test runner config
+```
+
+### Resource Limit Quick Reference
+
+| Tool | Install | Purpose |
+|------|---------|---------|
+| `nice` | Built-in | Lower process priority (won't hog CPU) |
+| `cpulimit` | `apt install cpulimit` | Hard CPU percentage limit |
+| `ionice` | Built-in | Lower disk I/O priority |
+
+**Recommended command for shared servers:**
+```bash
+nice -n 19 ionice -c 3 vendor/bin/pest --processes=1
+```
+
+This runs tests with:
+- Lowest CPU priority (nice -n 19)
+- Lowest I/O priority (ionice -c 3 = idle)
+- Single process (no parallel stress)
 
 ### Step 4: Report results
 
@@ -56,6 +111,7 @@ $ARGUMENTS
 
 **Framework:** [detected framework]
 **Backup:** [created / skipped / failed]
+**Resource Limits:** [applied / not applied]
 
 ### Results
 [test output summary]
@@ -73,4 +129,9 @@ $ARGUMENTS
 [if pass: "All tests pass - ready for review"]
 ```
 
-Run the tests now.
+## Safety Notes
+
+1. **Shared server?** Always use resource limits
+2. **Production data?** Always backup first
+3. **Long-running tests?** Use `--processes=1` to avoid parallel stress
+4. **Still too heavy?** Run tests locally or in CI/CD instead

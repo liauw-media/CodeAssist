@@ -2,6 +2,22 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.0.5] - 2025-12-10
+
+### Added
+- **`resource-limiting` skill** - Protect shared servers from resource exhaustion
+  - Use `nice`, `ionice`, `cpulimit` to limit CPU/IO usage
+  - Prevent tests from killing other sites on shared servers
+- **`/test` command updated** with resource limiting options
+  - Detects shared server environment
+  - Provides multiple resource limiting strategies
+  - Recommends `nice -n 19 ionice -c 3 --processes=1`
+
+### Changed
+- Now 32 skills (was 31)
+
+---
+
 ## [1.0.4] - 2025-12-09
 
 ### Changed

@@ -46,6 +46,7 @@ fetch_skill "core/verification-before-completion/SKILL.md"
 fetch_skill "safety/database-backup/SKILL.md"
 fetch_skill "safety/defense-in-depth/SKILL.md"
 fetch_skill "safety/pre-commit-hooks/SKILL.md"
+fetch_skill "safety/resource-limiting/SKILL.md"
 
 # Testing skills
 fetch_skill "testing/test-driven-development/SKILL.md"

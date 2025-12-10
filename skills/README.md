@@ -30,6 +30,7 @@ These are the most commonly used skills:
 |-------|---------|
 | `database-backup` | Backup before database operations |
 | `defense-in-depth` | Multiple security layers |
+| `resource-limiting` | Protect shared servers from resource exhaustion |
 
 ### Core Workflow
 | Skill | Purpose |
