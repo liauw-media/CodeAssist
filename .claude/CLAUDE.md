@@ -79,13 +79,30 @@ Skills are best practices in `.claude/skills/`. Key skills:
 8. /commit        - Commit changes
 ```
 
-## Database Safety
+## Server Safety
+
+### Running Tests
+
+**Always use safe-test.sh** - it auto-detects shared servers and applies resource limits:
+```bash
+./scripts/safe-test.sh              # Auto-detect framework
+./scripts/safe-test.sh --no-limit   # Disable limits (local dev only)
+```
+
+### Database Operations
 
 Before database operations:
 ```bash
 ./scripts/backup-database.sh
 # or
 /backup
+```
+
+### Environment Variables
+
+```bash
+CODEASSIST_NO_LIMIT=1      # Disable resource limits (for local dev)
+CODEASSIST_CPU_LIMIT=25    # Limit CPU to 25% (default: 50)
 ```
 
 ## Help
