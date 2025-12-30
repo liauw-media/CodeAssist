@@ -58,7 +58,7 @@ An assistant library for Claude Code.
 
 ## Skills
 
-Skills are best practices in `.claude/skills/`. Key skills:
+Skills are best practices in `skills/`. Key skills:
 
 | Skill | When |
 |-------|------|
