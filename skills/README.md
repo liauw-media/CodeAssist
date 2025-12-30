@@ -62,6 +62,7 @@ These are the most commonly used skills:
 | `finishing-a-development-branch` | Clean up and merge branches |
 | `systematic-debugging` | Methodical bug fixing |
 | `root-cause-tracing` | Find actual cause |
+| `server-documentation` | Track changes with daily logs |
 
 ### Design
 | Skill | Purpose |
