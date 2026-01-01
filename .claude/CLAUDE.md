@@ -21,6 +21,15 @@ An assistant library for Claude Code.
 | `/plan [feature]` | Break work into actionable tasks |
 | `/verify` | Final checks before completing work |
 
+## Git Branch Commands
+
+| Command | Action |
+|---------|--------|
+| `/branch [id] [desc]` | Create branch + checklist (add `-w` for worktree) |
+| `/branch-status` | Check progress on current branch |
+| `/branch-done` | Complete branch, create PR |
+| `/branch-list` | List all active branches and worktrees |
+
 ## Framework Commands
 
 | Command | For |
@@ -67,6 +76,7 @@ Skills are best practices in `skills/`. Key skills:
 | `database-backup` | Before tests, migrations |
 | `code-review` | Before completing work |
 | `test-driven-development` | When writing tests |
+| `branch-discipline` | One branch per issue, small commits |
 | `system-architect` | Security audits, hardening |
 
 ## Workflow

@@ -21,6 +21,15 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | `/plan` | [plan.md](plan.md) | Break work into actionable tasks |
 | `/verify` | [verify.md](verify.md) | Final checks before completing work |
 
+## Git Branch Commands
+
+| Command | File | What it Does |
+|---------|------|--------------|
+| `/branch` | [branch.md](branch.md) | Create focused branch + checklist (+ worktree) |
+| `/branch-status` | [branch-status.md](branch-status.md) | Check progress on current branch |
+| `/branch-done` | [branch-done.md](branch-done.md) | Complete branch, verify checklist, create PR |
+| `/branch-list` | [branch-list.md](branch-list.md) | List all active branches and worktrees |
+
 ## Framework Commands
 
 | Command | File | For |

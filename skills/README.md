@@ -59,6 +59,7 @@ These are the most commonly used skills:
 | `git-workflow` | Commits, branches, merging |
 | `git-worktrees` | Parallel feature development |
 | `git-platform-cli` | GitHub/GitLab CLI usage |
+| `branch-discipline` | One branch per issue, small commits |
 | `pre-commit-hooks` | Automate checks before commit |
 | `finishing-a-development-branch` | Clean up and merge branches |
 | `systematic-debugging` | Methodical bug fixing |
