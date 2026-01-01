@@ -212,6 +212,62 @@ security-scanner:
     DOCKERFILE_PATH: security/scanner/Dockerfile
 ```
 
+### GitHub Actions for Building Images
+
+```yaml
+# .github/workflows/build-images.yml
+name: Build Base Images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'php/**'
+      - 'python/**'
+      - 'node/**'
+      - 'security/**'
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly rebuild
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - image: php
+            tag: 8.3-testing
+            dockerfile: php/8.3-testing/Dockerfile
+          - image: python
+            tag: 3.12-django
+            dockerfile: python/3.12-django/Dockerfile
+          - image: node
+            tag: 20-playwright
+            dockerfile: node/20-playwright/Dockerfile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ matrix.tag }}
+```
+
 ## Using Without Custom Images
 
 If you don't want to build custom images, the CI templates work with public images:

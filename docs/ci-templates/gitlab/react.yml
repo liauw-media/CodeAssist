@@ -1,0 +1,106 @@
+# GitLab CI for React/Next.js
+# Copy to: .gitlab-ci.yml
+#
+# Features:
+# - Parallel lint + typecheck + test
+# - Playwright E2E tests
+# - Build artifacts
+# - Security scanning
+
+stages:
+  - prepare
+  - test
+  - build
+  - deploy
+
+.node:
+  image: node:20
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-node
+    paths:
+      - node_modules/
+      - .next/cache/
+
+install:
+  extends: .node
+  stage: prepare
+  script:
+    - npm ci
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1 hour
+
+lint:
+  extends: .node
+  stage: test
+  needs: [install]
+  script:
+    - npm run lint
+
+typecheck:
+  extends: .node
+  stage: test
+  needs: [install]
+  script:
+    - npm run typecheck
+  allow_failure: true
+
+test:
+  extends: .node
+  stage: test
+  needs: [install]
+  script:
+    - npm run test -- --coverage
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+
+e2e:
+  stage: test
+  image: mcr.microsoft.com/playwright:v1.40.0-jammy
+  needs: [install]
+  script:
+    - npm ci
+    - npx playwright test
+  artifacts:
+    when: always
+    paths:
+      - playwright-report/
+    expire_in: 7 days
+  allow_failure: true
+
+build:
+  extends: .node
+  stage: build
+  needs: [lint, test]
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - .next/
+      - dist/
+      - build/
+    expire_in: 1 week
+
+security:
+  image: node:20
+  stage: test
+  script:
+    - npm audit --audit-level=high
+  allow_failure: true
+
+# Optional: Deploy to Pages
+# pages:
+#   stage: deploy
+#   needs: [build]
+#   script:
+#     - mv dist public || mv build public || mv out public
+#   artifacts:
+#     paths:
+#       - public
+#   only:
+#     - main

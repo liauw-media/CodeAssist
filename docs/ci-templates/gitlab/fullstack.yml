@@ -1,0 +1,166 @@
+# GitLab CI for Full-Stack (Laravel API + React Frontend)
+# Copy to: .gitlab-ci.yml
+#
+# Structure expected:
+#   /backend   - Laravel API
+#   /frontend  - React/Next.js
+#
+# Features:
+# - Parallel backend + frontend jobs
+# - E2E testing
+# - Security scanning for both
+
+stages:
+  - prepare
+  - test
+  - build
+  - deploy
+
+variables:
+  MYSQL_DATABASE: testing
+  MYSQL_ROOT_PASSWORD: secret
+
+# ============================================
+# Backend (Laravel)
+# ============================================
+
+.backend:
+  image: php:8.3-cli
+  before_script:
+    - apt-get update && apt-get install -y git zip unzip libpq-dev libzip-dev
+    - docker-php-ext-install pdo pdo_mysql zip
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  cache:
+    key: backend-${CI_COMMIT_REF_SLUG}
+    paths:
+      - backend/vendor/
+
+backend:install:
+  extends: .backend
+  stage: prepare
+  script:
+    - cd backend && composer install --prefer-dist --no-interaction
+  artifacts:
+    paths:
+      - backend/vendor/
+    expire_in: 1 hour
+
+backend:lint:
+  extends: .backend
+  stage: test
+  needs: [backend:install]
+  script:
+    - cd backend && vendor/bin/pint --test
+  allow_failure: true
+
+backend:test:
+  extends: .backend
+  stage: test
+  needs: [backend:install]
+  services:
+    - mysql:8.0
+  script:
+    - cd backend
+    - cp .env.testing .env
+    - php artisan key:generate
+    - php artisan migrate --force
+    - php artisan test --parallel
+
+backend:security:
+  image: php:8.3-cli
+  stage: test
+  script:
+    - curl -sS https://getcomposer.org/installer | php
+    - cd backend && php ../composer.phar audit
+  allow_failure: true
+
+# ============================================
+# Frontend (React/Next.js)
+# ============================================
+
+.frontend:
+  image: node:20
+  cache:
+    key: frontend-${CI_COMMIT_REF_SLUG}
+    paths:
+      - frontend/node_modules/
+
+frontend:install:
+  extends: .frontend
+  stage: prepare
+  script:
+    - cd frontend && npm ci
+  artifacts:
+    paths:
+      - frontend/node_modules/
+    expire_in: 1 hour
+
+frontend:lint:
+  extends: .frontend
+  stage: test
+  needs: [frontend:install]
+  script:
+    - cd frontend && npm run lint
+
+frontend:test:
+  extends: .frontend
+  stage: test
+  needs: [frontend:install]
+  script:
+    - cd frontend && npm run test -- --coverage
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+
+frontend:build:
+  extends: .frontend
+  stage: build
+  needs: [frontend:lint, frontend:test]
+  script:
+    - cd frontend && npm run build
+  artifacts:
+    paths:
+      - frontend/dist/
+      - frontend/.next/
+    expire_in: 1 week
+
+frontend:security:
+  image: node:20
+  stage: test
+  script:
+    - cd frontend && npm audit --audit-level=high
+  allow_failure: true
+
+# ============================================
+# E2E Tests (Full Stack)
+# ============================================
+
+e2e:
+  stage: test
+  image: mcr.microsoft.com/playwright:v1.40.0-jammy
+  needs: [backend:install, frontend:install]
+  services:
+    - mysql:8.0
+  variables:
+    APP_ENV: testing
+    DB_CONNECTION: mysql
+    DB_HOST: mysql
+    DB_DATABASE: testing
+    DB_USERNAME: root
+    DB_PASSWORD: secret
+  script:
+    # Start backend
+    - cd backend
+    - cp .env.testing .env
+    - php artisan key:generate
+    - php artisan migrate --force
+    - php artisan serve --host=0.0.0.0 --port=8000 &
+    - sleep 5
+    # Run E2E tests
+    - cd ../frontend
+    - npm ci
+    - npx playwright test
+  artifacts:
+    when: always
+    paths:
+      - frontend/playwright-report/
+    expire_in: 7 days
+  allow_failure: true
