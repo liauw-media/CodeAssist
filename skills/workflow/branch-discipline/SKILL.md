@@ -74,6 +74,14 @@ Use git worktrees when you need to:
 /branch [issue-id] [description] -w   # + worktree for parallel work
 ```
 
+**Then immediately:**
+```
+/mentor review requirements for #[id]: [description]
+```
+
+This catches unclear requirements and flawed approaches BEFORE you write code.
+Record findings in the checklist.
+
 ### During Work
 
 1. **Before each commit**, ask:
@@ -81,14 +89,25 @@ Use git worktrees when you need to:
    - Is this the smallest logical unit?
    - Does the commit message reference the issue?
 
-2. **Check progress:**
+2. **Incorporate mentor advice** from initial review
+
+3. **Check progress:**
    ```
    /branch-status
    ```
 
-3. **Found unrelated issue?**
+4. **Found unrelated issue?**
    - Add to notes, don't fix now
    - Create separate branch later
+
+### Before PR
+
+```
+/mentor review my implementation for #[id]
+```
+
+This catches blind spots and edge cases before team review.
+Record findings in the checklist.
 
 ### Completing Work
 
@@ -198,12 +217,31 @@ Each branch should have a checklist (created by `/branch`):
 - What this branch WILL do
 - What this branch will NOT do
 
-## Progress
+## Checklist
+
+### Before Starting
 - [ ] Requirements understood
-- [ ] Implementation complete
+- [ ] Mentor review: `/mentor review requirements for #[ID]`
+
+### During Work
+- [ ] Changes limited to scope
+- [ ] Mentor advice incorporated
 - [ ] Tests added
-- [ ] Self-reviewed
-- [ ] Ready for PR
+
+### Before PR
+- [ ] Mentor review: `/mentor review implementation for #[ID]`
+- [ ] Tests passing
+- [ ] Commits logical (max 3-5)
+
+## Mentor Reviews
+
+### Initial (before starting)
+**Findings:** [mentor feedback]
+**Action:** [what you changed]
+
+### Final (before PR)
+**Findings:** [mentor feedback]
+**Action:** [what you changed]
 
 ## Commits
 | Hash | Message |

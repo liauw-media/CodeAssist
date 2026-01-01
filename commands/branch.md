@@ -90,18 +90,38 @@ Base: [base-branch]
 - [ ] Branch created from latest [base-branch]
 - [ ] Issue requirements understood
 - [ ] Scope defined above
+- [ ] **Mentor Review**: `/mentor review requirements for #[ID]`
+  - Requirements clear? Approach sound? Potential issues?
 
 ### During Work
 - [ ] Changes limited to issue scope
 - [ ] Each commit focused on one logical change
 - [ ] Tests added/updated for changes
 - [ ] No unrelated files modified
+- [ ] Mentor advice from initial review incorporated
 
-### Before Merging
+### Before PR
 - [ ] All checklist items complete
 - [ ] Tests passing
-- [ ] Code reviewed
-- [ ] Commits squashed if needed (max 3-5 commits)
+- [ ] **Mentor Review**: `/mentor review implementation for #[ID]`
+  - Blind spots? Edge cases? Ready for team review?
+- [ ] Commits logical and well-messaged (max 3-5)
+
+## Mentor Reviews
+
+### Initial Review (before starting)
+```
+/mentor review requirements for #[ID]: [brief description]
+```
+**Findings:** [paste mentor feedback]
+**Action taken:** [how you addressed concerns]
+
+### Final Review (before PR)
+```
+/mentor review my implementation for #[ID]
+```
+**Findings:** [paste mentor feedback]
+**Action taken:** [how you addressed concerns]
 
 ## Commits
 
