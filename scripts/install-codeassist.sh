@@ -5,189 +5,191 @@
 # Version 1.0.8
 # ============================================
 #
-# An assistant library for Claude Code
+# Downloads and installs CodeAssist from GitHub releases
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
+#
+# Options:
+#   VERSION=v1.0.8 curl ... | bash   # Install specific version
 #
 # ============================================
 
 set -e
 
-VERSION="1.0.8"
+# Use specified version or latest
+INSTALL_VERSION="${VERSION:-latest}"
 
-# Colors
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-NC='\033[0m'
+# Colors (optional, degrade gracefully)
+if [ -t 1 ]; then
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    RED='\033[0;31m'
+    CYAN='\033[0;36m'
+    NC='\033[0m'
+else
+    GREEN=''
+    YELLOW=''
+    RED=''
+    CYAN=''
+    NC=''
+fi
 
 echo ""
-echo "CodeAssist Installation - v${VERSION}"
-echo "======================================"
+echo "CodeAssist Installation"
+echo "========================"
 echo ""
 
-BASE_URL="https://raw.githubusercontent.com/liauw-media/CodeAssist/main"
+# ============================================
+# Step 1: Determine version to install
+# ============================================
+echo -e "${CYAN}[1/5] Checking version...${NC}"
+
+if [ "$INSTALL_VERSION" = "latest" ]; then
+    # Get latest release version from GitHub API
+    INSTALL_VERSION=$(curl -fsSL "https://api.github.com/repos/liauw-media/CodeAssist/releases/latest" 2>/dev/null | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' || echo "")
+
+    if [ -z "$INSTALL_VERSION" ]; then
+        echo -e "${YELLOW}  Could not fetch latest version, using v1.0.8${NC}"
+        INSTALL_VERSION="v1.0.8"
+    fi
+fi
+
+# Ensure version starts with 'v'
+if [[ ! "$INSTALL_VERSION" =~ ^v ]]; then
+    INSTALL_VERSION="v${INSTALL_VERSION}"
+fi
+
+echo -e "${GREEN}  Installing ${INSTALL_VERSION}${NC}"
+echo ""
 
 # ============================================
-# Step 1: Clean up old installation
+# Step 2: Download release archive
 # ============================================
-echo -e "${CYAN}[1/7] Cleaning up old installation...${NC}"
+echo -e "${CYAN}[2/5] Downloading release...${NC}"
 
+DOWNLOAD_URL="https://github.com/liauw-media/CodeAssist/archive/refs/tags/${INSTALL_VERSION}.tar.gz"
+TEMP_DIR=$(mktemp -d)
+ARCHIVE_FILE="${TEMP_DIR}/codeassist.tar.gz"
+
+if ! curl -fsSL --retry 3 --retry-delay 2 "$DOWNLOAD_URL" -o "$ARCHIVE_FILE" 2>/dev/null; then
+    echo -e "${RED}  Failed to download ${INSTALL_VERSION}${NC}"
+    echo -e "${RED}  URL: ${DOWNLOAD_URL}${NC}"
+    echo ""
+    echo "Troubleshooting:"
+    echo "  1. Check your internet connection"
+    echo "  2. Verify the version exists: https://github.com/liauw-media/CodeAssist/releases"
+    echo "  3. Try a specific version: VERSION=v1.0.8 curl ... | bash"
+    rm -rf "$TEMP_DIR"
+    exit 1
+fi
+
+echo -e "${GREEN}  Downloaded ($(du -h "$ARCHIVE_FILE" | cut -f1))${NC}"
+echo ""
+
+# ============================================
+# Step 3: Extract and install
+# ============================================
+echo -e "${CYAN}[3/5] Installing...${NC}"
+
+# Extract archive
+cd "$TEMP_DIR"
+tar -xzf "$ARCHIVE_FILE"
+
+# Find extracted directory (CodeAssist-1.0.8 or similar)
+EXTRACTED_DIR=$(ls -d CodeAssist-* 2>/dev/null | head -1)
+if [ -z "$EXTRACTED_DIR" ]; then
+    echo -e "${RED}  Failed to extract archive${NC}"
+    rm -rf "$TEMP_DIR"
+    exit 1
+fi
+
+# Go back to original directory
+cd - > /dev/null
+
+# Clean up old installation
 if [ -d ".claude/skills" ]; then
     rm -rf .claude/skills
-    echo -e "${GREEN}  Removed old skills${NC}"
-else
-    echo -e "${GREEN}  No old skills to remove${NC}"
 fi
-
 if [ -d ".claude/commands" ]; then
     rm -rf .claude/commands
-    echo -e "${GREEN}  Removed old commands${NC}"
-else
-    echo -e "${GREEN}  No old commands to remove${NC}"
 fi
-echo ""
 
-# ============================================
-# Step 2: Create directories
-# ============================================
-echo -e "${CYAN}[2/7] Creating directories...${NC}"
-
+# Create directories
 mkdir -p .claude/commands
 mkdir -p .claude/skills
 
-echo -e "${GREEN}  Done${NC}"
-echo ""
-
-# ============================================
-# Step 3: Install Skills
-# ============================================
-echo -e "${CYAN}[3/7] Installing skills...${NC}"
-
-if curl -fsSL "${BASE_URL}/scripts/install-skills.sh" -o "/tmp/install-skills.sh" 2>/dev/null; then
-    chmod +x /tmp/install-skills.sh
-    bash /tmp/install-skills.sh > /dev/null 2>&1 || true
-    SKILLS_COUNT=$(find .claude/skills -name "SKILL.md" 2>/dev/null | wc -l)
-    echo -e "${GREEN}  ${SKILLS_COUNT} skills installed${NC}"
+# Copy commands
+if [ -d "${TEMP_DIR}/${EXTRACTED_DIR}/commands" ]; then
+    cp "${TEMP_DIR}/${EXTRACTED_DIR}/commands/"*.md .claude/commands/ 2>/dev/null || true
+    CMD_COUNT=$(ls -1 .claude/commands/*.md 2>/dev/null | wc -l)
+    echo -e "${GREEN}  ${CMD_COUNT} commands installed${NC}"
 else
-    echo -e "${YELLOW}  Skipped (network issue)${NC}"
+    echo -e "${YELLOW}  No commands found${NC}"
 fi
-echo ""
 
-# ============================================
-# Step 4: Install Slash Commands
-# ============================================
-echo -e "${CYAN}[4/7] Installing commands...${NC}"
-
-COMMANDS=(
-    "guide.md"
-    "mentor.md"
-    "feedback.md"
-    "status.md"
-    "review.md"
-    "test.md"
-    "backup.md"
-    "commit.md"
-    "update.md"
-    "brainstorm.md"
-    "plan.md"
-    "verify.md"
-    "laravel.md"
-    "php.md"
-    "react.md"
-    "python.md"
-    "db.md"
-    "security.md"
-    "docs.md"
-    "refactor.md"
-    "explore.md"
-    "research.md"
-    "agent-select.md"
-    "orchestrate.md"
-)
-
-CMD_SUCCESS=0
-CMD_FAILED=0
-for cmd in "${COMMANDS[@]}"; do
-    if curl -fsSL --retry 2 --retry-delay 1 "${BASE_URL}/commands/${cmd}" -o ".claude/commands/${cmd}" 2>/dev/null; then
-        ((CMD_SUCCESS++))
-    else
-        ((CMD_FAILED++))
-        echo -e "${YELLOW}  Failed: ${cmd}${NC}"
-    fi
-done
-
-if [ $CMD_FAILED -gt 0 ]; then
-    echo -e "${YELLOW}  ${CMD_SUCCESS} commands installed, ${CMD_FAILED} failed${NC}"
-    echo -e "${YELLOW}  Re-run the install script to retry failed downloads${NC}"
+# Copy skills
+if [ -d "${TEMP_DIR}/${EXTRACTED_DIR}/skills" ]; then
+    cp -r "${TEMP_DIR}/${EXTRACTED_DIR}/skills/"* .claude/skills/ 2>/dev/null || true
+    SKILL_COUNT=$(find .claude/skills -name "SKILL.md" 2>/dev/null | wc -l)
+    echo -e "${GREEN}  ${SKILL_COUNT} skills installed${NC}"
 else
-    echo -e "${GREEN}  ${CMD_SUCCESS} commands installed${NC}"
+    echo -e "${YELLOW}  No skills found${NC}"
 fi
-echo ""
 
-# ============================================
-# Step 5: Install CLAUDE.md
-# ============================================
-echo -e "${CYAN}[5/7] Installing configuration...${NC}"
-
-if curl -fsSL "${BASE_URL}/.claude/CLAUDE.md" -o ".claude/CLAUDE.md" 2>/dev/null; then
+# Copy CLAUDE.md
+if [ -f "${TEMP_DIR}/${EXTRACTED_DIR}/.claude/CLAUDE.md" ]; then
+    cp "${TEMP_DIR}/${EXTRACTED_DIR}/.claude/CLAUDE.md" .claude/CLAUDE.md
     echo -e "${GREEN}  CLAUDE.md installed${NC}"
 fi
+
+# Create VERSION file
+VERSION_NUM="${INSTALL_VERSION#v}"
+echo "$VERSION_NUM" > .claude/VERSION
+echo -e "${GREEN}  Version ${VERSION_NUM}${NC}"
+
+# Cleanup
+rm -rf "$TEMP_DIR"
 echo ""
 
 # ============================================
-# Step 6: Create VERSION file
+# Step 4: Check .gitignore
 # ============================================
-echo -e "${CYAN}[6/7] Creating version file...${NC}"
-
-echo "${VERSION}" > .claude/VERSION
-echo -e "${GREEN}  Version ${VERSION}${NC}"
-echo ""
-
-# ============================================
-# Step 7: .gitignore reminder
-# ============================================
-echo -e "${CYAN}[7/7] Checking .gitignore...${NC}"
+echo -e "${CYAN}[4/5] Checking .gitignore...${NC}"
 
 if [ -f .gitignore ]; then
-    if grep -q "^\.claude/" .gitignore 2>/dev/null; then
+    if grep -q "^\.claude" .gitignore 2>/dev/null; then
         echo -e "${GREEN}  .claude/ already in .gitignore${NC}"
     else
-        echo -e "${YELLOW}  Add .claude/ to .gitignore:${NC}"
-        echo -e "${YELLOW}  echo \".claude/\" >> .gitignore${NC}"
+        echo -e "${YELLOW}  Add to .gitignore: echo '.claude/' >> .gitignore${NC}"
     fi
 else
-    echo -e "${YELLOW}  Create .gitignore with:${NC}"
-    echo -e "${YELLOW}  echo \".claude/\" >> .gitignore${NC}"
+    echo -e "${YELLOW}  Create .gitignore: echo '.claude/' >> .gitignore${NC}"
 fi
 echo ""
 
 # ============================================
-# Summary
+# Step 5: Summary
 # ============================================
-echo "======================================"
+echo -e "${CYAN}[5/5] Done!${NC}"
+echo ""
+echo "========================"
 echo "Installation Complete"
-echo "======================================"
+echo "========================"
 echo ""
-echo "Installed:"
-echo "  - ${SKILLS_COUNT:-31} skills"
-echo "  - ${CMD_SUCCESS} commands"
-echo "  - VERSION ${VERSION}"
+echo "Version: ${VERSION_NUM}"
+echo "Commands: ${CMD_COUNT:-0}"
+echo "Skills: ${SKILL_COUNT:-0}"
 echo ""
-echo "Action commands:"
-echo "  /status   - Show git status"
-echo "  /review   - Code review"
-echo "  /test     - Run tests with backup"
-echo "  /backup   - Database backup"
-echo "  /commit   - Pre-commit check + commit"
+echo "Quick start:"
+echo "  /quickstart     - Interactive onboarding"
+echo "  /status         - Show git status"
+echo "  /ca-update      - Check for updates"
 echo ""
-echo "Other commands:"
-echo "  /mentor   - Critical analysis"
-echo "  /feedback - Submit feedback"
-echo "  /guide    - Get help"
+echo "Branch workflow:"
+echo "  /branch 123 fix login   - Create focused branch"
+echo "  /branch-status          - Check progress"
+echo "  /branch-done            - Complete and PR"
 echo ""
-echo -e "${YELLOW}Important: Add .claude/ to .gitignore${NC}"
-echo ""
-echo "Restart Claude Code to activate."
+echo -e "${YELLOW}Tip: Run /quickstart to get personalized recommendations${NC}"
 echo ""
