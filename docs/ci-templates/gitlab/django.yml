@@ -2,6 +2,7 @@
 # Copy to: .gitlab-ci.yml
 #
 # Features:
+# - YAML linting
 # - Parallel lint + test
 # - PostgreSQL service
 # - Poetry dependency management
@@ -9,9 +10,21 @@
 # - Type checking with mypy
 
 stages:
+  - lint
   - test
   - build
   - deploy
+
+# YAML lint - validates all YAML files
+yaml-lint:
+  stage: lint
+  image: python:3.12-slim
+  before_script:
+    - pip install yamllint --quiet
+  script:
+    - yamllint -d relaxed . || true
+    - yamllint --strict .gitlab-ci.yml
+  allow_failure: true
 
 variables:
   POSTGRES_DB: test_db

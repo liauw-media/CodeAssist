@@ -2,16 +2,29 @@
 # Copy to: .gitlab-ci.yml
 #
 # Features:
+# - YAML linting
 # - Parallel lint + typecheck + test
 # - Playwright E2E tests
 # - Build artifacts
 # - Security scanning
 
 stages:
+  - lint
   - prepare
   - test
   - build
   - deploy
+
+# YAML lint - validates all YAML files
+yaml-lint:
+  stage: lint
+  image: python:3.12-slim
+  before_script:
+    - pip install yamllint --quiet
+  script:
+    - yamllint -d relaxed . || true
+    - yamllint --strict .gitlab-ci.yml
+  allow_failure: true
 
 .node:
   image: node:20

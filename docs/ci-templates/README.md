@@ -50,6 +50,7 @@ All templates include:
 
 | Feature | Description |
 |---------|-------------|
+| **YAML Linting** | Validates YAML syntax with yamllint |
 | **Parallel Jobs** | Lint, test, typecheck run simultaneously |
 | **Caching** | Dependencies cached between runs |
 | **Security Scanning** | Dependency vulnerability checks |
@@ -158,4 +159,31 @@ cache:
 - uses: actions/cache@v4
   with:
     key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+```
+
+### YAML Lint Failures
+
+The yamllint job validates YAML syntax. Common issues:
+
+```yaml
+# Wrong - trailing spaces
+key: value
+
+# Wrong - inconsistent indentation
+parent:
+  child1: value
+   child2: value  # extra space
+
+# Right
+parent:
+  child1: value
+  child2: value
+```
+
+To check locally:
+```bash
+pip install yamllint
+yamllint .gitlab-ci.yml
+# or
+yamllint .github/workflows/ci.yml
 ```

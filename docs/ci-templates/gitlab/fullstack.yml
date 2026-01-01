@@ -6,15 +6,28 @@
 #   /frontend  - React/Next.js
 #
 # Features:
+# - YAML linting
 # - Parallel backend + frontend jobs
 # - E2E testing
 # - Security scanning for both
 
 stages:
+  - lint
   - prepare
   - test
   - build
   - deploy
+
+# YAML lint - validates all YAML files
+yaml-lint:
+  stage: lint
+  image: python:3.12-slim
+  before_script:
+    - pip install yamllint --quiet
+  script:
+    - yamllint -d relaxed . || true
+    - yamllint --strict .gitlab-ci.yml
+  allow_failure: true
 
 variables:
   MYSQL_DATABASE: testing
