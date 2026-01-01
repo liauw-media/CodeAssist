@@ -17,7 +17,7 @@ Slash commands that do real work. Source: `commands/`
 
 | Category | Commands |
 |----------|----------|
-| **Action** | `/status`, `/review`, `/test`, `/backup`, `/commit`, `/update` |
+| **Action** | `/status`, `/review`, `/test`, `/backup`, `/commit`, `/ca-update` |
 | **Workflow** | `/brainstorm`, `/plan`, `/verify` |
 | **Framework** | `/laravel`, `/php`, `/react`, `/python`, `/db` |
 | **Quality** | `/security`, `/architect`, `/refactor`, `/docs` |

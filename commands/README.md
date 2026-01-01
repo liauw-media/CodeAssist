@@ -11,7 +11,7 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | `/test` | [test.md](test.md) | Creates backup, runs test suite |
 | `/backup` | [backup.md](backup.md) | Creates database backup |
 | `/commit` | [commit.md](commit.md) | Pre-commit checklist, then commits |
-| `/update` | [update.md](update.md) | Check for CodeAssist updates |
+| `/ca-update` | [ca-update.md](ca-update.md) | Check for CodeAssist updates |
 
 ## Workflow Commands
 

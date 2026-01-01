@@ -1,6 +1,8 @@
-# Update CodeAssist
+# CA-Update
 
-Check for updates and see what's new.
+Check for CodeAssist updates and see what's new.
+
+> Prefixed with `ca-` to avoid conflicts with Claude Code built-in commands.
 
 ## Execute
 

@@ -108,7 +108,7 @@ All notable changes to CodeAssist will be documented in this file.
 ## [1.0.1] - 2025-12-09
 
 ### Added
-- `/update` command - Check for CodeAssist updates
+- `/ca-update` command - Check for CodeAssist updates
 - `/brainstorm` command - Discuss approach before implementing
 - `/plan` command - Break work into actionable tasks
 - `/verify` command - Final checks before completing work

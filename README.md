@@ -107,7 +107,7 @@ Commands that do real work:
 | `/test` | Creates backup, runs test suite |
 | `/backup` | Creates database backup |
 | `/commit` | Pre-commit checklist, then commits |
-| `/update` | Check for CodeAssist updates |
+| `/ca-update` | Check for CodeAssist updates |
 
 ### Workflow Commands
 

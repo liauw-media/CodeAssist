@@ -11,7 +11,7 @@ An assistant library for Claude Code.
 | `/test` | Create backup and run tests |
 | `/backup` | Create database backup |
 | `/commit` | Pre-commit checklist and commit |
-| `/update` | Check for CodeAssist updates |
+| `/ca-update` | Check for CodeAssist updates |
 
 ## Workflow Commands
 
