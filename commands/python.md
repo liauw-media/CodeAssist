@@ -16,6 +16,42 @@ Before ANY work:
 2. **Read required skills**:
    - `skills/testing/test-driven-development/SKILL.md`
    - `skills/safety/database-backup/SKILL.md` (if using database)
+   - `skills/workflow/ci-templates/SKILL.md` (for CI/CD setup)
+
+### CI/CD Base Images
+
+Use custom registry images (fast) or public Docker Hub (no setup):
+
+| Type | Image | Notes |
+|------|-------|-------|
+| Custom | `${REGISTRY}/python:3.12-django` | Pre-built with deps |
+| Public | `python:3.12` | Requires pip install |
+
+**With custom registry** (configure in `.claude/registry.json`):
+```yaml
+test:
+  image: ${REGISTRY}/python:3.12-django
+  services:
+    - postgres:15
+  script:
+    - poetry install
+    - poetry run pytest --cov
+```
+
+**With public images** (no setup required):
+```yaml
+test:
+  image: python:3.12
+  services:
+    - postgres:15
+  before_script:
+    - pip install poetry
+    - poetry install
+  script:
+    - poetry run pytest --cov
+```
+
+See `docs/registry-config.md` for custom registry setup.
 
 ### Execution
 

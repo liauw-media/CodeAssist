@@ -36,6 +36,7 @@ An assistant library for Claude Code.
 | Command | Action |
 |---------|--------|
 | `/security [task]` | Security audit |
+| `/architect [focus]` | System security & performance advisor |
 | `/refactor [task]` | Code refactoring |
 | `/docs [task]` | Generate documentation |
 
@@ -65,6 +66,7 @@ Skills are best practices in `skills/`. Key skills:
 | `database-backup` | Before tests, migrations |
 | `code-review` | Before completing work |
 | `test-driven-development` | When writing tests |
+| `system-architect` | Security audits, hardening |
 
 ## Workflow
 

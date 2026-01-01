@@ -17,6 +17,41 @@ Before ANY work:
    - `skills/safety/database-backup/SKILL.md` (MANDATORY)
    - `skills/testing/test-driven-development/SKILL.md`
    - `skills/core/code-review/SKILL.md`
+   - `skills/workflow/ci-templates/SKILL.md` (for CI/CD setup)
+
+### CI/CD Base Images
+
+Use custom registry images (fast) or public Docker Hub (no setup):
+
+| Type | Image | Notes |
+|------|-------|-------|
+| Custom | `${REGISTRY}/php:8.3-testing` | Pre-built, fast |
+| Public | `php:8.3-cli` | Requires setup |
+
+**With custom registry** (configure in `.claude/registry.json`):
+```yaml
+test:
+  image: ${REGISTRY}/php:8.3-testing
+  script:
+    - composer install
+    - php artisan test --parallel
+```
+
+**With public images** (no setup required):
+```yaml
+test:
+  image: php:8.3-cli
+  before_script:
+    - apt-get update && apt-get install -y git zip unzip libpq-dev
+    - docker-php-ext-install pdo pdo_mysql
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  script:
+    - composer install
+    - php artisan test
+
+```
+
+See `docs/registry-config.md` for custom registry setup.
 
 ### Execution
 

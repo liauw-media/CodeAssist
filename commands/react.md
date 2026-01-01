@@ -17,6 +17,50 @@ Before ANY work:
    - `skills/testing/test-driven-development/SKILL.md`
    - `skills/design/frontend-design/SKILL.md`
    - `skills/design/brand-guidelines/SKILL.md` (check if `.claude/BRAND-GUIDELINES.md` exists)
+   - `skills/workflow/ci-templates/SKILL.md` (for CI/CD setup)
+
+### CI/CD Base Images
+
+Use custom registry images (fast) or public Docker Hub (no setup):
+
+| Type | Image | Notes |
+|------|-------|-------|
+| Custom | `${REGISTRY}/node:20-base` | Pre-built |
+| Public | `node:20` | Works out of the box |
+
+**With custom registry** (configure in `.claude/registry.json`):
+```yaml
+test:
+  image: ${REGISTRY}/node:20-base
+  script:
+    - npm ci
+    - npm run lint
+    - npm run test
+
+e2e:
+  image: ${REGISTRY}/node:20-playwright
+  script:
+    - npm ci
+    - npx playwright test
+```
+
+**With public images** (no setup required):
+```yaml
+test:
+  image: node:20
+  script:
+    - npm ci
+    - npm run lint
+    - npm run test
+
+e2e:
+  image: mcr.microsoft.com/playwright:v1.40.0-jammy
+  script:
+    - npm ci
+    - npx playwright test
+```
+
+See `docs/registry-config.md` for custom registry setup.
 
 ### Execution
 

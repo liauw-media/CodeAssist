@@ -31,6 +31,7 @@ These are the most commonly used skills:
 | `database-backup` | Backup before database operations |
 | `defense-in-depth` | Multiple security layers |
 | `resource-limiting` | Protect shared servers from resource exhaustion |
+| `system-architect` | Security audits and system hardening |
 
 ### Core Workflow
 | Skill | Purpose |
@@ -63,6 +64,7 @@ These are the most commonly used skills:
 | `systematic-debugging` | Methodical bug fixing |
 | `root-cause-tracing` | Find actual cause |
 | `server-documentation` | Track changes with daily logs |
+| `ci-templates` | GitLab CI/CD templates with base images |
 
 ### Design
 | Skill | Purpose |
@@ -100,6 +102,12 @@ These are the most commonly used skills:
 
 **Finishing work:**
 `code-review` → `verification-before-completion` → commit
+
+**Setting up CI/CD:**
+`ci-templates` → configure pipeline → `system-architect` (security scan)
+
+**Security audit:**
+`system-architect` → document findings → fix issues → `server-documentation`
 
 ## Using a Skill
 
