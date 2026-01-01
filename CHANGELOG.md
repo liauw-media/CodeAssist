@@ -2,6 +2,24 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.0.8] - 2025-01-01
+
+### Added
+- **Branch discipline workflow** - One branch per issue, worktree support
+  - `/branch [id] [desc]` - Create focused branch with checklist
+  - `/branch [id] [desc] -w` - Create with worktree for parallel work
+  - `/branch-status` - Check progress on current branch
+  - `/branch-done` - Complete branch, verify checklist, create PR
+  - `/branch-list` - List all active branches and worktrees
+  - `branch-discipline` skill with principles and workflow
+- **Mentor reviews in branch workflow** - Before starting + before PR
+
+### Changed
+- Renamed `/update` to `/ca-update` to avoid conflicts with Claude Code
+- Improved `/ca-update` to show changelog summary and what's new
+
+---
+
 ## [1.0.7] - 2025-01-01
 
 ### Added
