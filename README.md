@@ -176,7 +176,47 @@ Check version:
 cat .claude/VERSION
 ```
 
-Update:
+### Updating (v1.0.9+)
+
+If you're on v1.0.9 or later, just run:
+```
+/ca-update
+```
+
+This saves your session context, updates, and tells you to restart. After restarting Claude, run `/resume-session` to continue where you left off.
+
+### Upgrading from Older Versions (pre-1.0.9)
+
+Older versions don't have session persistence. To preserve your work context:
+
+**Step 1: Save context manually**
+
+Before updating, ask Claude:
+```
+Save a summary of our current work to .claude/session-context.md with:
+- Current task
+- Recent progress
+- Pending work
+- Key decisions made
+- Files modified
+```
+
+**Step 2: Run the update**
+```bash
+curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
+```
+
+**Step 3: Restart and resume**
+```bash
+# Exit Claude (Ctrl+C or /exit)
+claude
+# Then run:
+/resume-session
+```
+
+### Fresh Update (No Context Needed)
+
+If you don't need to preserve context:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
 ```
