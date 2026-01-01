@@ -2,7 +2,7 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
-## [Unreleased]
+## [1.0.6] - 2025-01-01
 
 ### Added
 - **`/quickstart` command** - Interactive onboarding for new users
