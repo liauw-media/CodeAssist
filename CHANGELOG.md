@@ -2,6 +2,17 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.0.9] - 2025-01-01
+
+### Added
+- **Session persistence** - Continue work after updates or restarts
+  - `/save-session` - Save current context for later
+  - `/resume-session` - Resume from saved context
+  - `/ca-update` now automatically saves context before updating
+- Seamless update workflow: update → restart Claude → `/resume-session`
+
+---
+
 ## [1.0.8] - 2025-01-01
 
 ### Added

@@ -1,6 +1,6 @@
 # CodeAssist
 
-[![Version](https://img.shields.io/badge/version-1.0.8-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.0.8)
+[![Version](https://img.shields.io/badge/version-1.0.9-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.0.9)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 An assistant library for Claude Code - skills, commands, and prompts that help Claude work more effectively.

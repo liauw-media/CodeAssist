@@ -2,7 +2,7 @@
 
 # ============================================
 # CodeAssist Installation Script
-# Version 1.0.8
+# Version 1.0.9
 # ============================================
 #
 # Downloads and installs CodeAssist from GitHub releases
@@ -11,7 +11,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
 #
 # Options:
-#   VERSION=v1.0.8 curl ... | bash   # Install specific version
+#   VERSION=v1.0.9 curl ... | bash   # Install specific version
 #
 # ============================================
 
@@ -50,8 +50,8 @@ if [ "$INSTALL_VERSION" = "latest" ]; then
     INSTALL_VERSION=$(curl -fsSL "https://api.github.com/repos/liauw-media/CodeAssist/releases/latest" 2>/dev/null | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' || echo "")
 
     if [ -z "$INSTALL_VERSION" ]; then
-        echo -e "${YELLOW}  Could not fetch latest version, using v1.0.8${NC}"
-        INSTALL_VERSION="v1.0.8"
+        echo -e "${YELLOW}  Could not fetch latest version, using v1.0.9${NC}"
+        INSTALL_VERSION="v1.0.9"
     fi
 fi
 
