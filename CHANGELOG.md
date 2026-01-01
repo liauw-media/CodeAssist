@@ -2,6 +2,16 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.0.10] - 2025-01-02
+
+### Added
+- **`/gitsetup` command** - Set up git hooks for clean workflow
+  - Protects main/master from direct push
+  - Strips Claude Code mentions from commit messages
+  - Local hooks (pre-push, commit-msg)
+
+---
+
 ## [1.0.9] - 2025-01-01
 
 ### Added
