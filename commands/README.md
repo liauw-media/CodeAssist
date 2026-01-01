@@ -29,6 +29,7 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | `/branch-status` | [branch-status.md](branch-status.md) | Check progress on current branch |
 | `/branch-done` | [branch-done.md](branch-done.md) | Complete branch, verify checklist, create PR |
 | `/branch-list` | [branch-list.md](branch-list.md) | List all active branches and worktrees |
+| `/gitsetup` | [gitsetup.md](gitsetup.md) | Protect main, strip Claude mentions from commits |
 
 ## Framework Commands
 

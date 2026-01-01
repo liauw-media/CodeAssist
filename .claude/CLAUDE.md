@@ -29,6 +29,7 @@ An assistant library for Claude Code.
 | `/branch-status` | Check progress on current branch |
 | `/branch-done` | Complete branch, create PR |
 | `/branch-list` | List all active branches and worktrees |
+| `/gitsetup` | Protect main branch, strip Claude mentions from commits |
 
 ## Framework Commands
 
