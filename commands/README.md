@@ -55,6 +55,15 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | `/explore` | [explore.md](explore.md) | Explore codebase structure |
 | `/research` | [research.md](research.md) | Research a topic |
 
+## Session Commands
+
+| Command | File | Purpose |
+|---------|------|---------|
+| `/save-session` | [save-session.md](save-session.md) | Save current context for later |
+| `/resume-session` | [resume-session.md](resume-session.md) | Resume from saved context |
+
+> After `/ca-update`, restart Claude and run `/resume-session` to continue your work.
+
 ## Utility Commands
 
 | Command | File | Purpose |

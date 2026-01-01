@@ -56,6 +56,15 @@ An assistant library for Claude Code.
 | `/explore [task]` | Explore codebase structure |
 | `/research [task]` | Research a topic |
 
+## Session Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/save-session` | Save current context for later |
+| `/resume-session` | Resume from saved context |
+
+> After `/ca-update`, restart Claude and run `/resume-session` to continue.
+
 ## Utility Commands
 
 | Command | Purpose |

@@ -27,7 +27,7 @@ If versions match:
 
 If update available:
 ```
-⬆️ Update available: $CURRENT → $LATEST
+Update available: $CURRENT → $LATEST
 ```
 
 ### Step 3: Fetch What's New
@@ -46,28 +46,10 @@ Summarize the key changes between current and latest version.
 ## How to Update
 
 **Option 1: Auto-update (recommended)**
-\`\`\`bash
 curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
-\`\`\`
 
 **Option 2: Pin to specific version**
-\`\`\`bash
-curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/v1.0.7/scripts/install-codeassist.sh | bash
-\`\`\`
-
-## After Updating
-
-New commands you might want to try:
-- `/quickstart` - Interactive onboarding
-- `/branch` - One branch per issue workflow
-- `/architect` - Security audits
-
-New skills:
-- `branch-discipline` - Clean git history
-- `system-architect` - Security hardening
-- `ci-templates` - GitLab + GitHub CI/CD
-
-Full changelog: https://github.com/liauw-media/CodeAssist/blob/main/CHANGELOG.md
+VERSION=1.0.9 curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
 ```
 
 ### Step 5: Offer to Update Now
@@ -75,51 +57,107 @@ Full changelog: https://github.com/liauw-media/CodeAssist/blob/main/CHANGELOG.md
 Ask user:
 ```
 Would you like me to run the update now?
-- Yes: Run the install script
+- Yes: Save context and update
 - No: Just show the info
 ```
 
-If yes:
+If yes, proceed to Step 6.
+
+### Step 6: Save Session Context
+
+Before updating, save the current session context so work can be resumed after restart.
+
+**Create `.claude/session-context.md` with this structure:**
+
+```markdown
+# Session Context
+
+Saved: [current timestamp]
+Previous Version: [version before update]
+
+## Current Task
+
+[Summarize what the user was working on - be specific about files, features, bugs]
+
+## Recent Progress
+
+[List what was accomplished in this session]
+- [completed item 1]
+- [completed item 2]
+
+## Pending Work
+
+[What still needs to be done]
+- [ ] [pending item 1]
+- [ ] [pending item 2]
+
+## Key Decisions
+
+[Important decisions made during this session that should be remembered]
+
+## Files Modified
+
+[List files that were changed]
+- `path/to/file1` - [what was changed]
+- `path/to/file2` - [what was changed]
+
+## Notes
+
+[Any other context that would help resume work]
+```
+
+Write this context file before proceeding.
+
+### Step 7: Run Update
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
 ```
 
-Then verify:
+Verify:
 ```bash
 echo "Updated to: $(cat .claude/VERSION)"
 ```
+
+### Step 8: Inform User to Restart
+
+After successful update, display:
+
+```
+CodeAssist Updated
+
+Version: [old] → [new]
+
+RESTART REQUIRED
+
+New skills and commands only load when Claude starts fresh.
+
+To continue your work:
+1. Exit this session (Ctrl+C or /exit)
+2. Start fresh: claude
+3. Run: /resume-session
+
+Session context saved to .claude/session-context.md
+```
+
+**Important:** Do NOT continue working after update - old skills are still loaded.
 
 ## Output Format
 
 ```
 ## CodeAssist Update Check
 
-**Current:** 1.0.4
-**Latest:**  1.0.7
+**Current:** 1.0.8
+**Latest:**  1.0.9
 
-### What's New Since 1.0.4
+### What's New
 
-**New Commands:**
-- `/quickstart` - Interactive onboarding
-- `/branch` - One branch per issue + worktree support
-- `/branch-status`, `/branch-done`, `/branch-list`
-- `/architect` - System security audits
-
-**New Skills:**
-- `branch-discipline` - Enforce clean git history
-- `system-architect` - Security audit principles
-- `ci-templates` - GitLab + GitHub CI/CD templates
-
-**Improvements:**
-- YAML linting in all CI templates
-- Mentor reviews in branch workflow
-- Team adoption documentation
+- `/resume-session` - Resume work after update
+- Session context preservation during updates
 
 ### Update Command
 
-\`\`\`bash
 curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
-\`\`\`
 
 Run update now? [Yes/No]
 ```
