@@ -2,6 +2,16 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.0.7] - 2025-01-01
+
+### Added
+- **YAML linting** in all CI templates (GitLab CI + GitHub Actions)
+  - Validates YAML syntax with yamllint
+  - Relaxed mode for all files, strict mode for CI configs
+  - Non-blocking (allow_failure: true)
+
+---
+
 ## [1.0.6] - 2025-01-01
 
 ### Added
