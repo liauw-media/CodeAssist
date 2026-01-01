@@ -6,6 +6,8 @@ An assistant library for Claude Code - skills, commands, and prompts that help C
 
 CodeAssist is a collection of **skills**, **slash commands**, and **prompt templates** that enhance Claude Code's capabilities. Instead of starting from scratch every session, CodeAssist gives Claude structured workflows and best practices to follow.
 
+**New here?** See [Getting Started](docs/getting-started.md) | **Looking for something?** See [Documentation Index](docs/INDEX.md)
+
 ### The Problem It Solves
 
 When working with Claude Code on complex projects, you often need to:
@@ -194,13 +196,20 @@ CodeAssist/
 │   ├── mentor.md               #   /mentor - critical feedback
 │   └── ...                     #   See commands/README.md
 ├── skills/                     # 31 skill protocols (source)
-│   ├── safety/                 #   database-backup, defense-in-depth
-│   ├── core/                   #   brainstorming, code-review, etc.
-│   ├── testing/                #   TDD, playwright, etc.
+│   ├── safety/                 #   database-backup, system-architect
+│   ├── core/                   #   brainstorming, code-review
+│   ├── workflow/               #   git, ci-templates
+│   ├── testing/                #   TDD, playwright
 │   └── ...                     #   See skills/README.md
 ├── agents/                     # Prompt templates for framework commands
-├── scripts/                    # Installation scripts
-└── docs/                       # Additional documentation
+├── scripts/                    # Installation and utility scripts
+└── docs/                       # Reference documentation
+    ├── INDEX.md                #   Everything in one place
+    ├── getting-started.md      #   Quick onboarding
+    ├── team-usage.md           #   Solo vs team setup
+    ├── ci-templates/           #   GitLab + GitHub Actions
+    ├── security-audit/         #   Linux, Windows, Docker
+    └── registry-config.md      #   Custom container registry
 ```
 
 ## What Gets Installed
@@ -276,6 +285,29 @@ Read the CodeAssist documentation to understand available workflows:
 2. Fetch https://raw.githubusercontent.com/liauw-media/CodeAssist/main/skills/README.md
 3. Summarize the available commands and skills
 ```
+
+---
+
+## Team Usage
+
+CodeAssist is optimized for solo developers. Teams need additional setup:
+
+| Consideration | Solo | Team |
+|---------------|------|------|
+| `.claude/` location | gitignored | commit to repo |
+| Version control | auto-updates | pin version |
+| Settings | personal | shared conventions |
+| Database | local | isolated per-dev |
+
+**Quick team setup:**
+```bash
+# Remove from .gitignore and commit
+sed -i '/.claude/d' .gitignore
+git add .claude/
+git commit -m "Add shared CodeAssist configuration"
+```
+
+Full guide: [docs/team-usage.md](docs/team-usage.md)
 
 ---
 
