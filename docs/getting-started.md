@@ -12,9 +12,19 @@ curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts
 echo ".claude/" >> .gitignore
 ```
 
-## First Commands
+## First Command
 
-Try these immediately:
+Start here:
+
+```
+/quickstart
+```
+
+This walks you through personalized setup based on your project.
+
+## Or Jump Right In
+
+If you prefer to explore on your own:
 
 ```
 /status          # See git status, branch, recent commits

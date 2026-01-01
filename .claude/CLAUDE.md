@@ -51,6 +51,7 @@ An assistant library for Claude Code.
 
 | Command | Purpose |
 |---------|---------|
+| `/quickstart` | Interactive onboarding for new users |
 | `/mentor [topic]` | Critical analysis - no sugarcoating |
 | `/guide` | Help with what to do next |
 | `/feedback [message]` | Submit feedback or report issues |

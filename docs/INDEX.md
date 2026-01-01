@@ -73,8 +73,15 @@ Guide: [security-audit/README.md](security-audit/README.md)
 
 | Topic | Document |
 |-------|----------|
-| Custom container registry | [registry-config.md](registry-config.md) |
 | Getting started | [getting-started.md](getting-started.md) |
+| Custom container registry | [registry-config.md](registry-config.md) |
+
+### Team Resources
+
+| Topic | Document |
+|-------|----------|
+| Solo vs team differences | [team-usage.md](team-usage.md) |
+| Step-by-step team adoption | [team-adoption.md](team-adoption.md) |
 
 ## Agents
 

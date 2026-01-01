@@ -2,7 +2,38 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
-## [1.0.5] - 2025-12-10
+## [Unreleased]
+
+### Added
+- **`/quickstart` command** - Interactive onboarding for new users
+- **`docs/INDEX.md`** - Central navigation hub for all documentation
+- **`docs/getting-started.md`** - 5-minute quick start guide
+- **`docs/team-usage.md`** - Solo vs team setup considerations
+- **`docs/team-adoption.md`** - Step-by-step team adoption guide
+- **Security audit reference docs** - Platform-specific commands
+  - `docs/security-audit/linux.md`
+  - `docs/security-audit/windows.md`
+  - `docs/security-audit/docker.md`
+- **CI/CD templates** for GitLab CI and GitHub Actions
+  - Laravel, Django, React, Full-stack templates
+  - Both platforms supported equally
+- **`system-architect` skill** - Security audits and system hardening
+- **`ci-templates` skill** - CI/CD pipeline principles
+- **`/architect` command** - System security analysis
+
+### Changed
+- Slimmed `ci-templates` skill from 477 to 176 lines (principles only)
+- Slimmed `system-architect` skill from 625 to 218 lines (principles only)
+- Skills now contain principles; reference docs contain commands
+- README updated with team section and navigation links
+- Repository structure updated to reflect docs/ organization
+
+### Fixed
+- Removed empty `skills/framework/` directory
+
+---
+
+## [1.0.5] - 2024-12-31
 
 ### Added
 - **`resource-limiting` skill** - Protect shared servers from resource exhaustion

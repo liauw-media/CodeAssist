@@ -82,9 +82,9 @@ CodeAssist is a local development tool - don't commit it to your repo.
 ### 4. Try It
 
 ```
+/quickstart      # Interactive onboarding (recommended)
 /status          # See git status
-/review          # Review your code
-/mentor my code  # Get critical feedback
+/guide           # Get suggestions for what to do next
 ```
 
 That's it. You're ready to go.
@@ -143,6 +143,7 @@ Commands that do real work:
 
 | Command | Purpose |
 |---------|---------|
+| `/quickstart` | Interactive onboarding for new users |
 | `/mentor [topic]` | Critical analysis - no sugarcoating |
 | `/guide` | Help with what to do next |
 | `/feedback [message]` | Submit feedback or report issues |

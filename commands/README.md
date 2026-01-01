@@ -50,6 +50,7 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 
 | Command | File | Purpose |
 |---------|------|---------|
+| `/quickstart` | [quickstart.md](quickstart.md) | Interactive onboarding for new users |
 | `/mentor` | [mentor.md](mentor.md) | Critical analysis - no sugarcoating |
 | `/guide` | [guide.md](guide.md) | Help with what to do next |
 | `/feedback` | [feedback.md](feedback.md) | Submit feedback or report issues |

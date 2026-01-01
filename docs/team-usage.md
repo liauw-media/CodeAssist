@@ -2,6 +2,8 @@
 
 CodeAssist works for solo developers out of the box. Teams need additional considerations.
 
+**Ready to adopt for your team?** See [team-adoption.md](team-adoption.md) for step-by-step instructions.
+
 ## Current State: Solo Developer
 
 CodeAssist is optimized for:
