@@ -26,7 +26,7 @@ CodeAssist packages these workflows into reusable components that Claude can ref
 | Component | Count | Purpose |
 |-----------|-------|---------|
 | **Skills** | 31 | Documented best practices (TDD, code review, database safety) |
-| **Commands** | 24 | Slash commands that do real work (`/status`, `/review`, `/test`) |
+| **Commands** | 35 | Slash commands that do real work (`/status`, `/review`, `/test`) |
 | **Prompt Templates** | 16 | Framework-specific context (Laravel, React, Python) |
 
 ### History
@@ -117,6 +117,16 @@ Commands that do real work:
 | `/plan [feature]` | Break work into actionable tasks |
 | `/verify` | Final checks before completing work |
 
+### Git Branch Commands
+
+| Command | What it Does |
+|---------|--------------|
+| `/branch [id] [desc]` | Create branch + checklist (add `-w` for worktree) |
+| `/branch-status` | Check progress on current branch |
+| `/branch-done` | Complete branch, create PR |
+| `/branch-list` | List all active branches and worktrees |
+| `/gitsetup` | Protect main branch, strip Claude mentions from commits |
+
 ### Framework Commands
 
 | Command | For |
@@ -132,6 +142,7 @@ Commands that do real work:
 | Command | What it Does |
 |---------|--------------|
 | `/security [task]` | Security audit |
+| `/architect [focus]` | System security & performance advisor |
 | `/refactor [task]` | Code refactoring |
 | `/docs [task]` | Generate documentation |
 
@@ -141,6 +152,15 @@ Commands that do real work:
 |---------|--------------|
 | `/explore [task]` | Explore codebase structure |
 | `/research [task]` | Research a topic |
+
+### Session Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/save-session` | Save current context for later |
+| `/resume-session` | Resume from saved context |
+
+> After `/ca-update`, restart Claude and run `/resume-session` to continue.
 
 ### Utility Commands
 
@@ -152,6 +172,15 @@ Commands that do real work:
 | `/feedback [message]` | Submit feedback or report issues |
 | `/agent-select [task]` | Get agent recommendation for a task |
 | `/orchestrate [task]` | Coordinate multiple agents for complex tasks |
+
+### External Tools
+
+| Command | Purpose |
+|---------|---------|
+| `/aider [task]` | Delegate code generation to Ollama (saves context) |
+| `/aider-setup` | Configure Ollama host and model |
+
+> Config in `.aider.conf.yml`. Default: `qwen3-coder` on `ollama.cerberus-kitchen.ts.net`
 
 ---
 
@@ -234,7 +263,7 @@ Report issues:
 
 ```
 CodeAssist/
-├── commands/                   # 24 slash commands (source)
+├── commands/                   # 35 slash commands (source)
 │   ├── status.md               #   /status - git status
 │   ├── review.md               #   /review - code review
 │   ├── mentor.md               #   /mentor - critical feedback
@@ -313,7 +342,7 @@ curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts
 
 This will:
 - Remove old skills and commands
-- Install latest 31 skills and 24 commands
+- Install latest 31 skills and 35 commands
 - Update .claude/CLAUDE.md configuration
 
 After running, check .claude/VERSION for the new version number.

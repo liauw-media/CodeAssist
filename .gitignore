@@ -2,3 +2,4 @@
 .claude/settings.local.json
 .claude/session-context.md
 .claude/session-context.*.md.bak
+.aider*
