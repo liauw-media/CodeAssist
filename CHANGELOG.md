@@ -2,6 +2,34 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.1.0] - 2025-01-09
+
+### Added
+- **Agency Agents Integration** - 10 commands inspired by [agency-agents](https://github.com/msitarzewski/agency-agents) by [@msitarzewski](https://github.com/msitarzewski)
+
+**Project & Design Commands:**
+- `/project` - Project charters, status reports, dependency mapping
+- `/ux` - Design tokens, themes, responsive patterns, accessibility
+- `/summary` - SCQA framework, executive decision briefs
+
+**Analysis & QA Commands:**
+- `/evidence` - Screenshot-based QA validation
+- `/brand` - Design/brand consistency audits
+- `/trends` - Market trends and competitive analysis
+- `/optimize` - Workflow optimization and automation
+
+### Changed
+- **`/plan` enhanced** - RICE scoring, MoSCoW prioritization, risk assessment, capacity planning
+- **`/review` enhanced** - Skeptical "fantasy-immune" validation, evidence-based grading, claim verification
+- **`/orchestrate` enhanced** - Quality gates, 3-retry policy, task-by-task validation, context handoffs
+
+### Documentation
+- Added "Project & Design Commands" section
+- Added "Analysis & QA Commands" section
+- Added "Notable Mentions" section with agency-agents attribution
+
+---
+
 ## [1.0.10] - 2025-01-02
 
 ### Added
