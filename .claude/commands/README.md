@@ -7,7 +7,7 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | Command | File | What it Does |
 |---------|------|--------------|
 | `/status` | [status.md](status.md) | Shows git status, branch, recent commits |
-| `/review` | [review.md](review.md) | Skeptical code review with evidence validation |
+| `/review` | [review.md](review.md) | Runs code review with tests and checks |
 | `/test` | [test.md](test.md) | Creates backup, runs test suite |
 | `/backup` | [backup.md](backup.md) | Creates database backup |
 | `/commit` | [commit.md](commit.md) | Pre-commit checklist, then commits |
@@ -18,7 +18,7 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | Command | File | What it Does |
 |---------|------|--------------|
 | `/brainstorm` | [brainstorm.md](brainstorm.md) | Discuss approach before implementing |
-| `/plan` | [plan.md](plan.md) | Sprint planning with RICE/MoSCoW prioritization |
+| `/plan` | [plan.md](plan.md) | Break work into actionable tasks |
 | `/verify` | [verify.md](verify.md) | Final checks before completing work |
 
 ## Git Branch Commands
@@ -49,14 +49,6 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | `/refactor` | [refactor.md](refactor.md) | Code refactoring |
 | `/docs` | [docs.md](docs.md) | Generate documentation |
 
-## Project & Design Commands
-
-| Command | File | What it Does |
-|---------|------|--------------|
-| `/project` | [project.md](project.md) | Project coordination, status reports, risk tracking |
-| `/ux` | [ux.md](ux.md) | UX architecture, design systems, themes |
-| `/summary` | [summary.md](summary.md) | Executive summaries for stakeholders |
-
 ## Research Commands
 
 | Command | File | What it Does |
@@ -82,7 +74,7 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | `/guide` | [guide.md](guide.md) | Help with what to do next |
 | `/feedback` | [feedback.md](feedback.md) | Submit feedback or report issues |
 | `/agent-select` | [agent-select.md](agent-select.md) | Get agent recommendation |
-| `/orchestrate` | [orchestrate.md](orchestrate.md) | Multi-agent pipeline with quality gates |
+| `/orchestrate` | [orchestrate.md](orchestrate.md) | Coordinate multiple agents |
 
 ## External Tools
 
@@ -119,22 +111,3 @@ Do something with: $ARGUMENTS
 1. First do this
 2. Then do that
 ```
-
-## Notable Mentions
-
-### [agency-agents](https://github.com/msitarzewski/agency-agents)
-
-51 specialized AI agent personalities by [@msitarzewski](https://github.com/msitarzewski). CodeAssist integrated concepts from their Tier 1 agents into `/plan`, `/review`, `/orchestrate`, `/project`, `/ux`, and `/summary`.
-
-**Agents not integrated but potentially useful:**
-
-| Agent | Use Case | Notes |
-|-------|----------|-------|
-| Evidence Collector | Screenshot-based QA | Requires Playwright |
-| Brand Guardian | Brand consistency | Frontend-heavy projects |
-| Workflow Optimizer | Process improvement | Meta-level analysis |
-| Trend Researcher | Market analysis | Product discovery |
-| Growth Hacker | User acquisition | Marketing focus |
-| Spatial Computing | XR/VisionOS dev | Niche platform |
-
-Install directly from [agency-agents](https://github.com/msitarzewski/agency-agents) if needed.

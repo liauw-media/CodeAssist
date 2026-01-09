@@ -7,7 +7,7 @@ An assistant library for Claude Code.
 | Command | Action |
 |---------|--------|
 | `/status` | Show git status, branch, recent commits |
-| `/review` | Run code review with tests and checks |
+| `/review` | Skeptical code review with evidence validation |
 | `/test` | Create backup and run tests |
 | `/backup` | Create database backup |
 | `/commit` | Pre-commit checklist and commit |
@@ -18,7 +18,7 @@ An assistant library for Claude Code.
 | Command | Action |
 |---------|--------|
 | `/brainstorm [topic]` | Discuss approach before implementing |
-| `/plan [feature]` | Break work into actionable tasks |
+| `/plan [feature]` | Sprint planning with RICE/MoSCoW prioritization |
 | `/verify` | Final checks before completing work |
 
 ## Git Branch Commands
@@ -50,6 +50,14 @@ An assistant library for Claude Code.
 | `/refactor [task]` | Code refactoring |
 | `/docs [task]` | Generate documentation |
 
+## Project & Design Commands
+
+| Command | Action |
+|---------|--------|
+| `/project [task]` | Project coordination, status reports, risk tracking |
+| `/ux [task]` | UX architecture, design systems, themes |
+| `/summary [topic]` | Executive summaries for stakeholders |
+
 ## Research Commands
 
 | Command | Action |
@@ -75,7 +83,16 @@ An assistant library for Claude Code.
 | `/guide` | Help with what to do next |
 | `/feedback [message]` | Submit feedback or report issues |
 | `/agent-select [task]` | Get agent recommendation |
-| `/orchestrate [task]` | Coordinate multiple agents |
+| `/orchestrate [task]` | Multi-agent pipeline with quality gates |
+
+## External Tools
+
+| Command | Purpose |
+|---------|---------|
+| `/aider [task]` | Delegate code generation to Ollama (saves context) |
+| `/aider-setup` | Configure Ollama host and model |
+
+> Config in `.aider.conf.yml`. Default: `qwen3-coder` on `ollama.cerberus-kitchen.ts.net`
 
 ## Skills
 
@@ -136,6 +153,27 @@ CODEASSIST_CPU_LIMIT=25    # Limit CPU to 25% (default: 50)
 | Critical feedback | `/mentor [topic]` |
 | Which agent to use | `/agent-select [task]` |
 | Report issue | `/feedback [message]` |
+
+## Notable Mentions
+
+### [agency-agents](https://github.com/msitarzewski/agency-agents)
+
+A collection of 51 specialized AI agent personalities by [@msitarzewski](https://github.com/msitarzewski). CodeAssist integrated concepts from their Tier 1 agents (Sprint Prioritizer, Reality Checker, Project Shepherd, UX Architect, Executive Summary Generator, Agents Orchestrator).
+
+**Agents we didn't integrate but may be useful:**
+
+| Agent | Use Case | Why Not Integrated |
+|-------|----------|-------------------|
+| **Evidence Collector** | Screenshot-based QA validation | Requires Playwright setup, pairs with Reality Checker |
+| **Brand Guardian** | Brand consistency audits | Frontend-heavy projects only |
+| **Workflow Optimizer** | Process improvement analysis | Meta-level, not task-focused |
+| **Trend Researcher** | Market/product trend analysis | Product discovery, not dev workflow |
+| **Growth Hacker** | User acquisition strategies | Marketing focus, out of dev scope |
+| **Content Creator** | Marketing content generation | Marketing focus, out of dev scope |
+| **Social Media Strategists** | Platform-specific content | Marketing focus, out of dev scope |
+| **Spatial Computing** | XR/VisionOS development | Niche platform, add if needed |
+
+> If you need these capabilities, install directly from [agency-agents](https://github.com/msitarzewski/agency-agents) to `~/.claude/agents/`.
 
 ## Version
 
