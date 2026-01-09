@@ -58,6 +58,15 @@ An assistant library for Claude Code.
 | `/ux [task]` | UX architecture, design systems, themes |
 | `/summary [topic]` | Executive summaries for stakeholders |
 
+## Analysis & QA Commands
+
+| Command | Action |
+|---------|--------|
+| `/evidence [task]` | Screenshot-based QA validation |
+| `/brand [task]` | Design/brand consistency audit |
+| `/trends [topic]` | Market trends and competitive analysis |
+| `/optimize [process]` | Workflow optimization and automation |
+
 ## Research Commands
 
 | Command | Action |
@@ -158,22 +167,22 @@ CODEASSIST_CPU_LIMIT=25    # Limit CPU to 25% (default: 50)
 
 ### [agency-agents](https://github.com/msitarzewski/agency-agents)
 
-A collection of 51 specialized AI agent personalities by [@msitarzewski](https://github.com/msitarzewski). CodeAssist integrated concepts from their Tier 1 agents (Sprint Prioritizer, Reality Checker, Project Shepherd, UX Architect, Executive Summary Generator, Agents Orchestrator).
+A collection of 51 specialized AI agent personalities by [@msitarzewski](https://github.com/msitarzewski). CodeAssist integrated concepts from their agents:
 
-**Agents we didn't integrate but may be useful:**
+**Tier 1 (Core):** Sprint Prioritizer, Reality Checker, Project Shepherd, UX Architect, Executive Summary Generator, Agents Orchestrator
 
-| Agent | Use Case | Why Not Integrated |
-|-------|----------|-------------------|
-| **Evidence Collector** | Screenshot-based QA validation | Requires Playwright setup, pairs with Reality Checker |
-| **Brand Guardian** | Brand consistency audits | Frontend-heavy projects only |
-| **Workflow Optimizer** | Process improvement analysis | Meta-level, not task-focused |
-| **Trend Researcher** | Market/product trend analysis | Product discovery, not dev workflow |
-| **Growth Hacker** | User acquisition strategies | Marketing focus, out of dev scope |
-| **Content Creator** | Marketing content generation | Marketing focus, out of dev scope |
-| **Social Media Strategists** | Platform-specific content | Marketing focus, out of dev scope |
-| **Spatial Computing** | XR/VisionOS development | Niche platform, add if needed |
+**Tier 2 (Analysis):** Evidence Collector, Brand Guardian, Trend Researcher, Workflow Optimizer
 
-> If you need these capabilities, install directly from [agency-agents](https://github.com/msitarzewski/agency-agents) to `~/.claude/agents/`.
+**Agents not integrated but available from source:**
+
+| Agent | Use Case | Notes |
+|-------|----------|-------|
+| **Growth Hacker** | User acquisition strategies | Marketing focus |
+| **Content Creator** | Marketing content generation | Marketing focus |
+| **Social Media Strategists** | Platform-specific content | Marketing focus |
+| **Spatial Computing** | XR/VisionOS development | Niche platform |
+
+> Install additional agents from [agency-agents](https://github.com/msitarzewski/agency-agents) to `~/.claude/agents/`.
 
 ## Version
 

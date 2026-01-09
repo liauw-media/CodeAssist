@@ -57,6 +57,15 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | `/ux` | [ux.md](ux.md) | UX architecture, design systems, themes |
 | `/summary` | [summary.md](summary.md) | Executive summaries for stakeholders |
 
+## Analysis & QA Commands
+
+| Command | File | What it Does |
+|---------|------|--------------|
+| `/evidence` | [evidence.md](evidence.md) | Screenshot-based QA validation |
+| `/brand` | [brand.md](brand.md) | Design/brand consistency audit |
+| `/trends` | [trends.md](trends.md) | Market trends and competitive analysis |
+| `/optimize` | [optimize.md](optimize.md) | Workflow optimization and automation |
+
 ## Research Commands
 
 | Command | File | What it Does |
@@ -124,17 +133,11 @@ Do something with: $ARGUMENTS
 
 ### [agency-agents](https://github.com/msitarzewski/agency-agents)
 
-51 specialized AI agent personalities by [@msitarzewski](https://github.com/msitarzewski). CodeAssist integrated concepts from their Tier 1 agents into `/plan`, `/review`, `/orchestrate`, `/project`, `/ux`, and `/summary`.
+51 specialized AI agent personalities by [@msitarzewski](https://github.com/msitarzewski). CodeAssist integrated concepts from:
 
-**Agents not integrated but potentially useful:**
+**Tier 1:** `/plan`, `/review`, `/orchestrate`, `/project`, `/ux`, `/summary`
+**Tier 2:** `/evidence`, `/brand`, `/trends`, `/optimize`
 
-| Agent | Use Case | Notes |
-|-------|----------|-------|
-| Evidence Collector | Screenshot-based QA | Requires Playwright |
-| Brand Guardian | Brand consistency | Frontend-heavy projects |
-| Workflow Optimizer | Process improvement | Meta-level analysis |
-| Trend Researcher | Market analysis | Product discovery |
-| Growth Hacker | User acquisition | Marketing focus |
-| Spatial Computing | XR/VisionOS dev | Niche platform |
+**Not integrated (marketing/niche):** Growth Hacker, Content Creator, Social Media, Spatial Computing
 
-Install directly from [agency-agents](https://github.com/msitarzewski/agency-agents) if needed.
+Install additional agents from [agency-agents](https://github.com/msitarzewski/agency-agents) if needed.
