@@ -67,6 +67,32 @@ An assistant library for Claude Code.
 | `/trends [topic]` | Market trends and competitive analysis |
 | `/optimize [process]` | Workflow optimization and automation |
 
+## Engineering Commands
+
+| Command | Action |
+|---------|--------|
+| `/prototype [idea]` | Rapid MVP development in <3 days |
+| `/backend [task]` | System design, scalability, architecture |
+| `/devops [task]` | CI/CD pipelines, infrastructure automation |
+| `/ai [task]` | ML/AI systems, LLM integration, MLOps |
+
+## Testing Commands
+
+| Command | Action |
+|---------|--------|
+| `/api-test [endpoint]` | API security, functional, performance testing |
+| `/benchmark [target]` | Load testing, Core Web Vitals, performance |
+| `/test-analyze [results]` | Test failure analysis, pattern detection |
+
+## Product Analytics Commands
+
+| Command | Action |
+|---------|--------|
+| `/analytics [report]` | KPI dashboards, metrics analysis |
+| `/experiment [name]` | A/B testing, feature flags, data experiments |
+| `/synthesize [sources]` | Aggregate feedback into insights |
+| `/ux-research [study]` | User research, usability testing |
+
 ## Research Commands
 
 | Command | Action |
@@ -172,6 +198,12 @@ A collection of 51 specialized AI agent personalities by [@msitarzewski](https:/
 **Tier 1 (Core):** Sprint Prioritizer, Reality Checker, Project Shepherd, UX Architect, Executive Summary Generator, Agents Orchestrator
 
 **Tier 2 (Analysis):** Evidence Collector, Brand Guardian, Trend Researcher, Workflow Optimizer
+
+**Tier 3 (Engineering):** Rapid Prototyper, Backend Architect, DevOps Automator, AI Engineer
+
+**Tier 3 (Testing):** API Tester, Performance Benchmarker, Test Results Analyzer
+
+**Tier 3 (Product):** Analytics Reporter, Experiment Tracker, Feedback Synthesizer, UX Researcher
 
 **Agents not integrated but available from source:**
 
