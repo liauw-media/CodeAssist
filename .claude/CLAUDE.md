@@ -76,6 +76,19 @@ An assistant library for Claude Code.
 | `/devops [task]` | CI/CD pipelines, infrastructure automation |
 | `/ai [task]` | ML/AI systems, LLM integration, MLOps |
 
+## Infrastructure Commands
+
+| Command | Action |
+|---------|--------|
+| `/terraform [task]` | Infrastructure as Code with Terraform |
+| `/ansible [task]` | Configuration management automation |
+| `/docker [task]` | Container images and Docker Compose |
+| `/k8s [task]` | Kubernetes manifests, Helm, debugging |
+| `/aws [task]` | AWS architecture and deployment |
+| `/gcp [task]` | Google Cloud architecture |
+| `/azure [task]` | Microsoft Azure architecture |
+| `/vercel [task]` | Edge deployment and Next.js |
+
 ## Testing Commands
 
 | Command | Action |
@@ -153,6 +166,33 @@ Skills are best practices in `skills/`. Key skills:
 | `agentic-design` | Agent loops, tool calling, multi-agent systems |
 | `llm-integration` | API patterns, streaming, error handling |
 | `persistent-memory` | Cross-session context, claude-mem integration |
+
+### Infrastructure Skills
+
+| Skill | When |
+|-------|------|
+| `terraform-iac` | IaC, state management, modules |
+| `ansible-automation` | Playbooks, roles, vault |
+| `docker-containers` | Dockerfiles, Compose, optimization |
+| `kubernetes-orchestration` | K8s manifests, Helm, RBAC |
+
+### Cloud Provider Skills
+
+| Skill | When |
+|-------|------|
+| `aws-architecture` | AWS services, VPC, IAM, ECS/EKS |
+| `gcp-architecture` | GCP, GKE, Cloud Run |
+| `azure-architecture` | Azure, AKS, App Service |
+| `vercel-deployment` | Edge functions, Next.js |
+
+### Platform Engineering Skills
+
+| Skill | When |
+|-------|------|
+| `gitops-workflows` | ArgoCD, Flux, promotion strategies |
+| `policy-as-code` | OPA, Kyverno, Checkov |
+| `cloud-monitoring` | Prometheus, Grafana, alerting |
+| `cost-optimization` | FinOps, right-sizing, commitments |
 
 ### Skill Commands
 

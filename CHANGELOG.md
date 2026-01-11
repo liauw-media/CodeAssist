@@ -2,6 +2,52 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.4.0] - 2025-01-11
+
+### Added - Infrastructure & DevOps Skills
+
+**Infrastructure Skills (Tier 1):**
+- `terraform-iac` - State management, modules, providers, workspaces, remote backends
+- `ansible-automation` - Playbooks, roles, inventory, vault, idempotency patterns
+- `docker-containers` - Multi-stage builds, optimization, security, Compose
+- `kubernetes-orchestration` - Deployments, Helm, RBAC, HPA, troubleshooting
+
+**Cloud Provider Skills (Tier 2):**
+- `aws-architecture` - VPC, IAM, ECS/EKS, Lambda, RDS, cost optimization
+- `gcp-architecture` - GKE, Cloud Run, IAM, Workload Identity
+- `azure-architecture` - AKS, App Service, Entra ID, Managed Identity
+- `alibaba-cloud-architecture` - ACK, ECS, OSS, RAM
+- `vercel-deployment` - Edge functions, ISR, preview deployments
+
+**Platform Engineering Skills (Tier 3):**
+- `gitops-workflows` - ArgoCD, Flux, promotion strategies, ApplicationSets
+- `policy-as-code` - OPA/Gatekeeper, Kyverno, Checkov, Conftest
+
+**Observability Skills (Tier 4):**
+- `cloud-monitoring` - Prometheus, Grafana, PromQL, SLOs/SLIs
+- `cost-optimization` - FinOps, tagging, right-sizing, commitments
+
+**New Commands:**
+- `/terraform [task]` - Infrastructure as Code
+- `/ansible [task]` - Configuration management
+- `/docker [task]` - Containerization
+- `/k8s [task]` - Kubernetes orchestration
+- `/aws [task]` - AWS architecture
+- `/gcp [task]` - Google Cloud architecture
+- `/azure [task]` - Microsoft Azure architecture
+- `/vercel [task]` - Edge deployment
+
+### Enhanced
+- `/devops` - Now references specialized infrastructure commands and skills
+- Updated CLAUDE.md with Infrastructure Commands and skills sections
+
+### Documentation
+- Added 14 comprehensive infrastructure skills
+- Added 8 infrastructure commands
+- Updated component counts
+
+---
+
 ## [1.3.1] - 2025-01-11
 
 ### Improved - Session Management

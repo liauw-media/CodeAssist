@@ -2,7 +2,7 @@
 
 # ============================================
 # CodeAssist Installation Script
-# Version 1.3.1
+# Version 1.4.0
 # ============================================
 #
 # Downloads and installs CodeAssist from GitHub releases
@@ -11,7 +11,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
 #
 # Options:
-#   VERSION=v1.3.1 curl ... | bash   # Install specific version
+#   VERSION=v1.4.0 curl ... | bash   # Install specific version
 #
 # ============================================
 
@@ -50,8 +50,8 @@ if [ "$INSTALL_VERSION" = "latest" ]; then
     INSTALL_VERSION=$(curl -fsSL "https://api.github.com/repos/liauw-media/CodeAssist/releases/latest" 2>/dev/null | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' || echo "")
 
     if [ -z "$INSTALL_VERSION" ]; then
-        echo -e "${YELLOW}  Could not fetch latest version, using v1.3.1${NC}"
-        INSTALL_VERSION="v1.3.1"
+        echo -e "${YELLOW}  Could not fetch latest version, using v1.4.0${NC}"
+        INSTALL_VERSION="v1.4.0"
     fi
 fi
 
@@ -186,11 +186,11 @@ echo "  /quickstart     - Interactive onboarding"
 echo "  /status         - Show git status"
 echo "  /ca-update      - Check for updates"
 echo ""
-echo "New in 1.3.x:"
-echo "  /ai [task]          - AI/ML, RAG, agents, LLM integration"
-echo "  /mem-setup          - Persistent memory across sessions"
-echo "  /save-session name  - Named sessions (multi-terminal safe)"
-echo "  /session-list       - List all saved sessions"
+echo "New in 1.4.0 - Infrastructure & DevOps:"
+echo "  /terraform [task]   - Infrastructure as Code"
+echo "  /docker [task]      - Containerization"
+echo "  /k8s [task]         - Kubernetes orchestration"
+echo "  /aws, /gcp, /azure  - Cloud architecture"
 echo ""
 echo "Branch workflow:"
 echo "  /branch 123 fix login   - Create focused branch"

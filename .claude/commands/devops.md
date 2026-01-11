@@ -289,4 +289,33 @@ export async function GET() {
 - Adding monitoring/alerting
 - Security hardening
 
+## Specialized Commands
+
+For specific technologies, use these focused commands:
+
+| Command | Use For |
+|---------|---------|
+| `/terraform` | Infrastructure as Code |
+| `/ansible` | Configuration management |
+| `/docker` | Containerization |
+| `/k8s` | Kubernetes orchestration |
+| `/aws` | AWS architecture |
+| `/gcp` | Google Cloud architecture |
+| `/azure` | Azure architecture |
+| `/vercel` | Edge/frontend deployment |
+
+## Related Skills
+
+Read these skills for deeper knowledge:
+
+| Skill | Location |
+|-------|----------|
+| `terraform-iac` | `skills/infrastructure/terraform/` |
+| `docker-containers` | `skills/infrastructure/docker/` |
+| `kubernetes-orchestration` | `skills/infrastructure/kubernetes/` |
+| `gitops-workflows` | `skills/platform-engineering/gitops/` |
+| `policy-as-code` | `skills/platform-engineering/policy-as-code/` |
+| `cloud-monitoring` | `skills/observability/monitoring/` |
+| `cost-optimization` | `skills/observability/cost-optimization/` |
+
 Begin DevOps automation now.
