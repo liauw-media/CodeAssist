@@ -104,8 +104,11 @@ An assistant library for Claude Code.
 
 | Command | Purpose |
 |---------|---------|
-| `/save-session` | Save current context for later |
-| `/resume-session` | Resume from saved context |
+| `/save-session [name]` | Save context with optional name (auto-generates from branch if omitted) |
+| `/resume-session [name]` | Resume a specific session or pick from list |
+| `/session-list [filter]` | List all saved sessions |
+
+Sessions are stored in `.claude/sessions/` with unique names, allowing multiple terminals to work independently without overwriting each other's context.
 
 > After `/ca-update`, restart Claude and run `/resume-session` to continue.
 

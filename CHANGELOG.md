@@ -2,6 +2,29 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.3.1] - 2025-01-11
+
+### Improved - Session Management
+
+**Named Sessions:**
+- `/save-session [name]` - Now supports custom names or auto-generates from branch + timestamp
+- `/resume-session [name]` - Resume specific session or pick from list
+- `/session-list [filter]` - New command to list all saved sessions
+
+**Multi-Terminal Support:**
+- Sessions stored in `.claude/sessions/` directory with unique names
+- Multiple terminals can now work in same directory without context conflicts
+- Session index for easy browsing
+
+**Claude-mem Integration:**
+- Optional sync to claude-mem for cross-session searchability
+- Sessions can be persisted to long-term memory
+
+**Migration:**
+- Legacy `.claude/session-context.md` files auto-detected with migration prompt
+
+---
+
 ## [1.3.0] - 2025-01-11
 
 ### Added - AI/ML Skills & Tooling
