@@ -86,6 +86,14 @@ These are the most commonly used skills:
 | `subagent-driven-development` | Delegate tasks to subagents |
 | `remote-code-agents` | Use remote coding agents (experimental) |
 
+### AI/ML
+| Skill | Purpose |
+|-------|---------|
+| `rag-architecture` | RAG systems: chunking, embeddings, retrieval |
+| `agentic-design` | Agent loops, tool calling, multi-agent systems |
+| `llm-integration` | LLM API patterns, streaming, error handling |
+| `persistent-memory` | Cross-session context with claude-mem |
+
 ### Meta
 | Skill | Purpose |
 |-------|---------|
@@ -109,6 +117,9 @@ These are the most commonly used skills:
 
 **Security audit:**
 `system-architect` → document findings → fix issues → `server-documentation`
+
+**Building AI features:**
+`rag-architecture` (for knowledge bases) → `llm-integration` (API setup) → `agentic-design` (if autonomous)
 
 ## Using a Skill
 

@@ -126,6 +126,7 @@ An assistant library for Claude Code.
 |---------|---------|
 | `/aider [task]` | Delegate code generation to Ollama (saves context) |
 | `/aider-setup` | Configure Ollama host and model |
+| `/mem-setup` | Set up persistent memory with claude-mem |
 
 > Config in `.aider.conf.yml`. Default: `qwen3-coder` on `ollama.cerberus-kitchen.ts.net`
 
@@ -140,6 +141,23 @@ Skills are best practices in `skills/`. Key skills:
 | `test-driven-development` | When writing tests |
 | `branch-discipline` | One branch per issue, small commits |
 | `system-architect` | Security audits, hardening |
+
+### AI/ML Skills
+
+| Skill | When |
+|-------|------|
+| `rag-architecture` | Building document Q&A, knowledge bases |
+| `agentic-design` | Agent loops, tool calling, multi-agent systems |
+| `llm-integration` | API patterns, streaming, error handling |
+| `persistent-memory` | Cross-session context, claude-mem integration |
+
+### Skill Commands
+
+| Command | Action |
+|---------|--------|
+| `/skill-create [description]` | Create new skills using SKILL.md standard |
+
+> Skills use the open [SKILL.md format](https://github.com/anthropics/skills) compatible with Claude Code, OpenAI Codex CLI, and GitHub Copilot.
 
 ## Workflow
 
@@ -215,6 +233,22 @@ A collection of 51 specialized AI agent personalities by [@msitarzewski](https:/
 | **Spatial Computing** | XR/VisionOS development | Niche platform |
 
 > Install additional agents from [agency-agents](https://github.com/msitarzewski/agency-agents) to `~/.claude/agents/`.
+
+### [claude-mem](https://github.com/thedotmack/claude-mem)
+
+Persistent memory system for Claude Code by [@thedotmack](https://github.com/thedotmack). Automatically captures session context and makes it available across sessions.
+
+**Features:** Auto-capture via lifecycle hooks, SQLite + vector storage, web UI at localhost:37777, privacy tags, semantic search.
+
+**Install:** `/mem-setup` or manually:
+```bash
+/plugin marketplace add thedotmack/claude-mem
+/plugin install claude-mem
+```
+
+### [SkillsMP](https://skillsmp.com/)
+
+Community marketplace with 32,000+ agent skills using the open SKILL.md format. Browse skills compatible with Claude Code, OpenAI Codex CLI, and GitHub Copilot.
 
 ## Version
 

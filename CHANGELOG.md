@@ -2,6 +2,43 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.3.0] - 2025-01-11
+
+### Added - AI/ML Skills & Tooling
+
+**New AI/ML Skills:**
+- `rag-architecture` - RAG systems: chunking, embeddings, vector DBs, retrieval, reranking
+- `agentic-design` - Agent loops, tool calling, memory systems, multi-agent coordination, guardrails
+- `llm-integration` - LLM API patterns, streaming, error handling, cost optimization, provider abstraction
+- `persistent-memory` - Cross-session context management with claude-mem integration
+
+**New Commands:**
+- `/ai [task]` - AI Engineer agent for ML/AI systems, LLM integration, RAG, agents, MLOps
+- `/skill-create [desc]` - Create new skills using the open SKILL.md standard
+- `/mem-setup` - Set up persistent memory with claude-mem plugin
+
+### Integrations
+
+**[claude-mem](https://github.com/thedotmack/claude-mem):**
+- Persistent memory across Claude Code sessions
+- SQLite + Chroma vector storage
+- Web UI at localhost:37777
+- Privacy tags for sensitive content
+- Auto-capture via lifecycle hooks
+
+**[SkillsMP](https://skillsmp.com/):**
+- Added to Notable Mentions
+- 32,000+ community skills using SKILL.md format
+- Compatible with Claude Code, OpenAI Codex CLI, GitHub Copilot
+
+### Documentation
+- Added "AI/ML Skills" section to CLAUDE.md and skills/README.md
+- Added "AI/ML Commands" section to main README
+- Created `docs/community-skills-recommendations.md` with skill discovery resources
+- Updated component counts: 40 skills, 45 commands
+
+---
+
 ## [1.2.0] - 2025-01-09
 
 ### Added

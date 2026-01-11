@@ -1,4 +1,119 @@
-# Database Backup Scripts
+# CodeAssist Scripts
+
+Scripts for safe operations, backups, and test result management.
+
+---
+
+## Playwright Report Sync (Tailscale NAS)
+
+View Playwright test screenshots, videos, and traces from anywhere on your Tailscale network.
+
+### Quick Setup
+
+**On your NAS (one-time):**
+```bash
+# SSH to your NAS and run:
+./scripts/playwright-nas-setup.sh
+```
+
+**On your test servers:**
+```bash
+# Create config
+cp scripts/playwright-report.env.example .playwright-report.env
+# Edit with your NAS details
+
+# Run tests with auto-sync
+./scripts/playwright-post-test.sh
+
+# Or sync manually after tests
+npx playwright test
+./scripts/playwright-report-sync.sh
+```
+
+### Scripts
+
+| Script | Where to Run | Purpose |
+|--------|--------------|---------|
+| `playwright-nas-setup.sh` | On NAS | Configure Tailscale serve + cleanup |
+| `playwright-report-sync.sh` | On test server | Sync results to NAS |
+| `playwright-post-test.sh` | On test server | Run tests + auto-sync |
+
+### Configuration
+
+Create `.playwright-report.env`:
+```env
+PLAYWRIGHT_NAS_HOST=your-nas.tailnet.ts.net
+PLAYWRIGHT_NAS_PATH=/volume1/playwright-reports
+PLAYWRIGHT_NAS_USER=admin
+PLAYWRIGHT_REPORT_RETENTION=30
+```
+
+### Access Reports
+
+After sync, view at:
+```
+https://your-nas.tailnet.ts.net:8080/latest/playwright-report/
+```
+
+### Security Notes
+
+- Reports are **Tailscale-network only** (not public internet)
+- Never use `tailscale funnel` (makes reports public)
+- Cleanup runs daily, deleting reports older than 30 days
+- Test artifacts may contain sensitive data (passwords in screenshots)
+
+### Alternative Setups (No Tailscale)
+
+**CI Artifacts (GitHub Actions):**
+```yaml
+- name: Upload Playwright Report
+  uses: actions/upload-artifact@v4
+  if: always()
+  with:
+    name: playwright-report-${{ github.sha }}
+    path: playwright-report/
+    retention-days: 30
+```
+
+**S3/MinIO:**
+```bash
+# After tests
+aws s3 sync playwright-report/ s3://your-bucket/reports/$(date +%Y-%m-%d)/
+```
+
+**Simple HTTP Server (internal network):**
+```bash
+# On report server
+cd /path/to/reports
+python -m http.server 8080
+# Or: npx serve -l 8080
+```
+
+**Docker with Caddy + Basic Auth:**
+```yaml
+# docker-compose.yml
+services:
+  reports:
+    image: caddy:alpine
+    ports: ["8080:80"]
+    volumes:
+      - ./playwright-report:/srv
+      - ./Caddyfile:/etc/caddy/Caddyfile
+```
+```
+# Caddyfile
+:80 {
+    root * /srv
+    file_server browse
+    basicauth * {
+        team JDJhJDE0JHNvbWVoYXNoZWRwYXNz
+    }
+}
+```
+
+---
+
+## Database Backup Scripts
 
 Scripts for backing up and restoring databases before destructive operations.
 

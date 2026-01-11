@@ -1,6 +1,6 @@
 # CodeAssist
 
-[![Version](https://img.shields.io/badge/version-1.0.10-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.0.10)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.3.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 An assistant library for Claude Code - skills, commands, and prompts that help Claude work more effectively.
@@ -25,8 +25,8 @@ CodeAssist packages these workflows into reusable components that Claude can ref
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| **Skills** | 31 | Documented best practices (TDD, code review, database safety) |
-| **Commands** | 35 | Slash commands that do real work (`/status`, `/review`, `/test`) |
+| **Skills** | 40 | Documented best practices (TDD, code review, AI/ML, database safety) |
+| **Commands** | 45 | Slash commands that do real work (`/status`, `/review`, `/ai`, `/test`) |
 | **Prompt Templates** | 16 | Framework-specific context (Laravel, React, Python) |
 
 ### History
@@ -173,6 +173,14 @@ Commands that do real work:
 | `/agent-select [task]` | Get agent recommendation for a task |
 | `/orchestrate [task]` | Coordinate multiple agents for complex tasks |
 
+### AI/ML Commands
+
+| Command | What it Does |
+|---------|--------------|
+| `/ai [task]` | ML/AI systems, LLM integration, RAG, agents |
+| `/skill-create [desc]` | Create new skills using SKILL.md standard |
+| `/mem-setup` | Set up persistent memory with claude-mem |
+
 ### External Tools
 
 | Command | Purpose |
@@ -193,8 +201,11 @@ Skills are documented best practices Claude follows when relevant.
 | `database-backup` | Before tests, migrations |
 | `code-review` | Before completing work |
 | `test-driven-development` | When writing tests |
+| `rag-architecture` | Building document Q&A, knowledge bases |
+| `agentic-design` | Agent loops, tool calling, multi-agent |
+| `persistent-memory` | Cross-session context |
 
-See [skills/README.md](skills/README.md) for all skills.
+See [skills/README.md](skills/README.md) for all 40 skills.
 
 ---
 
