@@ -2,6 +2,14 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.4.1] - 2025-01-11
+
+### Fixed
+- `/mem-setup` now runs actual CLI commands instead of showing instructions
+- Uses `claude plugin marketplace add` and `claude plugin install` directly
+
+---
+
 ## [1.4.0] - 2025-01-11
 
 ### Added - Infrastructure & DevOps Skills
