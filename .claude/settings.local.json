@@ -38,7 +38,8 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(gh release create v1.1.0 --title \"v1.1.0 - Agency Agents Integration\" --notes \"$\\(cat <<''EOF''\n## Agency Agents Integration\n\nCodeAssist now includes 10 commands inspired by [agency-agents]\\(https://github.com/msitarzewski/agency-agents\\) by [@msitarzewski]\\(https://github.com/msitarzewski\\).\n\n### Enhanced Commands\n\n| Command | Enhancement |\n|---------|-------------|\n| `/plan` | RICE scoring, MoSCoW prioritization, risk assessment |\n| `/review` | Skeptical \"fantasy-immune\" validation, evidence-based |\n| `/orchestrate` | Quality gates, 3-retry policy, context handoffs |\n\n### New Commands - Project & Design\n\n| Command | Purpose |\n|---------|---------|\n| `/project` | Project charters, status reports, dependency mapping |\n| `/ux` | Design tokens, themes, responsive patterns, accessibility |\n| `/summary` | SCQA framework, executive decision briefs |\n\n### New Commands - Analysis & QA\n\n| Command | Purpose |\n|---------|---------|\n| `/evidence` | Screenshot-based QA validation |\n| `/brand` | Design/brand consistency audits |\n| `/trends` | Market trends and competitive analysis |\n| `/optimize` | Workflow optimization and automation |\n\n### Install/Update\n\n```bash\ncurl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash\n```\n\nFull changelog: https://github.com/liauw-media/CodeAssist/compare/v1.0.10...v1.1.0\nEOF\n\\)\")",
       "WebFetch(domain:skillsmp.com)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(gh release list:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
