@@ -2,6 +2,16 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.4.2] - 2025-01-11
+
+### Fixed
+- `/mem-setup` clarifies bun installs to ~/.bun (no root/sudo needed)
+- Added PATH troubleshooting for "bun: not found" errors
+- Falls back to `/save-session` if bun can't be installed (restricted VPS)
+- Cross-platform bun installation (curl, PowerShell, npm)
+
+---
+
 ## [1.4.1] - 2025-01-11
 
 ### Fixed
