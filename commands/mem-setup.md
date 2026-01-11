@@ -13,55 +13,123 @@ You are setting up **claude-mem** - a persistent memory system for Claude Code.
 
 ### Step 1: Check Prerequisites
 
-Run these checks:
+Run these checks in order:
 
 ```bash
 # Check Node.js version (needs 18+)
 node --version
 
-# Check if marketplace already added
-claude plugin marketplace list
+# Check if bun is installed
+bun --version 2>/dev/null || echo "BUN_NOT_FOUND"
 ```
 
 **Requirements:**
 - Node.js 18.0.0 or higher
+- Bun runtime (will install if missing)
 - Claude Code CLI available
 
-If Node.js is missing or too old, stop and tell the user to install Node.js 18+.
+### Step 2: Install Bun (if missing)
 
-### Step 2: Add Marketplace
+**Bun installs to `~/.bun` - NO ROOT/SUDO needed.**
 
-If `thedotmack/claude-mem` is not in the marketplace list, add it:
+If bun is not found, install it:
+
+```bash
+# This installs to ~/.bun (user directory, no root needed)
+curl -fsSL https://bun.sh/install | bash
+```
+
+Then add to PATH for current session:
+
+```bash
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+```
+
+Verify installation:
+```bash
+bun --version
+```
+
+**If curl install fails**, try npm (also user-level if npm is configured correctly):
+```bash
+npm install -g bun
+```
+
+**Windows (PowerShell, no admin needed):**
+```powershell
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+### Step 2b: Troubleshooting Bun Install
+
+**"Permission denied" errors:**
+- Do NOT use sudo with the bun installer
+- The installer writes to `~/.bun` which you own
+
+**"bun: command not found" after install:**
+- Add to PATH: `export PATH="$HOME/.bun/bin:$PATH"`
+- Add to your shell profile (`~/.bashrc` or `~/.zshrc`):
+  ```bash
+  echo 'export BUN_INSTALL="$HOME/.bun"' >> ~/.bashrc
+  echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> ~/.bashrc
+  source ~/.bashrc
+  ```
+
+**Restricted VPS / Can't install bun:**
+
+If you truly cannot install bun (network restrictions, read-only filesystem, etc.), claude-mem won't work. Use CodeAssist's built-in session management instead:
+
+```
+/save-session [name]    # Save current context
+/resume-session [name]  # Resume later
+```
+
+This stores context in `.claude/sessions/` without external dependencies.
+
+### Step 3: Add Marketplace
+
+Check if marketplace is added:
+
+```bash
+claude plugin marketplace list
+```
+
+If `thedotmack/claude-mem` is not listed:
 
 ```bash
 claude plugin marketplace add thedotmack/claude-mem
 ```
 
-### Step 3: Install Plugin
-
-Install the claude-mem plugin:
+### Step 4: Install Plugin
 
 ```bash
 claude plugin install claude-mem
 ```
 
-### Step 4: Verify Installation
-
-Check the plugin is installed:
+### Step 5: Verify Installation
 
 ```bash
-# List installed plugins
+# Check plugin installed
 ls ~/.claude/plugins/repos/ 2>/dev/null || dir "%USERPROFILE%\.claude\plugins\repos" 2>nul
+
+# Verify bun is in PATH (hooks need this)
+which bun || where bun
 ```
 
-### Step 5: Report Success
+### Step 6: Report Results
 
-After successful installation, show:
+**On Success:**
 
 ```
 ## Memory Setup Complete
 
 **Status:** Installed successfully
+
+**Prerequisites:**
+- Node.js: ✓
+- Bun: ✓ (installed to ~/.bun)
+- Plugin: ✓
 
 **Next Step:** Restart Claude Code to activate the plugin.
 
@@ -70,16 +138,7 @@ After restart:
 - Memory captures automatically during sessions
 - Use <private> tags for sensitive content
 
-### Privacy Tags Example
-
-```markdown
-<private>
-DATABASE_PASSWORD=secret
-API_KEY=sk-xxx
-</private>
-```
-
-### Quick Commands
+### Quick Reference
 
 | Action | How |
 |--------|-----|
@@ -88,21 +147,47 @@ API_KEY=sk-xxx
 | Exclude content | Wrap in `<private>` tags |
 ```
 
-### Error Handling
+**On Bun Install Failure (restricted environment):**
 
-| Error | Solution |
-|-------|----------|
-| Node.js not found | Install Node.js 18+ from nodejs.org |
-| Marketplace add fails | Check internet connection |
-| Plugin install fails | Try `claude plugin marketplace update` first |
-| Already installed | Skip to restart step |
+```
+## Memory Setup - Alternative Recommended
+
+**Issue:** Bun cannot be installed in this environment.
+
+**Why:** claude-mem requires Bun for lifecycle hooks. Without Bun, hooks fail with "bun: not found".
+
+**Alternative:** Use CodeAssist's built-in session management:
+
+| Command | Purpose |
+|---------|---------|
+| `/save-session [name]` | Save context to .claude/sessions/ |
+| `/resume-session [name]` | Resume from saved session |
+| `/session-list` | List all saved sessions |
+
+This provides similar functionality without external dependencies:
+- Works on any system with Claude Code
+- No root/sudo needed
+- No network dependencies
+- Project-scoped storage
+
+To save your current session:
+/save-session
+```
+
+### Error Reference
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Node.js not found | Not installed | Install Node.js 18+ from nodejs.org |
+| bun: not found | Not in PATH | `export PATH="$HOME/.bun/bin:$PATH"` |
+| Permission denied | Used sudo | Don't use sudo, bun installs to ~/.bun |
+| curl failed | Network restricted | Use `/save-session` instead |
+| Hook errors | bun not in PATH | Restart terminal after bun install |
 
 ### Uninstalling
-
-If needed later:
 
 ```bash
 claude plugin uninstall claude-mem
 ```
 
-**Execute all steps now. Do not just show instructions - run the actual commands.**
+**Execute all steps now. Offer `/save-session` alternative if bun install fails.**
