@@ -9,148 +9,100 @@ $ARGUMENTS
 
 You are setting up **claude-mem** - a persistent memory system for Claude Code.
 
-### Pre-Flight
+**DO NOT just show instructions. Actually run the commands.**
 
-1. **Read the skill**: Read `skills/ai/persistent-memory/SKILL.md`
+### Step 1: Check Prerequisites
 
-### What is claude-mem?
-
-claude-mem automatically captures everything during coding sessions and makes it available in future sessions:
-
-| Feature | Description |
-|---------|-------------|
-| **Auto-capture** | Hooks into session lifecycle |
-| **Vector search** | Semantic + keyword search |
-| **Web UI** | Browse memory at localhost:37777 |
-| **Privacy tags** | Exclude sensitive content |
-| **Token-aware** | Shows context injection costs |
-
-### Installation Steps
-
-#### Step 1: Install Plugin
+Run these checks:
 
 ```bash
-/plugin marketplace add thedotmack/claude-mem
+# Check Node.js version (needs 18+)
+node --version
+
+# Check if marketplace already added
+claude plugin marketplace list
 ```
 
-Then:
+**Requirements:**
+- Node.js 18.0.0 or higher
+- Claude Code CLI available
+
+If Node.js is missing or too old, stop and tell the user to install Node.js 18+.
+
+### Step 2: Add Marketplace
+
+If `thedotmack/claude-mem` is not in the marketplace list, add it:
 
 ```bash
-/plugin install claude-mem
+claude plugin marketplace add thedotmack/claude-mem
 ```
 
-#### Step 2: Restart Claude Code
+### Step 3: Install Plugin
 
-Exit and restart Claude Code for the plugin to initialize.
-
-#### Step 3: Verify Installation
-
-After restart, check:
+Install the claude-mem plugin:
 
 ```bash
-# Web UI should be accessible
-# Open in browser: http://localhost:37777
+claude plugin install claude-mem
 ```
 
-### Configuration
+### Step 4: Verify Installation
 
-#### Privacy Tags
-
-Use `<private>` tags to exclude sensitive content from memory:
-
-```markdown
-Database credentials:
-<private>
-DB_PASSWORD=secret123
-API_KEY=sk-xxx
-</private>
-
-The database uses PostgreSQL...
-```
-
-#### Memory Service
-
-The service runs automatically on port 37777. To check status:
+Check the plugin is installed:
 
 ```bash
-curl http://localhost:37777/health
+# List installed plugins
+ls ~/.claude/plugins/repos/ 2>/dev/null || dir "%USERPROFILE%\.claude\plugins\repos" 2>nul
 ```
 
-### Using Memory
+### Step 5: Report Success
 
-After installation, memory works automatically:
-
-| Action | What Happens |
-|--------|--------------|
-| **Session start** | Relevant context loaded |
-| **During work** | Observations captured |
-| **Session end** | Summary generated |
-| **Next session** | Context available |
-
-### Querying Memory
-
-Memory can be searched:
-
-```
-# Good queries (specific)
-"How did we implement the auth system?"
-"What was our decision on the database schema?"
-
-# Check past work
-"What did we accomplish in the last session?"
-```
-
-### Output Format
+After successful installation, show:
 
 ```
 ## Memory Setup Complete
 
-### Installation Status
-- [ ] Plugin installed from marketplace
-- [ ] Plugin activated
-- [ ] Claude Code restarted
-- [ ] Web UI accessible at localhost:37777
+**Status:** Installed successfully
 
-### Configuration
-- Privacy tags: Configured
-- Auto-capture: Enabled
-- Vector search: Ready
+**Next Step:** Restart Claude Code to activate the plugin.
 
-### Quick Reference
+After restart:
+- Web UI: http://localhost:37777
+- Memory captures automatically during sessions
+- Use <private> tags for sensitive content
 
-**View memory:**
-http://localhost:37777
+### Privacy Tags Example
 
-**Privacy tags:**
-\`\`\`
-<private>sensitive content here</private>
-\`\`\`
-
-**Search memory:**
-Ask Claude about past sessions/decisions
-
-### Next Steps
-1. Restart Claude Code if not done
-2. Check web UI at localhost:37777
-3. Start working - memory captures automatically
-4. Use <private> tags for sensitive content
+```markdown
+<private>
+DATABASE_PASSWORD=secret
+API_KEY=sk-xxx
+</private>
 ```
 
-### Troubleshooting
+### Quick Commands
 
-| Issue | Solution |
+| Action | How |
+|--------|-----|
+| View memory | http://localhost:37777 |
+| Search memory | Ask Claude about past sessions |
+| Exclude content | Wrap in `<private>` tags |
+```
+
+### Error Handling
+
+| Error | Solution |
 |-------|----------|
-| Plugin not found | Run `/plugin marketplace add thedotmack/claude-mem` |
-| Web UI not loading | Restart Claude Code |
-| Memory not capturing | Verify plugin is installed with `/plugin list` |
-| Port 37777 in use | Check for conflicting services |
+| Node.js not found | Install Node.js 18+ from nodejs.org |
+| Marketplace add fails | Check internet connection |
+| Plugin install fails | Try `claude plugin marketplace update` first |
+| Already installed | Skip to restart step |
 
 ### Uninstalling
 
-If you need to remove:
+If needed later:
 
 ```bash
-/plugin uninstall claude-mem
+claude plugin uninstall claude-mem
 ```
 
-Execute the memory setup now.
+**Execute all steps now. Do not just show instructions - run the actual commands.**
