@@ -136,13 +136,20 @@ Sessions are stored in `.claude/sessions/` with unique names, allowing multiple 
 | `/agent-select [task]` | Get agent recommendation |
 | `/orchestrate [task]` | Multi-agent pipeline with quality gates |
 
+## Setup Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/mcp-setup` | Configure MCP servers (GitHub, Playwright, PostgreSQL, etc.) |
+| `/plugin-setup` | Install recommended plugins (code-simplifier, LSPs, etc.) |
+| `/mem-setup` | Set up persistent memory with claude-mem |
+| `/aider-setup` | Configure Ollama host and model for Aider |
+
 ## External Tools
 
 | Command | Purpose |
 |---------|---------|
 | `/aider [task]` | Delegate code generation to Ollama (saves context) |
-| `/aider-setup` | Configure Ollama host and model |
-| `/mem-setup` | Set up persistent memory with claude-mem |
 
 > Config in `.aider.conf.yml`. Default: `qwen3-coder` on `ollama.cerberus-kitchen.ts.net`
 
@@ -249,6 +256,36 @@ CODEASSIST_CPU_LIMIT=25    # Limit CPU to 25% (default: 50)
 | Critical feedback | `/mentor [topic]` |
 | Which agent to use | `/agent-select [task]` |
 | Report issue | `/feedback [message]` |
+
+## MCP Servers
+
+MCP (Model Context Protocol) gives Claude direct access to external tools. Configure via `.mcp.json`:
+
+| MCP | Use Case |
+|-----|----------|
+| **GitHub** | Direct PR/issue/workflow access |
+| **Playwright** | Browser automation, E2E testing |
+| **PostgreSQL** | Natural language database queries |
+| **Lighthouse** | Performance auditing |
+| **Sentry** | Error tracking and debugging |
+| **Slack** | Team communication search |
+
+Run `/mcp-setup` to configure, or copy templates from `.claude/templates/mcp*.json`.
+
+> Boris Cherny (Claude Code creator) uses Slack, BigQuery, and Sentry MCPs daily.
+
+## Recommended Plugins
+
+Install via `/plugin-setup` or manually:
+
+| Plugin | Purpose | Install |
+|--------|---------|---------|
+| **code-simplifier** | Clean up code after sessions | `claude plugin install code-simplifier` |
+| **typescript-lsp** | Real-time TypeScript checking | `claude plugin install typescript-lsp@claude-code-lsps` |
+| **laravel-simplifier** | Laravel-specific cleanup | `claude plugin install laravel-simplifier@laravel` |
+| **security-guidance** | Security warnings | `claude plugin install security-guidance` |
+
+> See [claude-plugins-official](https://github.com/anthropics/claude-plugins-official) for full list.
 
 ## Notable Mentions
 

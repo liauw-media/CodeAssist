@@ -2,6 +2,31 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.4.3] - 2025-01-15
+
+### Added - MCP & Plugin Integration
+- `/mcp-setup` - Configure MCP servers (GitHub, Playwright, PostgreSQL, Sentry, etc.)
+- `/plugin-setup` - Install recommended plugins (code-simplifier, LSPs, Laravel)
+- MCP templates in `.claude/templates/` (web, backend, fullstack presets)
+- Updated `/review`, `/test`, `/db` commands with MCP integration notes
+
+### New MCP Templates
+- `mcp.json` - Full template with all recommended MCPs
+- `mcp-web.json` - Web development preset (Playwright, Lighthouse, GitHub)
+- `mcp-backend.json` - Backend preset (PostgreSQL, Docker, Sentry)
+
+### Documentation
+- Added MCP Servers section to CLAUDE.md
+- Added Recommended Plugins section with install commands
+- Boris Cherny workflow recommendations (Slack, BigQuery, Sentry MCPs)
+
+### Sources
+- [awesome-mcp-servers](https://github.com/wong2/awesome-mcp-servers)
+- [claude-plugins-official](https://github.com/anthropics/claude-plugins-official)
+- [@bcherny's Claude Code setup](https://twitter-thread.com/t/2007179832300581177)
+
+---
+
 ## [1.4.2] - 2025-01-11
 
 ### Fixed

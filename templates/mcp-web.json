@@ -1,0 +1,30 @@
+{
+  "_comment": "CodeAssist MCP Preset: Web Development",
+  "_usage": "Copy to your project as .mcp.json",
+
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-playwright"]
+    },
+    "lighthouse": {
+      "command": "npx",
+      "args": ["-y", "lighthouse-mcp@latest"]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-context7"]
+    }
+  }
+}

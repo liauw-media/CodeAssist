@@ -2,7 +2,7 @@
 
 # ============================================
 # CodeAssist Installation Script
-# Version 1.4.2
+# Version 1.4.3
 # ============================================
 #
 # Downloads and installs CodeAssist from GitHub releases
@@ -50,8 +50,8 @@ if [ "$INSTALL_VERSION" = "latest" ]; then
     INSTALL_VERSION=$(curl -fsSL "https://api.github.com/repos/liauw-media/CodeAssist/releases/latest" 2>/dev/null | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' || echo "")
 
     if [ -z "$INSTALL_VERSION" ]; then
-        echo -e "${YELLOW}  Could not fetch latest version, using v1.4.2${NC}"
-        INSTALL_VERSION="v1.4.2"
+        echo -e "${YELLOW}  Could not fetch latest version, using v1.4.3${NC}"
+        INSTALL_VERSION="v1.4.3"
     fi
 fi
 
@@ -143,6 +143,14 @@ if [ -f "${TEMP_DIR}/${EXTRACTED_DIR}/.claude/CLAUDE.md" ]; then
     echo -e "${GREEN}  CLAUDE.md installed${NC}"
 fi
 
+# Copy templates (MCP configs)
+if [ -d "${TEMP_DIR}/${EXTRACTED_DIR}/templates" ]; then
+    mkdir -p .claude/templates
+    cp "${TEMP_DIR}/${EXTRACTED_DIR}/templates/"*.json .claude/templates/ 2>/dev/null || true
+    TEMPLATE_COUNT=$(ls -1 .claude/templates/*.json 2>/dev/null | wc -l)
+    echo -e "${GREEN}  ${TEMPLATE_COUNT} MCP templates installed${NC}"
+fi
+
 # Create VERSION file
 VERSION_NUM="${INSTALL_VERSION#v}"
 echo "$VERSION_NUM" > .claude/VERSION
@@ -186,16 +194,17 @@ echo "  /quickstart     - Interactive onboarding"
 echo "  /status         - Show git status"
 echo "  /ca-update      - Check for updates"
 echo ""
-echo "New in 1.4.0 - Infrastructure & DevOps:"
-echo "  /terraform [task]   - Infrastructure as Code"
-echo "  /docker [task]      - Containerization"
-echo "  /k8s [task]         - Kubernetes orchestration"
-echo "  /aws, /gcp, /azure  - Cloud architecture"
+echo "Extend Claude Code:"
+echo "  /mcp-setup      - Configure MCPs (GitHub, Playwright, DB)"
+echo "  /plugin-setup   - Install plugins (code-simplifier, LSPs)"
 echo ""
 echo "Branch workflow:"
 echo "  /branch 123 fix login   - Create focused branch"
 echo "  /branch-status          - Check progress"
 echo "  /branch-done            - Complete and PR"
+echo ""
+echo "Infrastructure:"
+echo "  /terraform, /docker, /k8s, /aws, /gcp, /azure"
 echo ""
 echo -e "${YELLOW}Tip: Run /quickstart to get personalized recommendations${NC}"
 echo ""

@@ -1,0 +1,154 @@
+{
+  "_comment": "CodeAssist MCP Template - Copy to your project as .mcp.json",
+  "_docs": "https://code.claude.com/docs/en/mcp",
+  "_tip": "Start with 2-3 MCPs that match your workflow. Too many slows startup.",
+
+  "mcpServers": {
+
+    "_section_core": "=== CORE (Recommended for all projects) ===",
+
+    "sequential-thinking": {
+      "_description": "Structured problem-solving for complex tasks",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-sequential-thinking"]
+    },
+
+    "_section_web": "=== WEB & BROWSER ===",
+
+    "playwright": {
+      "_description": "Browser automation, E2E testing, screenshots",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-playwright"]
+    },
+
+    "lighthouse": {
+      "_description": "Performance auditing and Core Web Vitals",
+      "command": "npx",
+      "args": ["-y", "lighthouse-mcp@latest"]
+    },
+
+    "chrome-devtools": {
+      "_description": "Browser debugging and inspection",
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    },
+
+    "brave-search": {
+      "_description": "Web search for research during development",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    },
+
+    "_section_git": "=== GIT & CODE HOSTING ===",
+
+    "github": {
+      "_description": "Direct GitHub API - PRs, issues, workflows",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+
+    "gitlab": {
+      "_description": "GitLab merge requests and CI/CD",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-gitlab"],
+      "env": {
+        "GITLAB_TOKEN": "${GITLAB_TOKEN}"
+      }
+    },
+
+    "_section_database": "=== DATABASE ===",
+
+    "postgres": {
+      "_description": "Natural language PostgreSQL queries",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-postgres"],
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}"
+      }
+    },
+
+    "sqlite": {
+      "_description": "SQLite database operations",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-sqlite"]
+    },
+
+    "supabase": {
+      "_description": "Supabase DB, auth, real-time, edge functions",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-supabase"],
+      "env": {
+        "SUPABASE_URL": "${SUPABASE_URL}",
+        "SUPABASE_KEY": "${SUPABASE_KEY}"
+      }
+    },
+
+    "_section_docs": "=== DOCUMENTATION ===",
+
+    "context7": {
+      "_description": "Access current API docs from source repos",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-context7"]
+    },
+
+    "_section_monitoring": "=== MONITORING & ANALYTICS ===",
+
+    "sentry": {
+      "_description": "Error tracking and debugging",
+      "_install": "claude mcp add --transport http sentry https://mcp.sentry.dev/mcp",
+      "command": "npx",
+      "args": ["-y", "@sentry/mcp-server"]
+    },
+
+    "_section_communication": "=== TEAM COMMUNICATION ===",
+
+    "slack": {
+      "_description": "Search and post to Slack channels",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}"
+      }
+    },
+
+    "_section_cloud": "=== CLOUD & INFRASTRUCTURE ===",
+
+    "docker": {
+      "_description": "Docker container management",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-docker"]
+    },
+
+    "kubernetes": {
+      "_description": "Kubernetes cluster operations",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-kubernetes"]
+    },
+
+    "aws": {
+      "_description": "AWS service interactions",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-aws"],
+      "env": {
+        "AWS_PROFILE": "${AWS_PROFILE}"
+      }
+    },
+
+    "_section_project": "=== PROJECT MANAGEMENT ===",
+
+    "linear": {
+      "_description": "Linear issue tracking",
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-linear"],
+      "env": {
+        "LINEAR_API_KEY": "${LINEAR_API_KEY}"
+      }
+    }
+  }
+}

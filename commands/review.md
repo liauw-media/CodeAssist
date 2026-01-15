@@ -5,6 +5,13 @@ Skeptical code review with evidence-based validation. Default stance: **NEEDS WO
 ## Scope
 $ARGUMENTS
 
+## MCP Integration
+
+If available, leverage these MCPs for enhanced review:
+- **GitHub MCP**: Fetch PR details, comments, CI status directly
+- **Playwright MCP**: Run E2E tests for visual verification
+- **Sentry MCP**: Check for related errors in production
+
 ## Review Philosophy
 
 ### Be Fantasy-Immune

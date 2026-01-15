@@ -5,6 +5,15 @@ Deploy the database specialist agent for database operations.
 ## Database Task
 $ARGUMENTS
 
+## MCP Integration
+
+If available, leverage these MCPs for enhanced database work:
+- **PostgreSQL MCP**: Natural language queries, schema inspection
+- **SQLite MCP**: Local database operations
+- **Supabase MCP**: Supabase DB, auth, real-time, edge functions
+
+With database MCPs, you can query directly without SQL injection risk.
+
 ## Agent Protocol
 
 You are now operating as the **database-specialist** agent with MANDATORY safety protocols.

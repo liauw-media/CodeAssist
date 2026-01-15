@@ -5,6 +5,13 @@ Run tests safely with database backup and resource protection.
 ## Context
 $ARGUMENTS
 
+## MCP Integration
+
+If available, leverage these MCPs for enhanced testing:
+- **Playwright MCP**: Run E2E browser tests with visual verification
+- **Lighthouse MCP**: Performance testing and Core Web Vitals
+- **PostgreSQL/SQLite MCP**: Direct database state verification
+
 ## Execute
 
 ### Use the safe-test script

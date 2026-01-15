@@ -1,0 +1,33 @@
+{
+  "_comment": "CodeAssist MCP Preset: Backend Development",
+  "_usage": "Copy to your project as .mcp.json",
+
+  "mcpServers": {
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-sequential-thinking"]
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-postgres"],
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "docker": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-docker"]
+    },
+    "sentry": {
+      "command": "npx",
+      "args": ["-y", "@sentry/mcp-server"]
+    }
+  }
+}
