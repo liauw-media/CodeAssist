@@ -1,0 +1,28 @@
+{
+  "_comment": "CodeAssist MCP Preset: Mobile Development (iOS/Android/React Native)",
+  "_usage": "Copy to your project as .mcp.json",
+
+  "mcpServers": {
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-sequential-thinking"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-context7"]
+    }
+  },
+  "_notes": {
+    "ios": "Use swift-lsp plugin for Swift type checking",
+    "android": "Use jdtls-lsp plugin for Kotlin/Java",
+    "react-native": "Use typescript-lsp plugin for RN projects",
+    "simulators": "Claude can run iOS Simulator and Android Emulator via Bash"
+  }
+}

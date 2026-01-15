@@ -31,10 +31,11 @@ Ask the user which preset matches their workflow:
 
 | Preset | Best For | MCPs Included |
 |--------|----------|---------------|
+| **minimal** | Quick start | GitHub, Sequential Thinking |
 | **web** | Frontend, React, Next.js | Playwright, Lighthouse, Chrome DevTools, GitHub, Context7 |
 | **backend** | APIs, databases, services | PostgreSQL, Docker, GitHub, Sentry, Sequential Thinking |
-| **fullstack** | Full applications | All web + backend MCPs |
-| **minimal** | Quick start | GitHub, Sequential Thinking |
+| **fullstack** | Full applications | Web + Backend combined (8 MCPs) |
+| **mobile** | iOS, Android, React Native | GitHub, Context7, Sequential Thinking |
 | **custom** | Pick your own | Interactive selection |
 
 ### Step 3: Copy Preset Template
@@ -42,11 +43,20 @@ Ask the user which preset matches their workflow:
 Based on user choice, copy the appropriate template:
 
 ```bash
+# Minimal preset
+cp ~/.claude/templates/mcp-minimal.json .mcp.json
+
 # Web preset
 cp ~/.claude/templates/mcp-web.json .mcp.json
 
 # Backend preset
 cp ~/.claude/templates/mcp-backend.json .mcp.json
+
+# Fullstack preset
+cp ~/.claude/templates/mcp-fullstack.json .mcp.json
+
+# Mobile preset
+cp ~/.claude/templates/mcp-mobile.json .mcp.json
 
 # Full template (all MCPs, comment out unused)
 cp ~/.claude/templates/mcp.json .mcp.json

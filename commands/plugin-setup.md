@@ -104,6 +104,41 @@ claude plugin install pr-review-toolkit
 claude plugin install security-guidance
 ```
 
+### Mobile (iOS)
+```bash
+claude plugin install code-simplifier
+claude plugin install swift-lsp@claude-code-lsps
+claude plugin install security-guidance
+```
+
+### Mobile (Android/Kotlin)
+```bash
+claude plugin install code-simplifier
+claude plugin install jdtls-lsp@claude-code-lsps
+claude plugin install security-guidance
+```
+
+### Mobile (React Native)
+```bash
+claude plugin install code-simplifier
+claude plugin install typescript-lsp@claude-code-lsps
+claude plugin install security-guidance
+```
+
+### Rust
+```bash
+claude plugin install code-simplifier
+claude plugin install rust-analyzer-lsp@claude-code-lsps
+claude plugin install security-guidance
+```
+
+### Go
+```bash
+claude plugin install code-simplifier
+claude plugin install gopls-lsp@claude-code-lsps
+claude plugin install security-guidance
+```
+
 ---
 
 ### Step 4: Install Selected Plugins

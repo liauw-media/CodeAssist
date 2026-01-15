@@ -1,13 +1,8 @@
 {
+  "_comment": "CodeAssist MCP Preset: Minimal (Quick Start)",
+  "_usage": "Copy to your project as .mcp.json",
+
   "mcpServers": {
-    "lighthouse": {
-      "command": "npx",
-      "args": ["-y", "lighthouse-mcp@latest"]
-    },
-    "chrome-devtools": {
-      "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@latest"]
-    },
     "github": {
       "command": "npx",
       "args": ["-y", "@anthropic/mcp-github"],
