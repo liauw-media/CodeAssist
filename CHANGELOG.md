@@ -2,6 +2,36 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.4.4] - 2025-01-16
+
+### Added - External Skills & More Presets
+
+**New Commands:**
+- `/skill-install` - Install external skills from Vercel, aitmpl, SkillsMP, GitHub
+
+**New MCP Presets:**
+- `mcp-fullstack.json` - Web + Backend combined (8 MCPs)
+- `mcp-mobile.json` - iOS, Android, React Native
+- `mcp-minimal.json` - Just GitHub + Sequential Thinking
+
+**New Plugin Bundles:**
+- Mobile (iOS) - swift-lsp
+- Mobile (Android/Kotlin) - jdtls-lsp
+- Mobile (React Native) - typescript-lsp
+- Rust - rust-analyzer-lsp
+- Go - gopls-lsp
+
+**Updated Commands:**
+- `/react` - Now recommends Vercel's React Best Practices skill (40+ rules)
+- Added MCP integration notes (Playwright, Lighthouse, Context7)
+
+**External Skill Sources:**
+- [aitmpl.com](https://aitmpl.com) - claude-code-templates CLI
+- [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) - Official Vercel skills
+- [skillsmp.com](https://skillsmp.com) - 32,000+ community skills
+
+---
+
 ## [1.4.3] - 2025-01-15
 
 ### Added - MCP & Plugin Integration
