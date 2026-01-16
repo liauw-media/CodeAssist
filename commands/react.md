@@ -5,6 +5,29 @@ Deploy the React/Next.js specialist agent for this task.
 ## Task
 $ARGUMENTS
 
+## Recommended: Vercel React Best Practices
+
+For production React/Next.js projects, install Vercel's official skill (40+ rules):
+
+```bash
+npx claude-code-templates@latest --skill=web-development/react-best-practices --yes
+```
+
+This adds machine-readable best practices for:
+- useEffect patterns and data fetching
+- Bundle optimization and barrel files
+- Server components and caching
+- Performance patterns
+
+Source: [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills)
+
+## MCP Integration
+
+If available, leverage these MCPs:
+- **Playwright MCP**: E2E testing and visual verification
+- **Lighthouse MCP**: Core Web Vitals and performance auditing
+- **Context7 MCP**: React/Next.js documentation access
+
 ## Agent Protocol
 
 You are now operating as the **react-developer** agent with MANDATORY skill integration.

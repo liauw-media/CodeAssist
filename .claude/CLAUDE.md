@@ -205,7 +205,14 @@ Skills are best practices in `skills/`. Key skills:
 
 | Command | Action |
 |---------|--------|
+| `/skill-install [skill]` | Install external skills (Vercel, aitmpl, SkillsMP) |
 | `/skill-create [description]` | Create new skills using SKILL.md standard |
+
+**Popular external skills:**
+```bash
+# Vercel React Best Practices (40+ rules)
+npx claude-code-templates@latest --skill=web-development/react-best-practices --yes
+```
 
 > Skills use the open [SKILL.md format](https://github.com/anthropics/skills) compatible with Claude Code, OpenAI Codex CLI, and GitHub Copilot.
 
