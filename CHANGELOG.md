@@ -2,6 +2,34 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.4.5] - 2025-01-16
+
+### Added - Tier 3 Agent Commands
+
+**Engineering Commands:**
+- `/devops` - CI/CD pipelines, infrastructure automation, GitOps
+- `/backend` - System design, scalability, architecture decisions
+- `/prototype` - Rapid MVP development, speed stack recommendations
+
+**Testing Commands:**
+- `/api-test` - API security, functional, and performance testing (OWASP API Top 10)
+- `/benchmark` - Load testing, Core Web Vitals, performance analysis
+- `/test-analyze` - Test failure analysis, pattern detection, flaky test identification
+
+**Product Analytics Commands:**
+- `/analytics` - KPI dashboards, metrics analysis, funnel/cohort analysis
+- `/experiment` - A/B testing, feature flags, statistical analysis
+- `/synthesize` - Aggregate user feedback into actionable insights
+- `/ux-research` - User research, usability testing, research synthesis
+
+**Agent Sources:**
+These commands complete the Tier 3 agents from [agency-agents](https://github.com/msitarzewski/agency-agents):
+- DevOps Automator, Backend Architect, Rapid Prototyper
+- API Tester, Performance Benchmarker, Test Results Analyzer
+- Analytics Reporter, Experiment Tracker, Feedback Synthesizer, UX Researcher
+
+---
+
 ## [1.4.4] - 2025-01-16
 
 ### Added - External Skills & More Presets
