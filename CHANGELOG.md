@@ -2,6 +2,18 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.4.6] - 2025-01-16
+
+### Added - System Architect Command
+
+- `/architect` - System security & performance advisor
+  - Security hardening (defense in depth, zero trust)
+  - Performance optimization (caching, scaling strategies)
+  - Threat modeling and compliance checklists
+  - Architecture decision records (ADRs)
+
+---
+
 ## [1.4.5] - 2025-01-16
 
 ### Added - Tier 3 Agent Commands
