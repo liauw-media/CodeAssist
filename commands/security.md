@@ -116,4 +116,128 @@ Check for:
 - Next audit recommended: [timeframe]
 ```
 
+### JSON Output (for /autonomous integration)
+
+When called with `--json` flag, output machine-readable format:
+
+```json
+{
+  "gate": "security",
+  "score": 25,
+  "max_score": 25,
+  "passed": true,
+  "details": {
+    "risk_level": "LOW",
+    "critical_vulns": 0,
+    "high_vulns": 0,
+    "medium_vulns": 1,
+    "low_vulns": 2,
+    "owasp_compliance": {
+      "A01_broken_access_control": "PASS",
+      "A02_cryptographic_failures": "PASS",
+      "A03_injection": "PASS"
+    }
+  },
+  "thresholds": {
+    "critical_vulns": 0,
+    "high_vulns": 0,
+    "medium_vulns": 3
+  },
+  "threshold_results": {
+    "no_critical": true,
+    "no_high": true,
+    "medium_acceptable": true
+  },
+  "issues": [
+    {
+      "id": "SEC-001",
+      "severity": "medium",
+      "type": "missing_rate_limiting",
+      "title": "No rate limiting on /login endpoint",
+      "file": "routes/auth.ts",
+      "line": 45,
+      "owasp": "A07",
+      "description": "Login endpoint lacks rate limiting",
+      "recommendation": "Add rate limiting middleware",
+      "auto_fixable": true,
+      "fix_applied": false,
+      "create_issue": true
+    }
+  ],
+  "auto_fixable": [
+    {
+      "id": "SEC-002",
+      "type": "sql_injection",
+      "file": "models/User.ts",
+      "line": 23,
+      "fix": "Use parameterized query",
+      "applied": true
+    }
+  ],
+  "dependency_audit": {
+    "total_packages": 145,
+    "vulnerable": 0,
+    "outdated": 3
+  }
+}
+```
+
+**Blocker example (critical vulnerability):**
+
+```json
+{
+  "gate": "security",
+  "score": 0,
+  "max_score": 25,
+  "passed": false,
+  "blocker": true,
+  "details": {
+    "risk_level": "CRITICAL",
+    "critical_vulns": 1,
+    "high_vulns": 0
+  },
+  "issues": [
+    {
+      "id": "SEC-001",
+      "severity": "critical",
+      "type": "sql_injection",
+      "title": "SQL Injection in user lookup",
+      "file": "models/User.ts",
+      "line": 45,
+      "owasp": "A03",
+      "description": "Raw SQL query with user input",
+      "exploit": "'; DROP TABLE users; --",
+      "auto_fixable": true
+    }
+  ]
+}
+```
+
+### Issue Comment Format (for --post-to-issue)
+
+```markdown
+## Security Audit
+
+| Severity | Count | Status |
+|----------|-------|--------|
+| Critical | 0 | ✅ |
+| High | 0 | ✅ |
+| Medium | 1 | ⚠️ |
+| Low | 2 | ℹ️ |
+| **Score** | **24/25** | ✅ |
+
+### Findings
+
+#### Medium: No rate limiting on /login
+- **Location:** `routes/auth.ts:45`
+- **OWASP:** A07
+- **Action:** Created issue #207
+
+### Auto-fixes Applied
+- SEC-002: Parameterized SQL query in User.ts
+
+---
+*Run by /autonomous | Iteration 3*
+```
+
 Execute the security audit now.

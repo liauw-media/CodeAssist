@@ -1,6 +1,6 @@
 # CodeAssist
 
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.3.0)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.5.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 An assistant library for Claude Code - skills, commands, and prompts that help Claude work more effectively.
@@ -25,9 +25,11 @@ CodeAssist packages these workflows into reusable components that Claude can ref
 
 | Component | Count | Purpose |
 |-----------|-------|---------|
-| **Skills** | 40 | Documented best practices (TDD, code review, AI/ML, database safety) |
-| **Commands** | 45 | Slash commands that do real work (`/status`, `/review`, `/ai`, `/test`) |
-| **Prompt Templates** | 16 | Framework-specific context (Laravel, React, Python) |
+| **Commands** | 74 | Slash commands (`/status`, `/review`, `/tdd`, `/e2e`, `/cleanup`) |
+| **Skills** | 56 | Best practices (TDD, code review, AI/ML, infrastructure) |
+| **Agents** | 20 | Specialized agents (Laravel, React, security, E2E runner) |
+| **Rules** | 6 | Always-enforced guidelines (security, testing, git-workflow) |
+| **Templates** | 7 | MCP presets, hooks configuration |
 
 ### History
 
@@ -146,6 +148,24 @@ Commands that do real work:
 | `/refactor [task]` | Code refactoring |
 | `/docs [task]` | Generate documentation |
 
+### Testing Commands
+
+| Command | What it Does |
+|---------|--------------|
+| `/tdd [feature]` | Test-Driven Development (Red-Green-Refactor) |
+| `/e2e [flow]` | End-to-end testing with Playwright/Cypress |
+| `/test` | Run tests with database backup |
+| `/api-test [endpoint]` | API testing |
+| `/benchmark [target]` | Performance testing |
+
+### Code Quality Commands
+
+| Command | What it Does |
+|---------|--------------|
+| `/build-fix [error]` | Diagnose and fix build/compilation errors |
+| `/cleanup [scope]` | Remove dead code, unused imports |
+| `/update-docs` | Sync documentation with code changes |
+
 ### Research Commands
 
 | Command | What it Does |
@@ -189,6 +209,48 @@ Commands that do real work:
 | `/aider-setup` | Configure Ollama host and model |
 
 > Config in `.aider.conf.yml`. Default: `qwen3-coder` on `ollama.cerberus-kitchen.ts.net`
+
+### Setup Commands
+
+| Command | What it Does |
+|---------|--------------|
+| `/mcp-setup` | Configure MCP servers (GitHub, Playwright, etc.) |
+| `/hooks-setup` | Configure event-driven automation hooks |
+| `/plugin-setup` | Install recommended plugins |
+| `/mem-setup` | Set up persistent memory |
+
+---
+
+## Rules
+
+Rules are always-enforced guidelines (unlike skills which are situational).
+
+| Rule | Enforces |
+|------|----------|
+| `security` | No hardcoded secrets, input validation, secure crypto |
+| `testing` | 80% coverage minimum, TDD methodology |
+| `git-workflow` | Branch naming, commit format, PR standards |
+| `coding-style` | Naming conventions, code organization |
+| `agents` | When to delegate to specialized agents |
+
+**Install:** Copy `rules/` to `~/.claude/rules/`
+
+---
+
+## Hooks
+
+Event-driven automations that run on tool operations:
+
+| Hook Type | When |
+|-----------|------|
+| `PreToolUse` | Before a tool executes (can block dangerous operations) |
+| `PostToolUse` | After a tool completes (notifications, linting) |
+
+**Examples:** Warn on sensitive file edits, run linter after changes, block force push.
+
+**Setup:** Run `/hooks-setup` or copy `templates/hooks.json`
+
+> **Warning:** Too many hooks impact performance. Keep them focused.
 
 ---
 
@@ -274,26 +336,30 @@ Report issues:
 
 ```
 CodeAssist/
-├── commands/                   # 35 slash commands (source)
+├── commands/                   # 74 slash commands
 │   ├── status.md               #   /status - git status
-│   ├── review.md               #   /review - code review
-│   ├── mentor.md               #   /mentor - critical feedback
+│   ├── tdd.md                  #   /tdd - test-driven development
+│   ├── e2e.md                  #   /e2e - end-to-end testing
 │   └── ...                     #   See commands/README.md
-├── skills/                     # 31 skill protocols (source)
+├── skills/                     # 56 skill protocols
 │   ├── safety/                 #   database-backup, system-architect
 │   ├── core/                   #   brainstorming, code-review
-│   ├── workflow/               #   git, ci-templates
 │   ├── testing/                #   TDD, playwright
 │   └── ...                     #   See skills/README.md
-├── agents/                     # Prompt templates for framework commands
+├── agents/                     # 20 specialized agents
+│   ├── e2e-runner.md           #   Playwright/Cypress testing
+│   ├── build-error-resolver.md #   Build error diagnosis
+│   └── ...                     #   See agents/README.md
+├── rules/                      # 6 always-enforced guidelines
+│   ├── security.md             #   No secrets, input validation
+│   ├── testing.md              #   80% coverage, TDD
+│   └── ...                     #   See rules/README.md
+├── templates/                  # Configuration templates
+│   ├── hooks.json              #   Event-driven hooks
+│   ├── mcp-*.json              #   MCP server presets
+│   └── ...
 ├── scripts/                    # Installation and utility scripts
 └── docs/                       # Reference documentation
-    ├── INDEX.md                #   Everything in one place
-    ├── getting-started.md      #   Quick onboarding
-    ├── team-usage.md           #   Solo vs team setup
-    ├── ci-templates/           #   GitLab + GitHub Actions
-    ├── security-audit/         #   Linux, Windows, Docker
-    └── registry-config.md      #   Custom container registry
 ```
 
 ## What Gets Installed
@@ -303,10 +369,12 @@ When you run the install script, it copies files to `.claude/` in your project:
 ```
 your-project/
 ├── .claude/                    # Add to .gitignore
-│   ├── commands/               # Copied from CodeAssist/commands/
-│   ├── skills/                 # Copied from CodeAssist/skills/
+│   ├── commands/               # 74 slash commands
+│   ├── skills/                 # 56 skill protocols
+│   ├── rules/                  # 6 enforced guidelines
+│   ├── templates/              # MCP presets, hooks
 │   ├── CLAUDE.md               # Project config
-│   └── VERSION                 # e.g., 1.0.3
+│   └── VERSION                 # e.g., 1.5.0
 └── .gitignore
 ```
 
@@ -397,4 +465,6 @@ Full guide: [docs/team-usage.md](docs/team-usage.md)
 
 ## Attribution
 
-Based on [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent.
+- Skills framework based on [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent
+- Rules, hooks, and TDD patterns inspired by [everything-claude-code](https://github.com/affaan-m/everything-claude-code) by [@affaanmustafa](https://x.com/affaanmustafa)
+- Agent concepts from [agency-agents](https://github.com/msitarzewski/agency-agents) by [@msitarzewski](https://github.com/msitarzewski)

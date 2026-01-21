@@ -1,0 +1,136 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "tool == 'Bash' && command matches 'git push.*(main|master|staging)'",
+        "hooks": [
+          {
+            "type": "block",
+            "message": "[BLOCKED] Direct push to protected branch. Use PR workflow: feature -> staging -> main"
+          }
+        ]
+      },
+      {
+        "matcher": "tool == 'Bash' && command matches 'git push --force'",
+        "hooks": [
+          {
+            "type": "block",
+            "message": "[BLOCKED] Force push is forbidden. Use safe git operations."
+          }
+        ]
+      },
+      {
+        "matcher": "tool == 'Bash' && command matches 'git commit.*Co-Authored-By.*[Cc]laude'",
+        "hooks": [
+          {
+            "type": "block",
+            "message": "[BLOCKED] Claude co-author attribution is forbidden. Remove Co-Authored-By line."
+          }
+        ]
+      },
+      {
+        "matcher": "tool == 'Bash' && command matches 'rm -rf /'",
+        "hooks": [
+          {
+            "type": "block",
+            "message": "[BLOCKED] Destructive root command detected"
+          }
+        ]
+      },
+      {
+        "matcher": "tool == 'Bash' && command matches 'rm -rf'",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[SAFETY] Destructive command detected - verify target path'"
+          }
+        ]
+      },
+      {
+        "matcher": "tool == 'Bash' && command matches 'DROP TABLE|DELETE FROM|TRUNCATE'",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[DATABASE WARNING] Destructive SQL detected - ensure backup exists'"
+          }
+        ]
+      },
+      {
+        "matcher": "tool == 'Bash' && command matches 'git checkout (main|master|staging)$'",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[REMINDER] On protected branch - create feature branch before making changes'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "tool == 'Bash' && command matches 'git commit'",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git log -1 --pretty=%B | grep -qi 'co-authored-by.*claude\\|anthropic' && echo '[WARNING] Claude attribution found - run: git commit --amend' || true"
+          }
+        ]
+      },
+      {
+        "matcher": "tool == 'Edit' && file_path matches '\\.tsx?$'",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[Hook] TypeScript file edited - consider running type check'"
+          }
+        ]
+      },
+      {
+        "matcher": "tool == 'Edit' && file_path matches '\\.py$'",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[Hook] Python file edited - consider running linter'"
+          }
+        ]
+      },
+      {
+        "matcher": "tool == 'Write' && file_path matches '\\.(env|credentials|secrets)'",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[SECURITY WARNING] Sensitive file modified - verify no secrets committed'"
+          }
+        ]
+      },
+      {
+        "matcher": "tool == 'Edit' && file_path matches '(migration|schema)'",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[DATABASE] Migration file modified - run /backup before applying'"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "message matches 'test.*fail|error|exception'",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[Alert] Test failure or error detected'"
+          }
+        ]
+      },
+      {
+        "matcher": "message matches 'security|vulnerability|CVE-'",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[SECURITY] Security issue mentioned - consider running /security'"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -93,9 +93,19 @@ An assistant library for Claude Code.
 
 | Command | Action |
 |---------|--------|
+| `/tdd [feature]` | Test-Driven Development (Red-Green-Refactor) |
+| `/e2e [flow]` | End-to-end testing with Playwright/Cypress |
 | `/api-test [endpoint]` | API security, functional, performance testing |
 | `/benchmark [target]` | Load testing, Core Web Vitals, performance |
 | `/test-analyze [results]` | Test failure analysis, pattern detection |
+
+## Code Quality Commands
+
+| Command | Action |
+|---------|--------|
+| `/build-fix [error]` | Diagnose and fix build/compilation errors |
+| `/cleanup [scope]` | Remove dead code, unused imports, orphaned files |
+| `/update-docs` | Sync documentation with code changes |
 
 ## Product Analytics Commands
 
@@ -141,6 +151,7 @@ Sessions are stored in `.claude/sessions/` with unique names, allowing multiple 
 | Command | Purpose |
 |---------|---------|
 | `/mcp-setup` | Configure MCP servers (GitHub, Playwright, PostgreSQL, etc.) |
+| `/hooks-setup` | Configure event-driven automation hooks |
 | `/plugin-setup` | Install recommended plugins (code-simplifier, LSPs, etc.) |
 | `/mem-setup` | Set up persistent memory with claude-mem |
 | `/aider-setup` | Configure Ollama host and model for Aider |
@@ -216,6 +227,40 @@ npx claude-code-templates@latest --skill=web-development/react-best-practices --
 
 > Skills use the open [SKILL.md format](https://github.com/anthropics/skills) compatible with Claude Code, OpenAI Codex CLI, and GitHub Copilot.
 
+## Rules
+
+Rules are always-enforced guidelines in `rules/`. Unlike skills (situational), rules are mandatory:
+
+| Rule | Enforces |
+|------|----------|
+| `security` | No hardcoded secrets, input validation, secure crypto |
+| `testing` | 80% coverage minimum, TDD methodology |
+| `git-workflow` | Branch naming, commit format, PR standards |
+| `coding-style` | Naming conventions, code organization, immutability |
+| `agents` | When and how to delegate to specialized agents |
+
+**Install:** Copy `rules/` to `~/.claude/rules/` or project `.claude/rules/`
+
+## Hooks
+
+Hooks are event-driven automations that run on tool operations:
+
+| Hook Type | When |
+|-----------|------|
+| `PreToolUse` | Before a tool executes (can block) |
+| `PostToolUse` | After a tool completes |
+| `Notification` | On specific messages/patterns |
+
+**Examples:**
+- Warn on sensitive file edits
+- Run linter after code changes
+- Block force push commands
+- Auto-backup before destructive SQL
+
+**Setup:** Run `/hooks-setup` or copy `templates/hooks.json` to settings.
+
+> **Context Warning:** Too many hooks can impact performance. Keep them focused.
+
 ## Workflow
 
 ```
@@ -277,7 +322,9 @@ MCP (Model Context Protocol) gives Claude direct access to external tools. Confi
 | **Sentry** | Error tracking and debugging |
 | **Slack** | Team communication search |
 
-Run `/mcp-setup` to configure, or copy templates from `.claude/templates/mcp*.json`.
+Run `/mcp-setup` to configure, or copy templates from `templates/mcp*.json`.
+
+> **Context Warning:** Too many MCPs can shrink your 200k context to ~70k. Enable 2-5 per project, use `disabledMcpServers` for unused ones.
 
 > Boris Cherny (Claude Code creator) uses Slack, BigQuery, and Sentry MCPs daily.
 
@@ -295,6 +342,15 @@ Install via `/plugin-setup` or manually:
 > See [claude-plugins-official](https://github.com/anthropics/claude-plugins-official) for full list.
 
 ## Notable Mentions
+
+### [everything-claude-code](https://github.com/affaan-m/everything-claude-code)
+
+Battle-tested Claude Code configurations by [@affaanmustafa](https://x.com/affaanmustafa), Anthropic hackathon winner. CodeAssist adopted several patterns:
+
+- **Rules system** - Always-enforced guidelines (security, testing, git-workflow)
+- **Hooks system** - Event-driven automations for tool operations
+- **TDD workflow** - Red-Green-Refactor with coverage requirements
+- **Specialized agents** - Build error resolver, E2E runner, refactor cleaner
 
 ### [agency-agents](https://github.com/msitarzewski/agency-agents)
 

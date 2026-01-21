@@ -188,4 +188,154 @@ Reasoning: [1-2 sentences on why]
 [optional improvements, not blocking]
 ```
 
+### JSON Output (for /autonomous integration)
+
+When called with `--json` flag, output machine-readable format:
+
+```json
+{
+  "gate": "review",
+  "score": 18,
+  "max_score": 20,
+  "passed": true,
+  "details": {
+    "overall_grade": "B",
+    "security_grade": "A",
+    "quality_grade": "B",
+    "tests_grade": "A",
+    "verdict": "APPROVED_WITH_NOTES",
+    "confidence": "high"
+  },
+  "thresholds": {
+    "max_smells": 3,
+    "max_duplication_percent": 5,
+    "tests_required": true
+  },
+  "threshold_results": {
+    "smells_acceptable": true,
+    "duplication_acceptable": true,
+    "tests_pass": true
+  },
+  "metrics": {
+    "files_changed": 5,
+    "lines_added": 120,
+    "lines_removed": 45,
+    "code_smells": 2,
+    "duplication_percent": 2.1,
+    "complexity_score": 12
+  },
+  "issues": [
+    {
+      "id": "REV-001",
+      "severity": "minor",
+      "type": "code_smell",
+      "title": "Long method in UserService",
+      "file": "src/services/UserService.ts",
+      "line": 45,
+      "description": "Method exceeds 25 lines",
+      "recommendation": "Extract into smaller methods",
+      "auto_fixable": true,
+      "create_issue": false
+    },
+    {
+      "id": "REV-002",
+      "severity": "minor",
+      "type": "naming",
+      "title": "Unclear variable name",
+      "file": "src/utils/helpers.ts",
+      "line": 12,
+      "description": "Variable 'x' should be more descriptive",
+      "auto_fixable": true
+    }
+  ],
+  "auto_fixable": [
+    {
+      "id": "REV-003",
+      "type": "unused_import",
+      "file": "src/index.ts",
+      "line": 3,
+      "fix": "Remove unused import",
+      "applied": true
+    }
+  ],
+  "claim_verification": [
+    {
+      "claim": "Added user validation",
+      "evidence": "src/validators/UserValidator.ts:15",
+      "verified": true
+    }
+  ]
+}
+```
+
+**Failure example:**
+
+```json
+{
+  "gate": "review",
+  "score": 8,
+  "max_score": 20,
+  "passed": false,
+  "details": {
+    "overall_grade": "D",
+    "verdict": "NEEDS_CHANGES"
+  },
+  "issues": [
+    {
+      "id": "REV-001",
+      "severity": "critical",
+      "type": "security",
+      "title": "Debug code in production",
+      "file": "src/api/auth.ts",
+      "line": 34,
+      "description": "console.log with sensitive data",
+      "auto_fixable": true
+    },
+    {
+      "id": "REV-002",
+      "severity": "major",
+      "type": "duplication",
+      "title": "Duplicated validation logic",
+      "files": ["src/api/users.ts", "src/api/admin.ts"],
+      "duplication_percent": 15,
+      "auto_fixable": false,
+      "create_issue": true
+    }
+  ]
+}
+```
+
+### Issue Comment Format (for --post-to-issue)
+
+```markdown
+## Code Review
+
+| Category | Grade | Status |
+|----------|-------|--------|
+| Security | A | ✅ |
+| Quality | B | ✅ |
+| Tests | A | ✅ |
+| **Overall** | **B** | ✅ |
+| **Score** | **18/20** | |
+
+### Verdict: APPROVED WITH NOTES
+
+### Issues Found
+| Severity | Count | Auto-fixed |
+|----------|-------|------------|
+| Critical | 0 | - |
+| Major | 0 | - |
+| Minor | 2 | 1 |
+
+### Auto-fixes Applied
+- REV-003: Removed unused import in index.ts
+
+### Remaining Items
+- REV-001: Long method (minor, acceptable)
+- REV-002: Naming improvement (minor, acceptable)
+
+---
+*Run by /autonomous | Iteration 3*
+```
+
 Begin the skeptical review now.

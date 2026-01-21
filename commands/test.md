@@ -66,6 +66,8 @@ nice -n 19 ionice -c 3 vendor/bin/pest --processes=1
 
 ## Output Format
 
+### Standard Output
+
 ```
 ## Test Results
 
@@ -82,4 +84,93 @@ nice -n 19 ionice -c 3 vendor/bin/pest --processes=1
 ### Next Steps
 [if failures: "Fix failing tests before committing"]
 [if pass: "All tests pass - ready for /review"]
+```
+
+### JSON Output (for /autonomous integration)
+
+When called with `--json` flag, output machine-readable format:
+
+```json
+{
+  "gate": "test",
+  "score": 25,
+  "max_score": 25,
+  "passed": true,
+  "details": {
+    "framework": "pest",
+    "total_tests": 47,
+    "passed": 47,
+    "failed": 0,
+    "skipped": 0,
+    "coverage": 92.5,
+    "duration_seconds": 12.4
+  },
+  "thresholds": {
+    "min_coverage": 80,
+    "max_failures": 0
+  },
+  "threshold_results": {
+    "coverage_met": true,
+    "no_failures": true
+  },
+  "issues": [],
+  "auto_fixable": [],
+  "recommendations": []
+}
+```
+
+**Failure example:**
+
+```json
+{
+  "gate": "test",
+  "score": 0,
+  "max_score": 25,
+  "passed": false,
+  "details": {
+    "framework": "jest",
+    "total_tests": 50,
+    "passed": 48,
+    "failed": 2,
+    "coverage": 75.0
+  },
+  "issues": [
+    {
+      "type": "test_failure",
+      "test": "UserService.createUser should hash password",
+      "file": "tests/UserService.test.ts",
+      "line": 45,
+      "error": "Expected bcrypt hash, got plaintext",
+      "auto_fixable": true
+    },
+    {
+      "type": "coverage_gap",
+      "file": "src/services/AuthService.ts",
+      "coverage": 65,
+      "uncovered_lines": [23, 45, 67],
+      "auto_fixable": false
+    }
+  ]
+}
+```
+
+### Issue Comment Format (for --post-to-issue)
+
+```markdown
+## Test Results
+
+| Metric | Value | Status |
+|--------|-------|--------|
+| Tests | 47 passed, 0 failed | ✅ |
+| Coverage | 92.5% | ✅ (>80%) |
+| Duration | 12.4s | |
+| **Score** | **25/25** | ✅ |
+
+### Details
+- Framework: Pest
+- Environment: Local
+- Backup: Created
+
+---
+*Run by /autonomous | Iteration 3*
 ```

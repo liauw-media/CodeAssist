@@ -10,6 +10,18 @@ Everything in one place. Use this to find what you need.
 | Install it | [README.md#getting-started](../README.md#getting-started) |
 | List of commands | [commands/README.md](../commands/README.md) |
 | List of skills | [skills/README.md](../skills/README.md) |
+| **Advanced Features** | [advanced-features.md](advanced-features.md) |
+
+## Advanced Features
+
+| Feature | Description | Guide |
+|---------|-------------|-------|
+| **Autonomous Mode** | Hands-off development with quality gates | [advanced-features.md#autonomous-mode](advanced-features.md#autonomous-mode) |
+| **MCP Servers** | Direct tool access (GitHub, Playwright, etc.) | [advanced-features.md#mcp-servers](advanced-features.md#mcp-servers) |
+| **Plugins** | Extend Claude Code capabilities | [advanced-features.md#plugins](advanced-features.md#plugins) |
+| **Subagents** | Specialized agents for specific tasks | [advanced-features.md#subagents](advanced-features.md#subagents) |
+| **Hooks** | Event-driven automations | [advanced-features.md#hooks](advanced-features.md#hooks) |
+| **Rules** | Always-enforced guidelines | [../rules/README.md](../rules/README.md) |
 
 ## Commands
 
@@ -110,14 +122,23 @@ Executable tools. Source: `scripts/`
 
 Common task sequences:
 
-### Starting a Feature
+### Manual Development
 ```
 /brainstorm → /plan → implement → /test → /review → /commit
 ```
 
+### Autonomous Development (Recommended)
+```
+/plan "feature" --issues → /autonomous --epic 123 --target 95
+                                    ↓
+                    [Loop: implement → gates → PR]
+                                    ↓
+                         Human reviews PRs → Merge
+```
+
 ### Security Audit
 ```
-/architect → fix issues → /test → /review
+/architect → fix issues → /security → /test → /review
 ```
 
 ### CI/CD Setup
@@ -128,6 +149,11 @@ Copy template from docs/ci-templates/ → customize → commit
 ### Code Review
 ```
 /review → address feedback → /verify → /commit
+```
+
+### Multi-Agent Task
+```
+/orchestrate "complex task" → agents coordinate → results aggregated
 ```
 
 ## Solo vs Team Usage

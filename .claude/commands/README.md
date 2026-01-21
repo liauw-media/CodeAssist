@@ -7,7 +7,7 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | Command | File | What it Does |
 |---------|------|--------------|
 | `/status` | [status.md](status.md) | Shows git status, branch, recent commits |
-| `/review` | [review.md](review.md) | Runs code review with tests and checks |
+| `/review` | [review.md](review.md) | Skeptical code review with evidence validation |
 | `/test` | [test.md](test.md) | Creates backup, runs test suite |
 | `/backup` | [backup.md](backup.md) | Creates database backup |
 | `/commit` | [commit.md](commit.md) | Pre-commit checklist, then commits |
@@ -18,7 +18,7 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | Command | File | What it Does |
 |---------|------|--------------|
 | `/brainstorm` | [brainstorm.md](brainstorm.md) | Discuss approach before implementing |
-| `/plan` | [plan.md](plan.md) | Break work into actionable tasks |
+| `/plan` | [plan.md](plan.md) | Sprint planning with RICE/MoSCoW prioritization |
 | `/verify` | [verify.md](verify.md) | Final checks before completing work |
 
 ## Git Branch Commands
@@ -49,6 +49,23 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | `/refactor` | [refactor.md](refactor.md) | Code refactoring |
 | `/docs` | [docs.md](docs.md) | Generate documentation |
 
+## Project & Design Commands
+
+| Command | File | What it Does |
+|---------|------|--------------|
+| `/project` | [project.md](project.md) | Project coordination, status reports, risk tracking |
+| `/ux` | [ux.md](ux.md) | UX architecture, design systems, themes |
+| `/summary` | [summary.md](summary.md) | Executive summaries for stakeholders |
+
+## Analysis & QA Commands
+
+| Command | File | What it Does |
+|---------|------|--------------|
+| `/evidence` | [evidence.md](evidence.md) | Screenshot-based QA validation |
+| `/brand` | [brand.md](brand.md) | Design/brand consistency audit |
+| `/trends` | [trends.md](trends.md) | Market trends and competitive analysis |
+| `/optimize` | [optimize.md](optimize.md) | Workflow optimization and automation |
+
 ## Research Commands
 
 | Command | File | What it Does |
@@ -74,7 +91,7 @@ Slash commands that do real work. These are installed to `.claude/commands/` in 
 | `/guide` | [guide.md](guide.md) | Help with what to do next |
 | `/feedback` | [feedback.md](feedback.md) | Submit feedback or report issues |
 | `/agent-select` | [agent-select.md](agent-select.md) | Get agent recommendation |
-| `/orchestrate` | [orchestrate.md](orchestrate.md) | Coordinate multiple agents |
+| `/orchestrate` | [orchestrate.md](orchestrate.md) | Multi-agent pipeline with quality gates |
 
 ## External Tools
 
@@ -111,3 +128,16 @@ Do something with: $ARGUMENTS
 1. First do this
 2. Then do that
 ```
+
+## Notable Mentions
+
+### [agency-agents](https://github.com/msitarzewski/agency-agents)
+
+51 specialized AI agent personalities by [@msitarzewski](https://github.com/msitarzewski). CodeAssist integrated concepts from:
+
+**Tier 1:** `/plan`, `/review`, `/orchestrate`, `/project`, `/ux`, `/summary`
+**Tier 2:** `/evidence`, `/brand`, `/trends`, `/optimize`
+
+**Not integrated (marketing/niche):** Growth Hacker, Content Creator, Social Media, Spatial Computing
+
+Install additional agents from [agency-agents](https://github.com/msitarzewski/agency-agents) if needed.

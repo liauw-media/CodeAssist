@@ -208,4 +208,140 @@ Be ruthless. Be specific. Be helpful.
 
 The goal isn't to destroy confidence - it's to build something bulletproof.
 
+### JSON Output (for /autonomous integration)
+
+When called with `--json` flag, output machine-readable format:
+
+```json
+{
+  "gate": "mentor",
+  "score": 8,
+  "max_score": 10,
+  "passed": true,
+  "details": {
+    "first_impression": "Solid foundation but over-engineered",
+    "verdict_score": 7,
+    "production_ready": true,
+    "confidence": "medium"
+  },
+  "thresholds": {
+    "min_score": 6,
+    "max_critical_concerns": 0
+  },
+  "threshold_results": {
+    "score_acceptable": true,
+    "no_critical_concerns": true
+  },
+  "strengths": [
+    "Clean separation of concerns",
+    "Good test coverage",
+    "Proper error handling"
+  ],
+  "concerns": [
+    {
+      "id": "MENTOR-001",
+      "severity": "major",
+      "category": "architecture",
+      "title": "Over-engineered abstraction layer",
+      "description": "Three levels of abstraction for simple CRUD",
+      "impact": "Increased maintenance burden",
+      "recommendation": "Simplify to single service layer",
+      "auto_fixable": false,
+      "create_issue": true
+    },
+    {
+      "id": "MENTOR-002",
+      "severity": "minor",
+      "category": "scalability",
+      "title": "N+1 query pattern",
+      "description": "User loading triggers separate queries",
+      "recommendation": "Use eager loading",
+      "auto_fixable": false,
+      "create_issue": true
+    }
+  ],
+  "stress_test": {
+    "under_load": "pass",
+    "requirement_change": "warning",
+    "team_change": "pass",
+    "3am_scenario": "pass"
+  },
+  "missing_pieces": [
+    "Rate limiting not considered",
+    "No caching strategy"
+  ],
+  "must_fix": [],
+  "should_fix": [
+    "Simplify abstraction layers",
+    "Add eager loading for queries"
+  ]
+}
+```
+
+**Critical concern example:**
+
+```json
+{
+  "gate": "mentor",
+  "score": 4,
+  "max_score": 10,
+  "passed": false,
+  "details": {
+    "verdict_score": 4,
+    "production_ready": false
+  },
+  "concerns": [
+    {
+      "id": "MENTOR-001",
+      "severity": "critical",
+      "category": "security",
+      "title": "Authentication bypass possible",
+      "description": "JWT validation missing in middleware",
+      "impact": "Unauthorized access to all endpoints",
+      "recommendation": "Add JWT validation middleware",
+      "auto_fixable": false,
+      "create_issue": true
+    }
+  ],
+  "must_fix": [
+    "Add JWT validation to all protected routes"
+  ]
+}
+```
+
+### Issue Comment Format (for --post-to-issue)
+
+```markdown
+## Architecture Review (Mentor)
+
+| Aspect | Status | Notes |
+|--------|--------|-------|
+| Architecture | ⚠️ | Over-engineered |
+| Scalability | ✅ | Handles load |
+| Security | ✅ | Properly layered |
+| Maintainability | ⚠️ | Complex abstractions |
+| **Score** | **8/10** | |
+
+### Concerns
+
+#### Major: Over-engineered abstraction
+- **Category:** Architecture
+- **Impact:** Maintenance burden
+- **Action:** Created issue #210
+
+#### Minor: N+1 queries
+- **Category:** Scalability
+- **Action:** Created issue #211
+
+### Strengths
+- Clean separation of concerns
+- Good test coverage
+
+### Verdict
+**Production Ready:** Yes (with notes)
+
+---
+*Run by /autonomous | Iteration 3*
+```
+
 Start the analysis now.
