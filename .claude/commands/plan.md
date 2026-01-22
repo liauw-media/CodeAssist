@@ -5,6 +5,14 @@ Sprint planning and task prioritization using proven frameworks.
 ## Task
 $ARGUMENTS
 
+## Flags
+
+| Flag | Purpose |
+|------|---------|
+| `--issues` | Create GitHub epic + child issues for autonomous processing |
+| `--epic` | Same as --issues |
+| `--dry-run` | Show what would be created without actually creating |
+
 ## Prioritization Frameworks
 
 ### RICE Scoring (for feature prioritization)
@@ -103,5 +111,108 @@ Does this plan look right? Any adjustments needed?
 - Before starting multi-task work
 - Feature prioritization
 - Scope negotiation
+
+---
+
+## GitHub Issue Creation (--issues flag)
+
+When `--issues` flag is provided, create GitHub issues after planning.
+
+### Epic Issue Format
+
+```markdown
+# Epic: [Feature Name]
+
+## Objective
+[1-2 sentence goal statement]
+
+## Child Issues
+- [ ] #[ID]: [Task 1 title]
+- [ ] #[ID]: [Task 2 title]
+- [ ] #[ID]: [Task 3 title]
+
+## Success Criteria
+- [ ] [Measurable outcome 1]
+- [ ] [Measurable outcome 2]
+
+## Quality Gates
+- Target score: 95/100
+- Required: /test, /security, /build
+- Quality: /review, /mentor
+
+---
+*Ready for `/autonomous --epic [NUMBER]` or `/orchestrate --epic [NUMBER] --background`*
+```
+
+### Child Issue Format
+
+```markdown
+## Description
+[What needs to be done]
+
+## Acceptance Criteria
+- [ ] [Specific requirement 1]
+- [ ] [Specific requirement 2]
+
+## Technical Notes
+[Implementation hints, constraints, dependencies]
+
+## Dependencies
+- Blocked by: #[ID] (if any)
+- Blocks: #[ID] (if any)
+
+---
+Labels: `autonomous-ready`, `priority-[must/should/could]`
+```
+
+### Issue Creation Commands
+
+```bash
+# Create epic
+gh issue create --title "Epic: [Feature]" --body "[epic body]" --label "epic"
+
+# Create child issues
+gh issue create --title "[Task title]" --body "[task body]" --label "autonomous-ready,priority-must"
+
+# Link child to epic (via task list in epic body)
+```
+
+### Output with --issues
+
+```
+## Sprint Plan: [Feature]
+
+[... standard plan output ...]
+
+---
+
+## GitHub Issues Created
+
+### Epic
+- **#100**: [Feature Name] (epic)
+  - URL: https://github.com/owner/repo/issues/100
+
+### Child Issues
+| # | Title | Priority | Labels |
+|---|-------|----------|--------|
+| #101 | [Task 1] | Must | `autonomous-ready` |
+| #102 | [Task 2] | Must | `autonomous-ready` |
+| #103 | [Task 3] | Should | `autonomous-ready` |
+
+### Next Steps
+
+**Start autonomous development:**
+```bash
+# Interactive (in this session)
+/autonomous --epic 100
+
+# Background (parallel to your work)
+/orchestrate --epic 100 --background
+```
+
+**Monitor progress:**
+- Epic: https://github.com/owner/repo/issues/100
+- Notifications: PRs will be created when tasks complete
+```
 
 Begin planning now.

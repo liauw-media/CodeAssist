@@ -5,6 +5,45 @@ Autonomous pipeline manager for multi-agent coordination with quality gates.
 ## Complex Task
 $ARGUMENTS
 
+## Execution Modes
+
+| Flag | Mode | Description |
+|------|------|-------------|
+| (none) | Interactive | Run in current session, you watch progress |
+| `--background` | Background | Spawn headless runner, continue your work |
+| `--epic [ID]` | Epic Mode | Process all issues in an epic |
+| `--parallel` | Parallel | Run multiple issues simultaneously |
+
+### Background Mode (--background)
+
+Spawns Ralph Wiggum headless runner in background:
+
+```bash
+# What happens when you run:
+/orchestrate --epic 100 --background
+
+# 1. Validates prerequisites
+# 2. Spawns: npx ts-node scripts/ralph-runner.ts --epic=100 &
+# 3. Returns control to you immediately
+# 4. Posts progress to GitHub issues
+# 5. Notifies when PRs are ready
+```
+
+**You can continue working** while autonomous runs in parallel.
+
+### Monitor Background Runs
+
+```bash
+# Check running processes
+ps aux | grep ralph-runner
+
+# View logs
+tail -f scripts/logs/ralph-*.log
+
+# Check GitHub for updates
+gh issue view 100 --comments
+```
+
 ## Core Principles
 
 ### Quality-First Execution
@@ -208,5 +247,120 @@ I will now:
 4. **Validate** before proceeding to next task
 5. **Retry** failures up to 3 times with feedback
 6. **Synthesize** results and report status
+
+---
+
+## Background Execution (--background flag)
+
+When `--background` or `--epic` with `--background` is specified:
+
+### Pre-Flight Checks
+
+```bash
+# 1. Check ralph-runner exists
+ls scripts/ralph-runner.ts
+
+# 2. Check dependencies installed
+ls scripts/node_modules/@anthropic-ai/claude-agent-sdk
+
+# 3. Check API key
+echo $ANTHROPIC_API_KEY | head -c 10
+
+# 4. Check GitHub CLI
+gh auth status
+```
+
+### Spawn Background Process
+
+```bash
+# Create logs directory
+mkdir -p scripts/logs
+
+# Spawn ralph-runner in background
+nohup npx ts-node scripts/ralph-runner.ts \
+  --epic=[EPIC_ID] \
+  --preset=[PRESET] \
+  > scripts/logs/ralph-$(date +%Y%m%d-%H%M%S).log 2>&1 &
+
+# Store PID for management
+echo $! > scripts/logs/ralph.pid
+```
+
+### Output Format (Background Mode)
+
+```
+## Orchestration: [Task] (Background Mode)
+
+### Background Runner Spawned
+
+**Process:** Ralph Wiggum (PID: [PID])
+**Epic:** #[EPIC_ID] - [Epic Title]
+**Issues:** [COUNT] tasks queued
+**Log:** `scripts/logs/ralph-[timestamp].log`
+
+### Monitor Progress
+
+```bash
+# View live logs
+tail -f scripts/logs/ralph-*.log
+
+# Check process status
+ps -p [PID]
+
+# Stop if needed
+kill [PID]
+```
+
+### GitHub Integration
+
+Progress posted to: https://github.com/[owner]/[repo]/issues/[EPIC_ID]
+
+**You will be notified when:**
+- Each issue completes (PR created)
+- Any issue is blocked (needs intervention)
+- Epic completes (all PRs ready)
+
+### Continue Your Work
+
+You can now continue working in this session.
+The autonomous runner operates independently.
+
+**Useful commands while waiting:**
+- `/status` - Check your current work
+- `gh pr list` - See PRs created by autonomous
+- `gh issue view [EPIC_ID] --comments` - Check progress
+```
+
+---
+
+## Integrated Workflow Example
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ USER SESSION                                                         │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  You: /plan "User authentication" --issues                          │
+│       ↓                                                             │
+│  Claude: Creates Epic #100, Issues #101-105                         │
+│       ↓                                                             │
+│  You: /orchestrate --epic 100 --background                          │
+│       ↓                                                             │
+│  Claude: Spawns Ralph → "You can continue working"                  │
+│       ↓                                                             │
+│  You: /laravel "Add payment integration"  ← Continue other work     │
+│                                                                     │
+├─────────────────────────────────────────────────────────────────────┤
+│ BACKGROUND (Ralph Wiggum)                           PARALLEL        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  [Processing #101] → Tests → Security → PR #110 created             │
+│  [Processing #102] → Tests → Security → PR #111 created             │
+│  [Processing #103] → BLOCKED (needs human input)                    │
+│       ↓                                                             │
+│  Posts to GitHub: "@user: Issue #103 blocked, please review"        │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 Begin orchestration now.
