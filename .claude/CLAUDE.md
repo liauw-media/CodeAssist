@@ -76,6 +76,27 @@ An assistant library for Claude Code.
 | `/devops [task]` | CI/CD pipelines, infrastructure automation |
 | `/ai [task]` | ML/AI systems, LLM integration, MLOps |
 
+## Automation Commands
+
+| Command | Action |
+|---------|--------|
+| `/autonomous [--issue\|--epic]` | Autonomous development loop with quality gates |
+| `/orchestrate [task]` | Multi-agent pipeline coordination |
+
+**Autonomous Development** runs iterative loops until quality score >= 95:
+```bash
+# Work on a single issue (interactive)
+/autonomous --issue 123
+
+# Work on an epic (all linked issues)
+/autonomous --epic 100 --preset production
+
+# Headless mode (run outside Claude)
+cd scripts && npx ts-node ralph-runner.ts --issue=123
+```
+
+> See `skills/workflow/autonomous-development/SKILL.md` and `templates/autonomous.yml`
+
 ## Infrastructure Commands
 
 | Command | Action |
@@ -144,7 +165,6 @@ Sessions are stored in `.claude/sessions/` with unique names, allowing multiple 
 | `/guide` | Help with what to do next |
 | `/feedback [message]` | Submit feedback or report issues |
 | `/agent-select [task]` | Get agent recommendation |
-| `/orchestrate [task]` | Multi-agent pipeline with quality gates |
 
 ## Setup Commands
 
@@ -155,6 +175,7 @@ Sessions are stored in `.claude/sessions/` with unique names, allowing multiple 
 | `/plugin-setup` | Install recommended plugins (code-simplifier, LSPs, etc.) |
 | `/mem-setup` | Set up persistent memory with claude-mem |
 | `/aider-setup` | Configure Ollama host and model for Aider |
+| `/autonomous-setup` | Configure autonomous development mode |
 
 ## External Tools
 

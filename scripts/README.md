@@ -4,7 +4,34 @@ Scripts for safe operations, backups, test result management, and autonomous dev
 
 ---
 
-## Ralph Wiggum - Autonomous Development Runner
+## Autonomous Development
+
+CodeAssist provides **two modes** of autonomous development:
+
+### Mode Comparison
+
+| Mode | Command | Use Case | Requirements |
+|------|---------|----------|--------------|
+| **Interactive** | `/autonomous --issue 123` | In-session, supervised | GitHub MCP, Claude Code |
+| **Headless** | `npx ts-node ralph-runner.ts --issue=123` | Background, CI/CD, overnight | API key, Node.js 18+ |
+
+### When to Use Which
+
+**Use `/autonomous` (Interactive) when:**
+- You're actively working in Claude Code
+- You want to monitor progress in real-time
+- You need to intervene during the loop
+- You're working on a single issue
+
+**Use Ralph (Headless) when:**
+- You want unattended overnight runs
+- You're processing multiple issues from an epic
+- You're integrating with CI/CD pipelines
+- You need Docker containerization
+
+---
+
+## Ralph Wiggum - Headless Runner
 
 Autonomous development loop powered by the Claude Agent SDK. Runs quality gates, auto-fixes issues, and creates PRs when targets are met.
 
