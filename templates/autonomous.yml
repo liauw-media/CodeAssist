@@ -24,13 +24,17 @@ issue_tracking:
     security_debt: "security"
 
 # Quality gates configuration
+# Gates are organized into parallel groups for faster execution
 gates:
-  # === REQUIRED GATES (must pass to create PR) ===
+  # ═══════════════════════════════════════════════════════════════
+  # PARALLEL GROUP 1: Required Gates (run first, in parallel)
+  # ═══════════════════════════════════════════════════════════════
 
   test:
     weight: 25
     required: true
     auto_fix: true
+    parallel_group: 1
     description: "Unit/integration tests must pass"
     thresholds:
       min_coverage: 80
@@ -43,6 +47,7 @@ gates:
     weight: 25
     required: true
     auto_fix: true
+    parallel_group: 1
     description: "Security audit - no critical/high vulnerabilities"
     thresholds:
       critical_vulns: 0
@@ -59,18 +64,22 @@ gates:
     weight: 15
     required: true
     auto_fix: true
+    parallel_group: 1
     command: /build-fix
     description: "Project must build without errors"
     on_fail:
       action: retry
       max_retries: 5
 
-  # === QUALITY GATES (contribute to score) ===
+  # ═══════════════════════════════════════════════════════════════
+  # PARALLEL GROUP 2: Quality Gates (run after required pass)
+  # ═══════════════════════════════════════════════════════════════
 
   review:
     weight: 20
     required: false
     auto_fix: true
+    parallel_group: 2
     command: /review
     remediation: /cleanup
     description: "Code review - style, smells, duplication"
@@ -85,6 +94,7 @@ gates:
     weight: 10
     required: false
     auto_fix: false
+    parallel_group: 2
     command: /mentor
     description: "Architecture review - patterns, concerns"
     creates_issues_for:
@@ -96,6 +106,7 @@ gates:
     weight: 5
     required: false
     auto_fix: false
+    parallel_group: 2
     command: /ux
     description: "UX review - accessibility, usability"
     applies_to:
@@ -105,6 +116,53 @@ gates:
     creates_issues_for:
       - accessibility_issues
       - usability_concerns
+
+  # ═══════════════════════════════════════════════════════════════
+  # PARALLEL GROUP 3: Advisory Gates (0 weight, create issues only)
+  # ═══════════════════════════════════════════════════════════════
+
+  architect:
+    weight: 0
+    required: false
+    auto_fix: false
+    parallel_group: 3
+    command: /architect
+    description: "System security & performance advisor"
+    creates_issues_for:
+      - security_hardening
+      - performance_bottlenecks
+      - scalability_concerns
+      - disaster_recovery
+    output:
+      - security_posture: "strong|adequate|weak"
+      - performance_rating: "optimized|acceptable|needs_work"
+      - quick_wins: list
+      - roadmap: phases
+
+  devops:
+    weight: 0
+    required: false
+    auto_fix: false
+    parallel_group: 3
+    command: /devops
+    description: "CI/CD and infrastructure review"
+    applies_to:
+      - .github/workflows
+      - Dockerfile
+      - docker-compose
+      - terraform
+      - ansible
+      - k8s
+      - helm
+    creates_issues_for:
+      - ci_cd_improvements
+      - container_optimizations
+      - secrets_management
+      - monitoring_gaps
+    output:
+      - ci_cd_health: "healthy|needs_attention|broken"
+      - container_health: "optimized|acceptable|needs_work|missing"
+      - missing_essentials: list
 
 # Score calculation
 scoring:

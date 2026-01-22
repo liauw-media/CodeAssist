@@ -1,6 +1,106 @@
 # CodeAssist Scripts
 
-Scripts for safe operations, backups, and test result management.
+Scripts for safe operations, backups, test result management, and autonomous development.
+
+---
+
+## Ralph Wiggum - Autonomous Development Runner
+
+Autonomous development loop powered by the Claude Agent SDK. Runs quality gates, auto-fixes issues, and creates PRs when targets are met.
+
+### Quick Start
+
+```bash
+# Install dependencies
+cd scripts
+npm install
+
+# Run on a single issue
+npx ts-node ralph-runner.ts --issue=123
+
+# Run with production preset (stricter thresholds)
+npx ts-node ralph-runner.ts --issue=123 --preset=production
+
+# Supervised mode (pause after each iteration)
+npx ts-node ralph-runner.ts --issue=123 --supervised
+```
+
+### Prerequisites
+
+1. **Claude Code** installed: `curl -fsSL https://claude.ai/install.sh | bash`
+2. **API key**: `export ANTHROPIC_API_KEY=your-key`
+3. **GitHub CLI**: `gh auth login`
+4. **Node.js 18+**
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    RALPH WIGGUM LOOP                            │
+├─────────────────────────────────────────────────────────────────┤
+│  1. FETCH ISSUE → Read from GitHub/GitLab                      │
+│  2. CREATE BRANCH → feature/{issue-id}-implement               │
+│  3. IMPLEMENT → Code based on issue requirements               │
+│  4. RUN QUALITY GATES (parallel groups)                        │
+│     ├── Group 1: /test, /security, /build (required)           │
+│     ├── Group 2: /review, /mentor, /ux (quality)               │
+│     └── Group 3: /architect, /devops (advisory)                │
+│  5. EVALUATE → Score >= 95? Create PR : Auto-fix & retry       │
+│  6. CREATE PR → feature → staging (requires human review)      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Quality Gates
+
+| Gate | Weight | Required | Auto-Fix | Description |
+|------|--------|----------|----------|-------------|
+| `/test` | 25 | ✅ | ✅ | Tests pass + 80% coverage |
+| `/security` | 25 | ✅ | ✅ | No critical/high vulnerabilities |
+| `/build` | 15 | ✅ | ✅ | Project compiles |
+| `/review` | 20 | ❌ | ✅ | Code quality, smells, duplication |
+| `/mentor` | 10 | ❌ | ❌ | Architecture review |
+| `/ux` | 5 | ❌ | ❌ | Accessibility (frontend only) |
+| `/architect` | 0 | ❌ | ❌ | System security & performance |
+| `/devops` | 0 | ❌ | ❌ | CI/CD and infrastructure |
+
+### Configuration
+
+Create `.claude/autonomous.yml`:
+
+```yaml
+target_score: 95
+max_iterations: 15
+
+gates:
+  test:
+    weight: 25
+    required: true
+    auto_fix: true
+    parallel_group: 1
+
+presets:
+  production:
+    target_score: 98
+```
+
+### Safety Features
+
+- ❌ **NEVER** push to main/master/staging
+- ❌ **NEVER** include "Co-Authored-By: Claude"
+- ❌ **NEVER** force push or auto-merge
+- ✅ **ALWAYS** use PR workflow
+
+### Human Intervention
+
+Comment on GitHub issue:
+
+| Command | Action |
+|---------|--------|
+| `@claude {instruction}` | Execute and continue |
+| `@pause` / `@resume` | Control loop |
+| `@skip-gate {gate}` | Skip with justification |
+
+See [ralph-runner.ts](ralph-runner.ts) for full implementation.
 
 ---
 
