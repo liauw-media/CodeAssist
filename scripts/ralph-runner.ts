@@ -8,6 +8,7 @@
  *   npx ts-node ralph-runner.ts --epic=200
  *   npx ts-node ralph-runner.ts --issue=123 --preset=production
  *   npx ts-node ralph-runner.ts --issue=123 --supervised
+ *   npx ts-node ralph-runner.ts --issue=123 --dry-run
  */
 
 import {
@@ -17,8 +18,28 @@ import {
   HookCallback,
 } from "@anthropic-ai/claude-agent-sdk";
 import { appendFileSync, readFileSync, existsSync, writeFileSync } from "fs";
-import { join } from "path";
+import { join, resolve } from "path";
 import * as yaml from "yaml";
+
+// ============================================
+// CONSTANTS
+// ============================================
+const CONFIG_PATH = join(process.cwd(), ".claude", "autonomous.yml");
+const AUDIT_LOG = join(process.cwd(), "autonomous-audit.log");
+const METRICS_FILE = join(process.cwd(), "autonomous-metrics.json");
+const STATE_FILE = join(process.cwd(), ".ralph-state.json");
+
+// Scoring thresholds
+const GATE_PASS_THRESHOLD = 0.8;
+const PR_FALLBACK_SCORE = 85;
+const BLOCKER_ITERATION_THRESHOLD = 5;
+const SUPERVISED_PAUSE_MS = 30000;
+const MAX_ISSUES_PER_GATE = 3;
+const MAX_SCORE = 100;
+const MAX_AUDIT_LOG_SIZE = 10 * 1024 * 1024; // 10MB
+
+// Valid presets
+const VALID_PRESETS = ["default", "production", "prototype", "frontend"] as const;
 
 // ============================================
 // TYPES
@@ -83,24 +104,225 @@ interface IterationResult {
   apiCalls: number;
 }
 
-interface RunMetrics {
-  startTime: Date;
-  iterations: number;
-  totalApiCalls: number;
-  issuesCreated: number;
-  autoFixesApplied: number;
-  linesChanged: number;
-  filesModified: string[];
+interface RunState {
+  runId: string;
+  issueId: string;
+  sessionId?: string;
+  iteration: number;
+  lastScore: number;
+  createdIssues: string[];
+  startTime: string;
+  lastCheckpoint: string;
+}
+
+interface CircuitBreakerState {
+  failures: number;
+  lastFailure: number;
+  isOpen: boolean;
+}
+
+// ============================================
+// RUN CONTEXT (Eliminates Global State)
+// ============================================
+class RunContext {
+  public readonly runId: string;
+  public readonly config: AutonomousConfig;
+  public readonly issueId: string;
+  public readonly options: RunOptions;
+
+  public sessionId?: string;
+  public apiCallCount: number = 0;
+  public iteration: number = 0;
+  public issuesCreated: string[] = [];
+  public filesModified: Set<string> = new Set();
+  public autoFixesApplied: number = 0;
+  public startTime: Date = new Date();
+
+  private circuitBreaker: CircuitBreakerState = {
+    failures: 0,
+    lastFailure: 0,
+    isOpen: false,
+  };
+
+  constructor(issueId: string, config: AutonomousConfig, options: RunOptions) {
+    this.runId = `ralph-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    this.issueId = issueId;
+    this.config = config;
+    this.options = options;
+  }
+
+  // Rate limiting
+  public checkRateLimit(): boolean {
+    if (this.apiCallCount >= this.config.safety.max_api_calls_per_hour) {
+      return false;
+    }
+    this.apiCallCount++;
+    return true;
+  }
+
+  // Circuit breaker
+  public recordFailure(): void {
+    this.circuitBreaker.failures++;
+    this.circuitBreaker.lastFailure = Date.now();
+    if (this.circuitBreaker.failures >= 5) {
+      this.circuitBreaker.isOpen = true;
+      this.log("warn", "Circuit breaker OPEN - too many failures");
+    }
+  }
+
+  public recordSuccess(): void {
+    this.circuitBreaker.failures = 0;
+    if (this.circuitBreaker.isOpen) {
+      this.circuitBreaker.isOpen = false;
+      this.log("info", "Circuit breaker CLOSED - recovered");
+    }
+  }
+
+  public isCircuitOpen(): boolean {
+    if (!this.circuitBreaker.isOpen) return false;
+
+    // Check if cooldown period passed (5 minutes)
+    const cooldownMs = 5 * 60 * 1000;
+    if (Date.now() - this.circuitBreaker.lastFailure > cooldownMs) {
+      this.circuitBreaker.isOpen = false;
+      this.circuitBreaker.failures = 0;
+      return false;
+    }
+    return true;
+  }
+
+  // Issue creation limit
+  public canCreateIssue(): boolean {
+    return this.issuesCreated.length < this.config.safety.max_issues_created_per_run;
+  }
+
+  // Structured logging
+  public log(level: "info" | "warn" | "error" | "debug", message: string, data?: object): void {
+    const entry = {
+      timestamp: new Date().toISOString(),
+      runId: this.runId,
+      level,
+      message,
+      ...data,
+    };
+
+    if (level === "error") {
+      console.error(JSON.stringify(entry));
+    } else if (level === "warn") {
+      console.warn(`   [WARN] ${message}`);
+    } else if (level === "debug" && process.env.DEBUG) {
+      console.log(`   [DEBUG] ${message}`);
+    } else if (level === "info") {
+      console.log(`   ${message}`);
+    }
+  }
+
+  // State persistence for crash recovery
+  public saveCheckpoint(): void {
+    const state: RunState = {
+      runId: this.runId,
+      issueId: this.issueId,
+      sessionId: this.sessionId,
+      iteration: this.iteration,
+      lastScore: 0,
+      createdIssues: this.issuesCreated,
+      startTime: this.startTime.toISOString(),
+      lastCheckpoint: new Date().toISOString(),
+    };
+    writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+  }
+
+  public static loadCheckpoint(): RunState | null {
+    if (!existsSync(STATE_FILE)) return null;
+    try {
+      return JSON.parse(readFileSync(STATE_FILE, "utf-8"));
+    } catch {
+      return null;
+    }
+  }
+
+  // Metrics
+  public getMetrics(): object {
+    return {
+      runId: this.runId,
+      issueId: this.issueId,
+      startTime: this.startTime.toISOString(),
+      duration: Date.now() - this.startTime.getTime(),
+      iterations: this.iteration,
+      apiCalls: this.apiCallCount,
+      issuesCreated: this.issuesCreated.length,
+      autoFixesApplied: this.autoFixesApplied,
+      filesModified: Array.from(this.filesModified),
+    };
+  }
+}
+
+interface RunOptions {
+  preset?: string;
+  supervised: boolean;
+  dryRun: boolean;
+}
+
+// ============================================
+// INPUT VALIDATION & SANITIZATION
+// ============================================
+function validateIssueId(input: string): string {
+  // Must be numeric only (no shell metacharacters)
+  if (!/^\d+$/.test(input)) {
+    throw new Error(`Invalid issue ID: "${input}". Must be numeric.`);
+  }
+  return input;
+}
+
+function validatePreset(input: string | undefined): string | undefined {
+  if (!input) return undefined;
+  if (!VALID_PRESETS.includes(input as any)) {
+    throw new Error(`Invalid preset: "${input}". Valid: ${VALID_PRESETS.join(", ")}`);
+  }
+  return input;
+}
+
+function sanitizeForShell(input: string): string {
+  // Remove shell metacharacters
+  return input.replace(/[;&|`$(){}[\]<>\\'"!#*?~\n\r]/g, "");
+}
+
+function sanitizeFilePath(input: string, projectRoot: string): string | null {
+  const resolved = resolve(projectRoot, input);
+  if (!resolved.startsWith(projectRoot)) {
+    return null; // Path traversal attempt
+  }
+  return resolved;
+}
+
+function escapeRegex(input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// ============================================
+// ENVIRONMENT VALIDATION
+// ============================================
+function validateEnvironment(): void {
+  const required = ["ANTHROPIC_API_KEY"];
+  const missing = required.filter((key) => !process.env[key]);
+
+  if (missing.length > 0) {
+    console.error("\n[ERROR] Missing required environment variables:");
+    missing.forEach((key) => console.error(`  - ${key}`));
+    console.error("\nSet them in your environment or .env file:");
+    console.error("  export ANTHROPIC_API_KEY=your-api-key\n");
+    process.exit(1);
+  }
+
+  // Warn about optional
+  if (!process.env.GITHUB_TOKEN) {
+    console.warn("[WARN] GITHUB_TOKEN not set - using gh CLI authentication");
+  }
 }
 
 // ============================================
 // CONFIGURATION
 // ============================================
-const CONFIG_PATH = ".claude/autonomous.yml";
-const AUDIT_LOG = "./autonomous-audit.log";
-const METRICS_FILE = "./autonomous-metrics.json";
-const CACHE_DIR = ".claude/cache";
-
 function loadConfig(preset?: string): AutonomousConfig {
   const defaultConfig: AutonomousConfig = {
     target_score: 95,
@@ -137,16 +359,47 @@ function loadConfig(preset?: string): AutonomousConfig {
 
   if (existsSync(CONFIG_PATH)) {
     try {
-      const fileConfig = yaml.parse(readFileSync(CONFIG_PATH, "utf-8"));
-      Object.assign(defaultConfig, fileConfig);
+      const fileContent = readFileSync(CONFIG_PATH, "utf-8");
+      const fileConfig = yaml.parse(fileContent, { strict: true });
+
+      // Validate config structure
+      if (typeof fileConfig !== "object" || fileConfig === null) {
+        throw new Error("Invalid config: must be an object");
+      }
+
+      // Deep merge with validation
+      if (fileConfig.target_score !== undefined) {
+        if (typeof fileConfig.target_score !== "number" || fileConfig.target_score < 0 || fileConfig.target_score > 100) {
+          throw new Error("Invalid target_score: must be 0-100");
+        }
+        defaultConfig.target_score = fileConfig.target_score;
+      }
+
+      if (fileConfig.max_iterations !== undefined) {
+        if (typeof fileConfig.max_iterations !== "number" || fileConfig.max_iterations < 1) {
+          throw new Error("Invalid max_iterations: must be >= 1");
+        }
+        defaultConfig.max_iterations = fileConfig.max_iterations;
+      }
+
+      if (fileConfig.gates) {
+        Object.assign(defaultConfig.gates, fileConfig.gates);
+      }
+
+      if (fileConfig.presets) {
+        defaultConfig.presets = fileConfig.presets;
+      }
+
     } catch (e) {
-      console.warn("Failed to parse autonomous.yml, using defaults");
+      const message = e instanceof Error ? e.message : "Unknown error";
+      console.warn(`[WARN] Config error: ${message}. Using defaults.`);
     }
   }
 
-  // Apply preset if specified
-  if (preset && defaultConfig.presets?.[preset]) {
-    Object.assign(defaultConfig, defaultConfig.presets[preset]);
+  // Apply validated preset
+  const validatedPreset = validatePreset(preset);
+  if (validatedPreset && defaultConfig.presets?.[validatedPreset]) {
+    Object.assign(defaultConfig, defaultConfig.presets[validatedPreset]);
   }
 
   return defaultConfig;
@@ -156,19 +409,16 @@ function loadConfig(preset?: string): AutonomousConfig {
 // QUALITY GATE SUBAGENTS
 // ============================================
 const qualityGateAgents: Record<string, AgentDefinition> = {
-  // === TIER 1: Required Gates ===
-
   "test-runner": {
     description: "Run tests and report coverage",
-    prompt: `
-You are a test execution specialist. Run the project's test suite.
+    prompt: `You are a test execution specialist. Run the project's test suite.
 
 STEPS:
 1. Detect test framework (jest, pytest, phpunit, cargo test, go test)
 2. Run tests with coverage
 3. Parse results
 
-OUTPUT JSON:
+OUTPUT JSON ONLY:
 {
   "passed": boolean,
   "total": number,
@@ -183,15 +433,13 @@ SCORING:
 - All tests pass: +20 points
 - Coverage >= 80%: +5 points
 - Coverage >= 90%: +2 bonus
-- Each failure: -5 points (min 0)
-`,
+- Each failure: -5 points (min 0)`,
     tools: ["Bash", "Read", "Glob"],
   },
 
   "security-auditor": {
     description: "Security vulnerability scanner",
-    prompt: `
-You are a security auditor. Scan for vulnerabilities.
+    prompt: `You are a security auditor. Scan for vulnerabilities.
 
 CHECK FOR:
 1. Hardcoded secrets (API keys, passwords, tokens)
@@ -200,10 +448,8 @@ CHECK FOR:
 4. Command injection (user input in shell commands)
 5. Insecure dependencies (npm audit, composer audit)
 6. Weak cryptography (MD5, SHA1 for passwords)
-7. Missing input validation
-8. Exposed sensitive endpoints
 
-OUTPUT JSON:
+OUTPUT JSON ONLY:
 {
   "critical": number,
   "high": number,
@@ -221,20 +467,13 @@ OUTPUT JSON:
   "score": number
 }
 
-SCORING:
-- Base: 25 points
-- Critical: -25 (blocker)
-- High: -10 (blocker)
-- Medium: -1 each (max -5)
-- Low: no deduction (create issues)
-`,
+SCORING: Base 25, Critical=-25, High=-10, Medium=-1 each`,
     tools: ["Read", "Grep", "Glob", "Bash"],
   },
 
   "build-fixer": {
     description: "Build and fix compilation errors",
-    prompt: `
-You are a build specialist. Build the project and fix errors.
+    prompt: `You are a build specialist. Build the project and fix errors.
 
 STEPS:
 1. Detect build system (npm, composer, cargo, go, make)
@@ -242,7 +481,7 @@ STEPS:
 3. If fails, analyze errors and fix
 4. Retry up to 5 times
 
-OUTPUT JSON:
+OUTPUT JSON ONLY:
 {
   "success": boolean,
   "errors": [{ "message": string, "file": string, "line": number }],
@@ -251,19 +490,13 @@ OUTPUT JSON:
   "score": number
 }
 
-SCORING:
-- Build succeeds: 15 points
-- Build fails: 0 points (blocker)
-`,
+SCORING: Build succeeds = 15, fails = 0`,
     tools: ["Bash", "Read", "Edit", "Glob"],
   },
 
-  // === TIER 2: Quality Gates ===
-
   "code-reviewer": {
     description: "Code quality and style review",
-    prompt: `
-You are a code review specialist. Review for quality issues.
+    prompt: `You are a code review specialist. Review for quality issues.
 
 CHECK FOR:
 1. Code smells (long functions, deep nesting, magic numbers)
@@ -271,14 +504,8 @@ CHECK FOR:
 3. Complexity (cyclomatic complexity > 10)
 4. Naming (unclear variable/function names)
 5. Dead code (unused variables, unreachable code)
-6. Missing error handling
 
-AUTO-FIX:
-- Unused imports
-- Formatting issues
-- Simple refactors
-
-OUTPUT JSON:
+OUTPUT JSON ONLY:
 {
   "smells": number,
   "duplication_percent": number,
@@ -289,32 +516,24 @@ OUTPUT JSON:
   "score": number
 }
 
-SCORING:
-- Base: 20 points
-- Each smell: -2 (max -10)
-- Duplication > 5%: -5
-- Complexity issues: -1 each
-`,
+SCORING: Base 20, -2 per smell, -5 if duplication > 5%`,
     tools: ["Read", "Edit", "Glob", "Grep", "Bash"],
   },
 
   "mentor-advisor": {
     description: "Architecture and design review",
-    prompt: `
-You are a senior architect mentor. Review architecture decisions.
+    prompt: `You are a senior architect mentor. Review architecture decisions.
 
 EVALUATE:
 1. SOLID principles adherence
 2. Design patterns usage
 3. Separation of concerns
-4. Dependency management
-5. Scalability considerations
-6. Technical debt
-7. Performance anti-patterns
+4. Scalability considerations
+5. Technical debt
 
 DO NOT auto-fix. Only advise.
 
-OUTPUT JSON:
+OUTPUT JSON ONLY:
 {
   "concerns": [{
     "category": "architecture|patterns|scalability|performance|debt",
@@ -329,35 +548,24 @@ OUTPUT JSON:
   "score": number
 }
 
-SCORING:
-- Base: 10 points
-- High concern: -3
-- Medium concern: -1
-- Many strengths: +1 bonus
-`,
+SCORING: Base 10, High concern=-3, Medium=-1`,
     tools: ["Read", "Glob", "Grep"],
   },
 
   "ux-reviewer": {
     description: "UX and accessibility review",
-    prompt: `
-You are a UX specialist. Review user experience and accessibility.
+    prompt: `You are a UX specialist. Review accessibility and UX.
 
 CHECK FOR:
-1. Accessibility (WCAG 2.1 AA compliance)
-   - Alt text on images
-   - ARIA labels
-   - Keyboard navigation
-   - Color contrast
+1. Accessibility (WCAG 2.1 AA - alt text, ARIA, keyboard nav)
 2. Responsive design
 3. Loading states
-4. Error messages (user-friendly)
+4. Error messages
 5. Form validation UX
-6. Consistent styling
 
-APPLIES TO: Files with frontend code (tsx, jsx, vue, html, css)
+APPLIES TO: tsx, jsx, vue, html, css files
 
-OUTPUT JSON:
+OUTPUT JSON ONLY:
 {
   "a11y_issues": [{ "rule": string, "element": string, "file": string, "fix": string }],
   "ux_issues": [{ "type": string, "description": string, "file": string }],
@@ -365,20 +573,13 @@ OUTPUT JSON:
   "score": number
 }
 
-SCORING:
-- Base: 5 points
-- A11y violation: -1 each
-- Major UX issue: -1
-`,
+SCORING: Base 5, -1 per a11y violation, -1 per major UX issue`,
     tools: ["Read", "Glob", "Grep"],
   },
 
-  // === TIER 3: Advisory Gates (0 weight, creates issues) ===
-
   "architect-advisor": {
     description: "System architecture and security hardening advisor",
-    prompt: `
-You are a system architect specializing in security and performance.
+    prompt: `You are a system architect specializing in security and performance.
 
 ANALYZE:
 1. Authentication/authorization design
@@ -387,10 +588,8 @@ ANALYZE:
 4. Infrastructure security posture
 5. Caching strategy
 6. Database query optimization
-7. Horizontal scaling readiness
-8. Disaster recovery considerations
 
-OUTPUT JSON:
+OUTPUT JSON ONLY:
 {
   "security_posture": "strong|adequate|weak",
   "performance_rating": "optimized|acceptable|needs_work",
@@ -404,17 +603,13 @@ OUTPUT JSON:
   }],
   "quick_wins": [string],
   "roadmap": [{ "phase": string, "items": [string] }]
-}
-
-This gate does not affect score but creates issues for findings.
-`,
+}`,
     tools: ["Read", "Glob", "Grep"],
   },
 
   "devops-advisor": {
     description: "CI/CD and infrastructure review",
-    prompt: `
-You are a DevOps engineer. Review deployment and infrastructure.
+    prompt: `You are a DevOps engineer. Review deployment and infrastructure.
 
 ANALYZE:
 1. CI/CD pipeline configuration
@@ -422,18 +617,10 @@ ANALYZE:
 3. Environment configuration
 4. Secrets management
 5. Monitoring and logging
-6. Deployment strategy
-7. Infrastructure as Code
-8. Backup and recovery
 
-CHECK FILES:
-- .github/workflows/*.yml
-- Dockerfile, docker-compose.yml
-- terraform/, ansible/
-- k8s/, helm/
-- .env.example
+CHECK FILES: .github/workflows/, Dockerfile, docker-compose.yml, terraform/, k8s/
 
-OUTPUT JSON:
+OUTPUT JSON ONLY:
 {
   "ci_cd_health": "healthy|needs_attention|broken",
   "container_health": "optimized|acceptable|needs_work|missing",
@@ -446,178 +633,177 @@ OUTPUT JSON:
   }],
   "missing_essentials": [string],
   "recommendations": [string]
-}
-
-This gate does not affect score but creates issues for findings.
-`,
+}`,
     tools: ["Read", "Glob", "Grep"],
   },
 };
 
 // ============================================
-// HOOKS: Safety + Audit + Git Rules
+// HOOKS (Using Context, Not Globals)
 // ============================================
-let apiCallCount = 0;
-const metrics: RunMetrics = {
-  startTime: new Date(),
-  iterations: 0,
-  totalApiCalls: 0,
-  issuesCreated: 0,
-  autoFixesApplied: 0,
-  linesChanged: 0,
-  filesModified: [],
-};
+function createAuditHook(ctx: RunContext): HookCallback {
+  return async (input) => {
+    const toolInput = (input as any).tool_input || {};
+    const filePath = toolInput.file_path || toolInput.path;
 
-const auditLog: HookCallback = async (input, toolUseId, context) => {
-  const timestamp = new Date().toISOString();
-  const toolInput = (input as any).tool_input || {};
+    // Validate file path if present
+    if (filePath) {
+      const sanitized = sanitizeFilePath(filePath, process.cwd());
+      if (!sanitized) {
+        ctx.log("warn", `Blocked path traversal attempt: ${filePath}`);
+        return { decision: "block", message: "Path traversal blocked" };
+      }
+      ctx.filesModified.add(sanitized);
+    }
 
-  const logEntry = {
-    timestamp,
-    tool: (input as any).tool,
-    file: toolInput.file_path || toolInput.path,
-    command: toolInput.command?.substring(0, 100),
+    // Rotate audit log if too large
+    if (existsSync(AUDIT_LOG)) {
+      const stats = require("fs").statSync(AUDIT_LOG);
+      if (stats.size > MAX_AUDIT_LOG_SIZE) {
+        const rotatedPath = `${AUDIT_LOG}.${Date.now()}`;
+        require("fs").renameSync(AUDIT_LOG, rotatedPath);
+      }
+    }
+
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      runId: ctx.runId,
+      tool: (input as any).tool,
+      file: filePath,
+      command: toolInput.command?.substring(0, 100),
+    };
+
+    appendFileSync(AUDIT_LOG, JSON.stringify(logEntry) + "\n");
+    return {};
   };
+}
 
-  appendFileSync(AUDIT_LOG, JSON.stringify(logEntry) + "\n");
+function createGitBlockHook(ctx: RunContext): HookCallback {
+  return async (input) => {
+    const command = ((input as any).tool_input?.command || "").toLowerCase();
 
-  // Track file modifications
-  if (toolInput.file_path && !metrics.filesModified.includes(toolInput.file_path)) {
-    metrics.filesModified.push(toolInput.file_path);
-  }
+    // Block direct push to protected branches (case-insensitive)
+    for (const branch of ctx.config.git_rules.protected_branches) {
+      const pattern = new RegExp(`git\\s+push.*${escapeRegex(branch)}`, "i");
+      if (pattern.test(command)) {
+        ctx.log("warn", `Blocked push to ${branch}`);
+        return {
+          decision: "block",
+          message: `[BLOCKED] Direct push to ${branch}. Use PR workflow.`,
+        };
+      }
+    }
 
-  return {};
-};
+    // Block force push
+    if (/git\s+push.*--force/i.test(command)) {
+      return { decision: "block", message: "[BLOCKED] Force push is forbidden." };
+    }
 
-const blockForbiddenGit: HookCallback = async (input) => {
-  const command = (input as any).tool_input?.command || "";
-  const config = loadConfig();
+    // Block hard reset
+    if (/git\s+reset\s+--hard/i.test(command)) {
+      return { decision: "block", message: "[BLOCKED] Hard reset requires manual confirmation." };
+    }
 
-  // Block direct push to protected branches
-  for (const branch of config.git_rules.protected_branches) {
-    if (new RegExp(`git push.*${branch}`).test(command)) {
+    return {};
+  };
+}
+
+function createAttributionStripHook(ctx: RunContext): HookCallback {
+  return async (input) => {
+    const command = (input as any).tool_input?.command || "";
+
+    if (!command.toLowerCase().includes("git commit")) {
+      return {};
+    }
+
+    let sanitizedCommand = command;
+    for (const pattern of ctx.config.git_rules.commit_rules.forbidden_patterns) {
+      sanitizedCommand = sanitizedCommand.replace(new RegExp(pattern, "gi"), "");
+    }
+
+    if (sanitizedCommand !== command) {
+      ctx.log("info", "Stripped AI attribution from commit");
       return {
-        decision: "block",
-        message: `[BLOCKED] Direct push to ${branch}. Use PR workflow.`,
+        decision: "modify",
+        tool_input: { command: sanitizedCommand },
       };
     }
-  }
 
-  // Block force push
-  if (/git push.*--force/.test(command)) {
-    return {
-      decision: "block",
-      message: "[BLOCKED] Force push is forbidden.",
-    };
-  }
-
-  // Block destructive operations
-  if (/git reset --hard/.test(command)) {
-    return {
-      decision: "block",
-      message: "[BLOCKED] Hard reset requires manual confirmation.",
-    };
-  }
-
-  return {};
-};
-
-const stripClaudeAttribution: HookCallback = async (input) => {
-  const command = (input as any).tool_input?.command || "";
-  const config = loadConfig();
-
-  if (!command.includes("git commit")) {
     return {};
-  }
+  };
+}
 
-  let sanitizedCommand = command;
-  for (const pattern of config.git_rules.commit_rules.forbidden_patterns) {
-    sanitizedCommand = sanitizedCommand.replace(new RegExp(pattern, "gi"), "");
-  }
+function createRateLimitHook(ctx: RunContext): HookCallback {
+  return async () => {
+    if (!ctx.checkRateLimit()) {
+      return {
+        decision: "block",
+        message: "[RATE LIMIT] API call limit exceeded. Pausing for cooldown.",
+      };
+    }
 
-  if (sanitizedCommand !== command) {
-    console.log("   [HOOK] Stripped AI attribution from commit");
-    return {
-      decision: "modify",
-      tool_input: { command: sanitizedCommand },
-    };
-  }
+    if (ctx.isCircuitOpen()) {
+      return {
+        decision: "block",
+        message: "[CIRCUIT OPEN] Too many failures. Waiting for cooldown.",
+      };
+    }
 
-  return {};
-};
-
-const rateLimiter: HookCallback = async () => {
-  apiCallCount++;
-  metrics.totalApiCalls++;
-
-  const config = loadConfig();
-  if (apiCallCount > config.safety.max_api_calls_per_hour) {
-    return {
-      decision: "block",
-      message: "[RATE LIMIT] API call limit exceeded. Pausing for cooldown.",
-    };
-  }
-
-  return {};
-};
+    return {};
+  };
+}
 
 // ============================================
-// PARALLEL GATE EXECUTION
+// GATE EXECUTION
 // ============================================
 async function runGatesInParallel(
   gates: string[],
-  sessionId: string,
-  config: AutonomousConfig
+  ctx: RunContext
 ): Promise<GateResult[]> {
   const results: GateResult[] = [];
 
   // Group gates by parallel_group
   const groups = new Map<number, string[]>();
   for (const gate of gates) {
-    const group = config.gates[gate]?.parallel_group || 0;
+    const group = ctx.config.gates[gate]?.parallel_group || 0;
     if (!groups.has(group)) {
       groups.set(group, []);
     }
     groups.get(group)!.push(gate);
   }
 
-  // Execute groups sequentially, gates within group in parallel
   const sortedGroups = Array.from(groups.keys()).sort();
 
   for (const groupNum of sortedGroups) {
     const groupGates = groups.get(groupNum)!;
-    console.log(`\n   [Group ${groupNum}] Running: ${groupGates.join(", ")}`);
+    ctx.log("info", `[Group ${groupNum}] Running: ${groupGates.join(", ")}`);
 
-    const groupPromises = groupGates.map((gate) =>
-      runSingleGate(gate, sessionId, config)
-    );
-
+    const groupPromises = groupGates.map((gate) => runSingleGate(gate, ctx));
     const groupResults = await Promise.all(groupPromises);
     results.push(...groupResults);
 
-    // Check for blockers before continuing to next group
+    // Check for blockers before next group
     const blockers = groupResults.filter(
-      (r) => config.gates[r.gate]?.required && !r.passed
+      (r) => ctx.config.gates[r.gate]?.required && !r.passed
     );
 
     if (blockers.length > 0) {
-      console.log(`   [BLOCKED] Required gate(s) failed: ${blockers.map((b) => b.gate).join(", ")}`);
+      ctx.log("warn", `Required gate(s) failed: ${blockers.map((b) => b.gate).join(", ")}`);
+      ctx.recordFailure();
       break;
+    } else {
+      ctx.recordSuccess();
     }
   }
 
   return results;
 }
 
-async function runSingleGate(
-  gateName: string,
-  sessionId: string,
-  config: AutonomousConfig
-): Promise<GateResult> {
+async function runSingleGate(gateName: string, ctx: RunContext): Promise<GateResult> {
   const startTime = Date.now();
-  const gateConfig = config.gates[gateName];
+  const gateConfig = ctx.config.gates[gateName];
 
-  let result: GateResult = {
+  const result: GateResult = {
     gate: gateName,
     score: 0,
     maxScore: gateConfig.weight,
@@ -633,7 +819,7 @@ async function runSingleGate(
     for await (const message of query({
       prompt: `Use the ${agentName} agent to evaluate this codebase. Return only valid JSON.`,
       options: {
-        resume: sessionId,
+        resume: ctx.sessionId,
         allowedTools: ["Task", "Read", "Glob", "Grep", "Bash", "Edit"],
         agents: qualityGateAgents,
         permissionMode: gateConfig.auto_fix ? "acceptEdits" : "bypassPermissions",
@@ -644,18 +830,19 @@ async function runSingleGate(
           const parsed = JSON.parse(extractJson(message.result));
           result.score = Math.min(parsed.score || 0, gateConfig.weight);
           result.passed = gateConfig.required
-            ? result.score >= gateConfig.weight * 0.8
+            ? result.score >= gateConfig.weight * GATE_PASS_THRESHOLD
             : true;
-          result.issues = parsed.issues || parsed.findings || [];
+          result.issues = (parsed.issues || parsed.findings || []).slice(0, 50); // Limit
           result.autoFixed = parsed.fixed_count || parsed.fixed?.length || 0;
-          metrics.autoFixesApplied += result.autoFixed;
+          ctx.autoFixesApplied += result.autoFixed;
         } catch (e) {
-          console.error(`   [${gateName}] Failed to parse result`);
+          ctx.log("error", `Failed to parse ${gateName} result`, { error: String(e) });
         }
       }
     }
   } catch (e) {
-    console.error(`   [${gateName}] Gate execution failed:`, e);
+    ctx.log("error", `Gate ${gateName} execution failed`, { error: String(e) });
+    ctx.recordFailure();
   }
 
   result.duration = Date.now() - startTime;
@@ -677,122 +864,105 @@ function getAgentNameForGate(gate: string): string {
 }
 
 function extractJson(text: string): string {
-  // Extract JSON from markdown code blocks or raw text
   const jsonMatch = text.match(/```json?\s*([\s\S]*?)```/);
-  if (jsonMatch) {
-    return jsonMatch[1].trim();
-  }
+  if (jsonMatch) return jsonMatch[1].trim();
 
-  // Try to find raw JSON
   const braceMatch = text.match(/\{[\s\S]*\}/);
-  if (braceMatch) {
-    return braceMatch[0];
-  }
+  if (braceMatch) return braceMatch[0];
 
   return text;
 }
 
 // ============================================
-// ISSUE INTEGRATION
+// ISSUE INTEGRATION (Sanitized)
 // ============================================
 async function createSubIssue(
   parentIssue: string,
   gateIssue: GateIssue,
   gateName: string,
-  sessionId: string
+  ctx: RunContext
 ): Promise<string | null> {
-  if (metrics.issuesCreated >= loadConfig().safety.max_issues_created_per_run) {
-    console.log("   [LIMIT] Max issues created, skipping");
+  if (!ctx.canCreateIssue()) {
+    ctx.log("warn", "Issue creation limit reached");
     return null;
   }
 
-  const labels = [
-    "auto-generated",
-    gateName,
-    gateIssue.severity,
-    gateIssue.autoFixable ? "auto-fixable" : "manual-fix",
-  ].join(",");
+  // Sanitize all user-controllable content
+  const title = sanitizeForShell(`[${gateName.toUpperCase()}] ${gateIssue.title}`).slice(0, 100);
+  const labels = ["auto-generated", gateName, gateIssue.severity].join(",");
 
-  const title = `[${gateName.toUpperCase()}] ${gateIssue.title}`;
-  const body = `
-## ${gateIssue.severity.toUpperCase()}: ${gateIssue.title}
+  const body = `## ${gateIssue.severity.toUpperCase()}: ${sanitizeForShell(gateIssue.title)}
 
 **Found by:** \`/${gateName}\` gate
-**File:** ${gateIssue.file || "N/A"}${gateIssue.line ? `:${gateIssue.line}` : ""}
+**File:** ${sanitizeForShell(gateIssue.file || "N/A")}
 **Auto-fixable:** ${gateIssue.autoFixable ? "Yes" : "No"}
 
 ### Description
-${gateIssue.description}
+${sanitizeForShell(gateIssue.description).slice(0, 500)}
 
 ### Recommendation
-${gateIssue.recommendation || "Review and address manually."}
+${sanitizeForShell(gateIssue.recommendation || "Review and address manually.").slice(0, 500)}
 
 ---
-*Auto-generated by CodeAssist autonomous run*
-*Parent issue: #${parentIssue}*
-`.trim();
+*Auto-generated by CodeAssist Ralph runner*
+*Parent issue: #${parentIssue}*`;
 
   try {
     for await (const message of query({
-      prompt: `Create a GitHub issue with title "${title}" and labels "${labels}". Body:\n\n${body}`,
+      prompt: `Create a GitHub issue. Title: "${title}". Labels: "${labels}". Use gh issue create command with proper escaping.`,
       options: {
-        resume: sessionId,
+        resume: ctx.sessionId,
         allowedTools: ["Bash"],
       },
     })) {
       if ("result" in message) {
         const issueMatch = message.result.match(/#(\d+)/);
         if (issueMatch) {
-          metrics.issuesCreated++;
+          ctx.issuesCreated.push(issueMatch[1]);
           return issueMatch[1];
         }
       }
     }
   } catch (e) {
-    console.error("   Failed to create sub-issue:", e);
+    ctx.log("error", "Failed to create sub-issue", { error: String(e) });
   }
 
   return null;
 }
 
-async function postToIssue(
-  issueId: string,
-  body: string,
-  sessionId: string
-): Promise<void> {
+async function postToIssue(issueId: string, body: string, ctx: RunContext): Promise<void> {
+  // Sanitize body for shell safety
+  const sanitizedBody = sanitizeForShell(body).slice(0, 5000);
+
   try {
     for await (const _ of query({
-      prompt: `Post this comment to GitHub issue #${issueId}:\n\n${body}`,
+      prompt: `Post a comment to GitHub issue #${issueId}. Use gh issue comment with proper escaping for the body content.`,
       options: {
-        resume: sessionId,
+        resume: ctx.sessionId,
         allowedTools: ["Bash"],
       },
     })) {
       // Comment posted
     }
   } catch (e) {
-    console.error("   Failed to post to issue:", e);
+    ctx.log("error", "Failed to post to issue", { error: String(e) });
   }
 }
 
 // ============================================
 // PROGRESS REPORTING
 // ============================================
-function generateProgressReport(
-  issueId: string,
-  result: IterationResult
-): string {
+function generateProgressReport(result: IterationResult, ctx: RunContext): string {
   const gateRows = result.gates
     .map((g) => {
-      const status = g.passed ? "✅" : g.maxScore === 0 ? "ℹ️" : "❌";
+      const status = g.passed ? "PASS" : g.maxScore === 0 ? "INFO" : "FAIL";
       return `| /${g.gate} | ${g.score}/${g.maxScore} | ${status} | ${g.issues.length} issues |`;
     })
     .join("\n");
 
-  return `
-## 🔄 Autonomous Run - Iteration ${result.iteration}
+  return `## Ralph Run - Iteration ${result.iteration}
 
-**Status:** ${result.passed ? "✅ Target Reached" : "🔄 In Progress"}
+**Status:** ${result.passed ? "TARGET REACHED" : "IN PROGRESS"}
 **Score:** ${result.totalScore}/${result.targetScore}
 **Duration:** ${(result.duration / 1000).toFixed(1)}s
 
@@ -803,362 +973,309 @@ function generateProgressReport(
 ${gateRows}
 
 ### Metrics
-- API calls this iteration: ${result.apiCalls}
-- Auto-fixes applied: ${metrics.autoFixesApplied}
-- Files modified: ${metrics.filesModified.length}
+- API calls: ${result.apiCalls}
+- Auto-fixes: ${ctx.autoFixesApplied}
+- Files modified: ${ctx.filesModified.size}
 
 ---
-*Iteration ${result.iteration} | Total duration: ${((Date.now() - metrics.startTime.getTime()) / 1000 / 60).toFixed(1)} min*
-`.trim();
-}
-
-function generateFinalReport(
-  issueId: string,
-  result: IterationResult,
-  createdIssues: string[]
-): string {
-  const gateRows = result.gates
-    .map((g) => {
-      const status = g.passed ? "✅" : g.maxScore === 0 ? "ℹ️" : "❌";
-      return `| /${g.gate} | ${g.score}/${g.maxScore} | ${status} |`;
-    })
-    .join("\n");
-
-  const issuesList =
-    createdIssues.length > 0
-      ? createdIssues.map((id) => `- #${id}`).join("\n")
-      : "None";
-
-  return `
-## ✅ Autonomous Run Complete
-
-**Final Score:** ${result.totalScore}/${result.targetScore} ${result.passed ? "✅" : "⚠️"}
-**Iterations:** ${result.iteration}
-**Total Duration:** ${((Date.now() - metrics.startTime.getTime()) / 1000 / 60).toFixed(1)} minutes
-
-### Quality Gates
-
-| Gate | Score | Status |
-|------|-------|--------|
-${gateRows}
-
-### Auto-Fixes Applied
-${metrics.autoFixesApplied} issues fixed automatically
-
-### Issues Created
-${issuesList}
-
-### Metrics
-| Metric | Value |
-|--------|-------|
-| API calls | ${metrics.totalApiCalls} |
-| Files modified | ${metrics.filesModified.length} |
-| Iterations | ${metrics.iterations} |
-
----
-*Generated by CodeAssist /autonomous*
-`.trim();
+*Run ID: ${ctx.runId} | Iteration ${result.iteration}*`;
 }
 
 // ============================================
 // MAIN AUTONOMOUS LOOP
 // ============================================
-async function runAutonomousLoop(
-  issueId: string,
-  options: { preset?: string; supervised?: boolean }
-): Promise<void> {
+async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<void> {
   const config = loadConfig(options.preset);
-  let sessionId: string | undefined;
-  let iteration = 0;
-  let currentScore = 0;
-  const createdIssues: string[] = [];
+  const ctx = new RunContext(issueId, config, options);
 
-  console.log("\n╔═══════════════════════════════════════════════════════════╗");
-  console.log("║          RALPH WIGGUM - Autonomous Development            ║");
-  console.log("╠═══════════════════════════════════════════════════════════╣");
-  console.log(`║  Issue: #${issueId.padEnd(50)}║`);
-  console.log(`║  Target: ${config.target_score}/100${" ".repeat(44)}║`);
-  console.log(`║  Max iterations: ${config.max_iterations}${" ".repeat(39)}║`);
-  console.log(`║  Preset: ${(options.preset || "default").padEnd(48)}║`);
-  console.log("╚═══════════════════════════════════════════════════════════╝\n");
+  console.log("\n" + "=".repeat(60));
+  console.log("          RALPH WIGGUM - Autonomous Development");
+  console.log("=".repeat(60));
+  console.log(`  Issue: #${issueId}`);
+  console.log(`  Target: ${config.target_score}/100`);
+  console.log(`  Max iterations: ${config.max_iterations}`);
+  console.log(`  Preset: ${options.preset || "default"}`);
+  console.log(`  Run ID: ${ctx.runId}`);
+  if (options.dryRun) console.log("  MODE: DRY RUN (no changes will be made)");
+  console.log("=".repeat(60) + "\n");
 
-  // === PHASE 1: Setup and Implementation ===
-  console.log("📋 Phase 1: Fetching issue and implementing...");
+  if (options.dryRun) {
+    console.log("[DRY RUN] Configuration validated. Would execute:");
+    console.log(`  - Fetch issue #${issueId}`);
+    console.log(`  - Create branch: feature/${issueId}-implement`);
+    console.log(`  - Run gates: ${Object.keys(config.gates).join(", ")}`);
+    console.log(`  - Target score: ${config.target_score}`);
+    return;
+  }
+
+  // === PHASE 1: Implementation ===
+  ctx.log("info", "Phase 1: Fetching issue and implementing...");
+
+  const hooks = {
+    PreToolUse: [
+      { matcher: "Bash", hooks: [createRateLimitHook(ctx), createGitBlockHook(ctx), createAttributionStripHook(ctx)] },
+      { matcher: "Edit|Write", hooks: [createRateLimitHook(ctx)] },
+    ],
+    PostToolUse: [{ matcher: "Edit|Write|Bash", hooks: [createAuditHook(ctx)] }],
+  };
 
   for await (const message of query({
-    prompt: `
-You are starting an autonomous development session for issue #${issueId}.
+    prompt: `You are starting an autonomous development session for issue #${issueId}.
 
 STEPS:
 1. Fetch issue #${issueId} from GitHub (use: gh issue view ${issueId})
 2. Create feature branch: feature/${issueId}-implement
-3. Read the issue description and acceptance criteria carefully
-4. Implement the feature/fix based on requirements
-5. Commit changes with format: "feat: description" or "fix: description"
+3. Read the issue description and acceptance criteria
+4. Implement the feature/fix
+5. Commit with format: "feat: description" or "fix: description"
 
 RULES:
 - NEVER push directly to main/master/staging
 - NEVER include "Co-Authored-By: Claude" in commits
-- Keep commits atomic and focused
-- Follow existing code patterns
-
-Begin implementation now.
-`,
+- Keep commits atomic and focused`,
     options: {
       allowedTools: ["Read", "Edit", "Write", "Bash", "Glob", "Grep", "Task"],
       agents: qualityGateAgents,
       permissionMode: "acceptEdits",
-      mcpServers: {
-        github: { command: "npx", args: ["@anthropic-ai/mcp-github"] },
-      },
-      hooks: {
-        PreToolUse: [
-          { matcher: "Bash", hooks: [rateLimiter, blockForbiddenGit, stripClaudeAttribution] },
-          { matcher: "Edit|Write", hooks: [rateLimiter] },
-        ],
-        PostToolUse: [{ matcher: "Edit|Write|Bash", hooks: [auditLog] }],
-      },
+      hooks,
     },
   })) {
     if (message.type === "system" && message.subtype === "init") {
-      sessionId = message.session_id;
-      console.log(`   Session: ${sessionId}`);
+      ctx.sessionId = message.session_id;
+      ctx.log("info", `Session initialized: ${ctx.sessionId}`);
     }
     if ("result" in message) {
-      console.log("   Implementation phase complete");
+      ctx.log("info", "Implementation phase complete");
     }
   }
 
-  if (!sessionId) {
-    console.error("Failed to initialize session");
+  if (!ctx.sessionId) {
+    ctx.log("error", "Failed to initialize session");
     return;
   }
 
+  ctx.saveCheckpoint();
+
   // === PHASE 2: Quality Gate Loop ===
-  console.log("\n📊 Phase 2: Running quality gates...");
+  ctx.log("info", "\nPhase 2: Running quality gates...");
 
-  const enabledGates = Object.keys(config.gates).filter(
-    (gate) => config.gates[gate].weight > 0 || gate === "architect" || gate === "devops"
-  );
+  const enabledGates = Object.keys(config.gates);
+  let currentScore = 0;
+  let lastGateResults: GateResult[] = [];
 
-  while (iteration < config.max_iterations && currentScore < config.target_score) {
-    iteration++;
-    metrics.iterations = iteration;
+  while (ctx.iteration < config.max_iterations && currentScore < config.target_score) {
+    ctx.iteration++;
     const iterationStart = Date.now();
-    const iterationApiStart = apiCallCount;
+    const iterationApiStart = ctx.apiCallCount;
 
     console.log(`\n${"─".repeat(60)}`);
-    console.log(`Iteration ${iteration}/${config.max_iterations}`);
+    console.log(`Iteration ${ctx.iteration}/${config.max_iterations}`);
     console.log(`${"─".repeat(60)}`);
 
-    // Run gates in parallel groups
-    const gateResults = await runGatesInParallel(enabledGates, sessionId, config);
+    // Run gates
+    const gateResults = await runGatesInParallel(enabledGates, ctx);
+    lastGateResults = gateResults;
 
     // Calculate score
     currentScore = gateResults
-      .filter((g) => config.gates[g.gate].weight > 0)
+      .filter((g) => ctx.config.gates[g.gate].weight > 0)
       .reduce((sum, g) => sum + g.score, 0);
 
-    // Add bonus points
+    // Bonus points
     const testGate = gateResults.find((g) => g.gate === "test");
     if (testGate && testGate.score >= 25) {
       currentScore += 2;
-      console.log("   [BONUS] +2 for excellent test coverage");
+      ctx.log("info", "[BONUS] +2 for excellent test coverage");
     }
 
     const reviewGate = gateResults.find((g) => g.gate === "review");
     if (reviewGate && reviewGate.issues.length === 0) {
       currentScore += 2;
-      console.log("   [BONUS] +2 for zero code smells");
+      ctx.log("info", "[BONUS] +2 for zero code smells");
     }
 
-    currentScore = Math.min(currentScore, 100);
+    currentScore = Math.min(currentScore, MAX_SCORE);
+    console.log(`\n   Score: ${currentScore}/${config.target_score}`);
 
-    console.log(`\n   📈 Score: ${currentScore}/${config.target_score}`);
-
-    // Create result object
     const iterationResult: IterationResult = {
-      iteration,
+      iteration: ctx.iteration,
       totalScore: currentScore,
       targetScore: config.target_score,
       gates: gateResults,
       passed: currentScore >= config.target_score,
       duration: Date.now() - iterationStart,
-      apiCalls: apiCallCount - iterationApiStart,
+      apiCalls: ctx.apiCallCount - iterationApiStart,
     };
 
-    // Post progress to issue
-    await postToIssue(
-      issueId,
-      generateProgressReport(issueId, iterationResult),
-      sessionId
-    );
+    // Post progress
+    await postToIssue(issueId, generateProgressReport(iterationResult, ctx), ctx);
 
-    // Create issues for findings from advisory gates
+    // Create issues for advisory gate findings
     for (const gate of gateResults) {
-      if (gate.gate === "architect" || gate.gate === "devops" || gate.gate === "mentor") {
-        for (const issue of gate.issues.slice(0, 3)) {
-          // Limit issues per gate
+      if (["architect", "devops", "mentor"].includes(gate.gate)) {
+        for (const issue of gate.issues.slice(0, MAX_ISSUES_PER_GATE)) {
           if (issue.severity === "critical" || issue.severity === "high") {
-            const newIssueId = await createSubIssue(issueId, issue, gate.gate, sessionId);
-            if (newIssueId) {
-              createdIssues.push(newIssueId);
-              console.log(`   [ISSUE] Created #${newIssueId} for ${gate.gate} finding`);
-            }
+            const newId = await createSubIssue(issueId, issue, gate.gate, ctx);
+            if (newId) ctx.log("info", `Created issue #${newId} for ${gate.gate} finding`);
           }
         }
       }
     }
 
-    // Check if we're done
+    ctx.saveCheckpoint();
+
+    // Check completion
     if (currentScore >= config.target_score) {
-      console.log("\n   ✅ Target score reached!");
+      ctx.log("info", "\nTarget score reached!");
       break;
     }
 
-    // Check for blockers
+    // Check blockers
     const requiredFailed = gateResults.filter(
-      (g) => config.gates[g.gate]?.required && !g.passed
+      (g) => ctx.config.gates[g.gate]?.required && !g.passed
     );
 
-    if (requiredFailed.length > 0 && iteration >= 5) {
-      console.log(`\n   🚫 BLOCKED: Required gates failed after ${iteration} iterations`);
-      console.log(`      Failed: ${requiredFailed.map((g) => g.gate).join(", ")}`);
-
+    if (requiredFailed.length > 0 && ctx.iteration >= BLOCKER_ITERATION_THRESHOLD) {
+      ctx.log("warn", `BLOCKED: Required gates failed after ${ctx.iteration} iterations`);
       await postToIssue(
         issueId,
-        `## 🚫 Autonomous Run Blocked\n\nRequired gates failed: ${requiredFailed.map((g) => `/${g.gate}`).join(", ")}\n\nComment \`@resume\` to retry after addressing issues.`,
-        sessionId
+        `## BLOCKED\n\nRequired gates failed: ${requiredFailed.map((g) => `/${g.gate}`).join(", ")}\n\nComment \`@resume\` to retry.`,
+        ctx
       );
-      return;
+      break;
     }
 
-    // Supervised mode: pause for user
+    // Supervised pause
     if (options.supervised) {
-      console.log("\n   [SUPERVISED] Pausing for review...");
-      console.log("   Press Ctrl+C to stop, or wait 30s to continue");
-      await new Promise((resolve) => setTimeout(resolve, 30000));
+      ctx.log("info", "[SUPERVISED] Pausing for review (30s)...");
+      await new Promise((r) => setTimeout(r, SUPERVISED_PAUSE_MS));
     } else {
-      // Iteration delay
-      await new Promise((resolve) => setTimeout(resolve, config.iteration_delay * 1000));
+      await new Promise((r) => setTimeout(r, config.iteration_delay * 1000));
     }
   }
 
   // === PHASE 3: Create PR ===
-  if (currentScore >= config.target_score || (currentScore >= 85 && iteration >= config.max_iterations)) {
-    console.log("\n🚀 Phase 3: Creating pull request...");
-
-    const prLabel = currentScore >= config.target_score ? "" : "--label needs-review";
+  if (currentScore >= config.target_score || (currentScore >= PR_FALLBACK_SCORE && ctx.iteration >= config.max_iterations)) {
+    ctx.log("info", "\nPhase 3: Creating pull request...");
 
     for await (const message of query({
-      prompt: `
-Create a pull request from the current branch to staging.
-
-REQUIREMENTS:
-1. Title format: "feat: implement #${issueId} - [brief description]"
-2. Include quality gate scores in the body
-3. Link to issue #${issueId}
-4. Add appropriate labels ${prLabel}
-
-Use: gh pr create --fill --base staging
-
-After creating, post the PR link to issue #${issueId}.
-`,
+      prompt: `Create a pull request from the current branch to staging.
+Title: "feat: implement #${issueId}"
+Include quality gate scores in the body.
+Use: gh pr create --fill --base staging`,
       options: {
-        resume: sessionId,
+        resume: ctx.sessionId,
         allowedTools: ["Bash", "Read"],
       },
     })) {
       if ("result" in message) {
-        console.log("   PR created successfully");
+        ctx.log("info", "PR created successfully");
       }
     }
-
-    // Post final summary
-    const finalResult: IterationResult = {
-      iteration,
-      totalScore: currentScore,
-      targetScore: config.target_score,
-      gates: await runGatesInParallel(enabledGates, sessionId, config),
-      passed: currentScore >= config.target_score,
-      duration: Date.now() - metrics.startTime.getTime(),
-      apiCalls: metrics.totalApiCalls,
-    };
-
-    await postToIssue(
-      issueId,
-      generateFinalReport(issueId, finalResult, createdIssues),
-      sessionId
-    );
   }
 
-  // Save metrics
-  writeFileSync(METRICS_FILE, JSON.stringify(metrics, null, 2));
+  // Save final metrics
+  writeFileSync(METRICS_FILE, JSON.stringify(ctx.getMetrics(), null, 2));
 
-  console.log("\n╔═══════════════════════════════════════════════════════════╗");
-  console.log("║                    RUN COMPLETE                           ║");
-  console.log("╠═══════════════════════════════════════════════════════════╣");
-  console.log(`║  Final Score: ${currentScore}/${config.target_score}${" ".repeat(42)}║`);
-  console.log(`║  Iterations: ${iteration}${" ".repeat(44)}║`);
-  console.log(`║  Duration: ${((Date.now() - metrics.startTime.getTime()) / 1000 / 60).toFixed(1)} minutes${" ".repeat(39)}║`);
-  console.log(`║  Issues Created: ${createdIssues.length}${" ".repeat(40)}║`);
-  console.log("╚═══════════════════════════════════════════════════════════╝\n");
+  console.log("\n" + "=".repeat(60));
+  console.log("                    RUN COMPLETE");
+  console.log("=".repeat(60));
+  console.log(`  Final Score: ${currentScore}/${config.target_score}`);
+  console.log(`  Iterations: ${ctx.iteration}`);
+  console.log(`  Duration: ${((Date.now() - ctx.startTime.getTime()) / 1000 / 60).toFixed(1)} minutes`);
+  console.log(`  Issues Created: ${ctx.issuesCreated.length}`);
+  console.log("=".repeat(60) + "\n");
 }
 
 // ============================================
-// CLI ENTRY POINT
+// GRACEFUL SHUTDOWN
 // ============================================
-function parseArgs(): { issueId?: string; epicId?: string; preset?: string; supervised: boolean } {
+let shutdownRequested = false;
+
+process.on("SIGINT", () => {
+  if (shutdownRequested) {
+    console.log("\nForce exit.");
+    process.exit(1);
+  }
+  shutdownRequested = true;
+  console.log("\nShutdown requested. Saving state...");
+  // State is saved via checkpoints
+  process.exit(0);
+});
+
+process.on("SIGTERM", () => {
+  console.log("\nSIGTERM received. Saving state...");
+  process.exit(0);
+});
+
+// ============================================
+// CLI
+// ============================================
+function parseArgs(): { issueId?: string; epicId?: string; preset?: string; supervised: boolean; dryRun: boolean } {
   const args = process.argv.slice(2);
   return {
     issueId: args.find((a) => a.startsWith("--issue="))?.split("=")[1],
     epicId: args.find((a) => a.startsWith("--epic="))?.split("=")[1],
     preset: args.find((a) => a.startsWith("--preset="))?.split("=")[1],
     supervised: args.includes("--supervised"),
+    dryRun: args.includes("--dry-run"),
   };
 }
 
 function printUsage(): void {
   console.log(`
-╔═══════════════════════════════════════════════════════════════╗
-║        RALPH WIGGUM - Autonomous Development Runner           ║
-╠═══════════════════════════════════════════════════════════════╣
-║                                                               ║
-║  USAGE:                                                       ║
-║    npx ts-node ralph-runner.ts --issue=123                    ║
-║    npx ts-node ralph-runner.ts --epic=200                     ║
-║    npx ts-node ralph-runner.ts --issue=123 --preset=prod      ║
-║    npx ts-node ralph-runner.ts --issue=123 --supervised       ║
-║                                                               ║
-║  OPTIONS:                                                     ║
-║    --issue=ID      Run on a single issue                      ║
-║    --epic=ID       Run on all issues in epic                  ║
-║    --preset=NAME   Use config preset (default, production)    ║
-║    --supervised    Pause after each iteration                 ║
-║                                                               ║
-║  QUALITY GATES:                                               ║
-║    /test       25pts  Tests + coverage                        ║
-║    /security   25pts  Vulnerability scan                      ║
-║    /build      15pts  Compilation check                       ║
-║    /review     20pts  Code quality                            ║
-║    /mentor     10pts  Architecture advice                     ║
-║    /ux          5pts  UX/accessibility                        ║
-║    /architect   0pts  System security (creates issues)        ║
-║    /devops      0pts  CI/CD review (creates issues)           ║
-║                                                               ║
-║  CONFIG: .claude/autonomous.yml                               ║
-║                                                               ║
-╚═══════════════════════════════════════════════════════════════╝
+RALPH WIGGUM - Autonomous Development Runner
+
+USAGE:
+  npx ts-node ralph-runner.ts --issue=123
+  npx ts-node ralph-runner.ts --issue=123 --preset=production
+  npx ts-node ralph-runner.ts --issue=123 --supervised
+  npx ts-node ralph-runner.ts --issue=123 --dry-run
+
+OPTIONS:
+  --issue=ID      Run on a single issue (required)
+  --epic=ID       Run on all issues in epic (not yet implemented)
+  --preset=NAME   Use config preset (default, production, prototype, frontend)
+  --supervised    Pause after each iteration for review
+  --dry-run       Validate config without executing
+
+ENVIRONMENT:
+  ANTHROPIC_API_KEY  Required: Your Anthropic API key
+  GITHUB_TOKEN       Optional: GitHub token (falls back to gh CLI)
+  DEBUG              Optional: Enable debug logging
+
+QUALITY GATES:
+  /test       25pts  Tests + coverage
+  /security   25pts  Vulnerability scan
+  /build      15pts  Compilation check
+  /review     20pts  Code quality
+  /mentor     10pts  Architecture advice
+  /ux          5pts  Accessibility
+  /architect   0pts  System security (creates issues)
+  /devops      0pts  CI/CD review (creates issues)
+
+CONFIG: .claude/autonomous.yml
 `);
 }
 
-// Main execution
-const { issueId, epicId, preset, supervised } = parseArgs();
+// Main
+const { issueId, epicId, preset, supervised, dryRun } = parseArgs();
 
 if (issueId) {
-  runAutonomousLoop(issueId, { preset, supervised }).catch(console.error);
+  validateEnvironment();
+  try {
+    const validatedIssueId = validateIssueId(issueId);
+    runAutonomousLoop(validatedIssueId, { preset, supervised, dryRun }).catch((e) => {
+      console.error("[FATAL]", e.message);
+      process.exit(1);
+    });
+  } catch (e) {
+    console.error("[ERROR]", (e as Error).message);
+    process.exit(1);
+  }
 } else if (epicId) {
   console.log("Epic mode not yet implemented. Use --issue for now.");
+  process.exit(1);
 } else {
   printUsage();
 }
