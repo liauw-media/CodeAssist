@@ -3,3 +3,14 @@
 .claude/session-context.md
 .claude/session-context.*.md.bak
 .aider*
+
+# Dependencies and build artifacts
+node_modules/
+dist/
+*.log
+
+# Scripts runtime
+scripts/node_modules/
+scripts/dist/
+scripts/logs/
+scripts/*.pid
