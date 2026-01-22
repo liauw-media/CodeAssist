@@ -5,7 +5,6 @@
  *
  * Usage:
  *   npx ts-node ralph-runner.ts --issue=123
- *   npx ts-node ralph-runner.ts --epic=200
  *   npx ts-node ralph-runner.ts --issue=123 --preset=production
  *   npx ts-node ralph-runner.ts --issue=123 --supervised
  *   npx ts-node ralph-runner.ts --issue=123 --dry-run
@@ -13,11 +12,19 @@
 
 import {
   query,
-  ClaudeAgentOptions,
   AgentDefinition,
   HookCallback,
 } from "@anthropic-ai/claude-agent-sdk";
-import { appendFileSync, readFileSync, existsSync, writeFileSync } from "fs";
+import {
+  appendFileSync,
+  readFileSync,
+  existsSync,
+  writeFileSync,
+  readdirSync,
+  statSync,
+  renameSync,
+  unlinkSync,
+} from "fs";
 import { join, resolve } from "path";
 import * as yaml from "yaml";
 
@@ -28,6 +35,7 @@ const CONFIG_PATH = join(process.cwd(), ".claude", "autonomous.yml");
 const AUDIT_LOG = join(process.cwd(), "autonomous-audit.log");
 const METRICS_FILE = join(process.cwd(), "autonomous-metrics.json");
 const STATE_FILE = join(process.cwd(), ".ralph-state.json");
+const GATES_DIR = join(__dirname, "gates");
 
 // Scoring thresholds
 const GATE_PASS_THRESHOLD = 0.8;
@@ -37,12 +45,18 @@ const SUPERVISED_PAUSE_MS = 30000;
 const MAX_ISSUES_PER_GATE = 3;
 const MAX_SCORE = 100;
 const MAX_AUDIT_LOG_SIZE = 10 * 1024 * 1024; // 10MB
+const DEFAULT_GATE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+
+// Circuit breaker settings
+const CIRCUIT_BREAKER_THRESHOLD = 5;
+const CIRCUIT_BREAKER_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
 
 // Valid presets
 const VALID_PRESETS = ["default", "production", "prototype", "frontend"] as const;
+type Preset = (typeof VALID_PRESETS)[number];
 
 // ============================================
-// TYPES
+// TYPE DEFINITIONS
 // ============================================
 interface GateConfig {
   weight: number;
@@ -52,6 +66,7 @@ interface GateConfig {
   description?: string;
   thresholds?: Record<string, number>;
   parallel_group?: number;
+  timeout_ms?: number;
 }
 
 interface AutonomousConfig {
@@ -60,17 +75,21 @@ interface AutonomousConfig {
   iteration_delay: number;
   gates: Record<string, GateConfig>;
   presets?: Record<string, Partial<AutonomousConfig>>;
-  safety: {
-    max_api_calls_per_hour: number;
-    max_issues_created_per_run: number;
-    forbidden: string[];
-  };
-  git_rules: {
-    protected_branches: string[];
-    commit_rules: {
-      forbidden_patterns: string[];
-      auto_strip: boolean;
-    };
+  safety: SafetyConfig;
+  git_rules: GitRulesConfig;
+}
+
+interface SafetyConfig {
+  max_api_calls_per_hour: number;
+  max_issues_created_per_run: number;
+  forbidden: string[];
+}
+
+interface GitRulesConfig {
+  protected_branches: string[];
+  commit_rules: {
+    forbidden_patterns: string[];
+    auto_strip: boolean;
   };
 }
 
@@ -82,6 +101,7 @@ interface GateResult {
   issues: GateIssue[];
   duration: number;
   autoFixed: number;
+  timedOut: boolean;
 }
 
 interface GateIssue {
@@ -115,14 +135,312 @@ interface RunState {
   lastCheckpoint: string;
 }
 
-interface CircuitBreakerState {
-  failures: number;
-  lastFailure: number;
-  isOpen: boolean;
+interface RunOptions {
+  preset?: string;
+  supervised: boolean;
+  dryRun: boolean;
+}
+
+interface GateDefinition {
+  name: string;
+  description: string;
+  tools: string[];
+  prompt: string;
+}
+
+// SDK Type Guards
+interface ToolUseInput {
+  tool: string;
+  tool_input: {
+    command?: string;
+    file_path?: string;
+    path?: string;
+    content?: string;
+  };
+}
+
+interface SystemMessage {
+  type: "system";
+  subtype: string;
+  session_id?: string;
+}
+
+interface ResultMessage {
+  result: string;
+}
+
+function isToolUseInput(input: unknown): input is ToolUseInput {
+  if (typeof input !== "object" || input === null) return false;
+  const obj = input as Record<string, unknown>;
+  return typeof obj.tool === "string" && typeof obj.tool_input === "object";
+}
+
+function isSystemMessage(message: unknown): message is SystemMessage {
+  if (typeof message !== "object" || message === null) return false;
+  const obj = message as Record<string, unknown>;
+  return obj.type === "system" && typeof obj.subtype === "string";
+}
+
+function isResultMessage(message: unknown): message is ResultMessage {
+  if (typeof message !== "object" || message === null) return false;
+  return "result" in message && typeof (message as ResultMessage).result === "string";
 }
 
 // ============================================
-// RUN CONTEXT (Eliminates Global State)
+// RATE LIMITER (Single Responsibility)
+// ============================================
+class RateLimiter {
+  private callCount: number = 0;
+  private readonly maxCalls: number;
+  private resetTime: number;
+
+  constructor(maxCallsPerHour: number) {
+    this.maxCalls = maxCallsPerHour;
+    this.resetTime = Date.now() + 60 * 60 * 1000;
+  }
+
+  public canProceed(): boolean {
+    this.checkReset();
+    return this.callCount < this.maxCalls;
+  }
+
+  public recordCall(): void {
+    this.checkReset();
+    this.callCount++;
+  }
+
+  public getRemaining(): number {
+    this.checkReset();
+    return this.maxCalls - this.callCount;
+  }
+
+  private checkReset(): void {
+    if (Date.now() > this.resetTime) {
+      this.callCount = 0;
+      this.resetTime = Date.now() + 60 * 60 * 1000;
+    }
+  }
+}
+
+// ============================================
+// CIRCUIT BREAKER (Single Responsibility)
+// ============================================
+class CircuitBreaker {
+  private failures: number = 0;
+  private lastFailure: number = 0;
+  private isOpen: boolean = false;
+  private readonly threshold: number;
+  private readonly cooldownMs: number;
+
+  constructor(
+    threshold: number = CIRCUIT_BREAKER_THRESHOLD,
+    cooldownMs: number = CIRCUIT_BREAKER_COOLDOWN_MS
+  ) {
+    this.threshold = threshold;
+    this.cooldownMs = cooldownMs;
+  }
+
+  public recordFailure(): void {
+    this.failures++;
+    this.lastFailure = Date.now();
+    if (this.failures >= this.threshold) {
+      this.isOpen = true;
+    }
+  }
+
+  public recordSuccess(): void {
+    this.failures = 0;
+    this.isOpen = false;
+  }
+
+  public canProceed(): boolean {
+    if (!this.isOpen) return true;
+
+    // Check cooldown
+    if (Date.now() - this.lastFailure > this.cooldownMs) {
+      this.isOpen = false;
+      this.failures = 0;
+      return true;
+    }
+    return false;
+  }
+
+  public getState(): { isOpen: boolean; failures: number } {
+    return { isOpen: this.isOpen, failures: this.failures };
+  }
+}
+
+// ============================================
+// CHECKPOINT MANAGER (Single Responsibility)
+// ============================================
+class CheckpointManager {
+  private readonly stateFile: string;
+
+  constructor(stateFile: string = STATE_FILE) {
+    this.stateFile = stateFile;
+  }
+
+  public save(state: RunState): void {
+    try {
+      writeFileSync(this.stateFile, JSON.stringify(state, null, 2));
+    } catch (error) {
+      console.error("[WARN] Failed to save checkpoint:", error);
+    }
+  }
+
+  public load(): RunState | null {
+    if (!existsSync(this.stateFile)) return null;
+    try {
+      return JSON.parse(readFileSync(this.stateFile, "utf-8"));
+    } catch {
+      return null;
+    }
+  }
+
+  public clear(): void {
+    if (existsSync(this.stateFile)) {
+      try {
+        unlinkSync(this.stateFile);
+      } catch {
+        // Ignore
+      }
+    }
+  }
+}
+
+// ============================================
+// AUDIT LOGGER (Single Responsibility)
+// ============================================
+class AuditLogger {
+  private readonly logFile: string;
+  private readonly maxSize: number;
+
+  constructor(logFile: string = AUDIT_LOG, maxSize: number = MAX_AUDIT_LOG_SIZE) {
+    this.logFile = logFile;
+    this.maxSize = maxSize;
+  }
+
+  public log(entry: Record<string, unknown>): void {
+    this.rotateIfNeeded();
+    try {
+      appendFileSync(this.logFile, JSON.stringify(entry) + "\n");
+    } catch (error) {
+      console.error("[WARN] Failed to write audit log:", error);
+    }
+  }
+
+  private rotateIfNeeded(): void {
+    if (!existsSync(this.logFile)) return;
+    try {
+      const stats = statSync(this.logFile);
+      if (stats.size > this.maxSize) {
+        const rotatedPath = `${this.logFile}.${Date.now()}`;
+        renameSync(this.logFile, rotatedPath);
+      }
+    } catch {
+      // Ignore rotation errors
+    }
+  }
+}
+
+// ============================================
+// METRICS COLLECTOR (Single Responsibility)
+// ============================================
+class MetricsCollector {
+  private readonly metricsFile: string;
+  public apiCallCount: number = 0;
+  public autoFixesApplied: number = 0;
+  public filesModified: Set<string> = new Set();
+  public issuesCreated: string[] = [];
+
+  constructor(metricsFile: string = METRICS_FILE) {
+    this.metricsFile = metricsFile;
+  }
+
+  public recordApiCall(): void {
+    this.apiCallCount++;
+  }
+
+  public recordAutoFix(count: number): void {
+    this.autoFixesApplied += count;
+  }
+
+  public recordFileModified(file: string): void {
+    this.filesModified.add(file);
+  }
+
+  public recordIssueCreated(issueId: string): void {
+    this.issuesCreated.push(issueId);
+  }
+
+  public canCreateIssue(maxIssues: number): boolean {
+    return this.issuesCreated.length < maxIssues;
+  }
+
+  public save(runId: string, issueId: string, startTime: Date, iteration: number): void {
+    const metrics = {
+      runId,
+      issueId,
+      startTime: startTime.toISOString(),
+      duration: Date.now() - startTime.getTime(),
+      iterations: iteration,
+      apiCalls: this.apiCallCount,
+      issuesCreated: this.issuesCreated.length,
+      autoFixesApplied: this.autoFixesApplied,
+      filesModified: Array.from(this.filesModified),
+    };
+    try {
+      writeFileSync(this.metricsFile, JSON.stringify(metrics, null, 2));
+    } catch (error) {
+      console.error("[WARN] Failed to save metrics:", error);
+    }
+  }
+}
+
+// ============================================
+// STRUCTURED LOGGER (Single Responsibility)
+// ============================================
+class StructuredLogger {
+  private readonly runId: string;
+
+  constructor(runId: string) {
+    this.runId = runId;
+  }
+
+  public info(message: string, data?: Record<string, unknown>): void {
+    console.log(`   ${message}`);
+    if (process.env.DEBUG && data) {
+      console.log(`   [DEBUG] ${JSON.stringify(data)}`);
+    }
+  }
+
+  public warn(message: string, data?: Record<string, unknown>): void {
+    console.warn(`   [WARN] ${message}`);
+    if (data) {
+      console.warn(`   ${JSON.stringify(data)}`);
+    }
+  }
+
+  public error(message: string, data?: Record<string, unknown>): void {
+    const entry = {
+      timestamp: new Date().toISOString(),
+      runId: this.runId,
+      level: "error",
+      message,
+      ...data,
+    };
+    console.error(JSON.stringify(entry));
+  }
+
+  public debug(message: string): void {
+    if (process.env.DEBUG) {
+      console.log(`   [DEBUG] ${message}`);
+    }
+  }
+}
+
+// ============================================
+// RUN CONTEXT (Coordinates Dependencies)
 // ============================================
 class RunContext {
   public readonly runId: string;
@@ -131,93 +449,43 @@ class RunContext {
   public readonly options: RunOptions;
 
   public sessionId?: string;
-  public apiCallCount: number = 0;
   public iteration: number = 0;
-  public issuesCreated: string[] = [];
-  public filesModified: Set<string> = new Set();
-  public autoFixesApplied: number = 0;
-  public startTime: Date = new Date();
+  public readonly startTime: Date = new Date();
 
-  private circuitBreaker: CircuitBreakerState = {
-    failures: 0,
-    lastFailure: 0,
-    isOpen: false,
-  };
+  // Injected dependencies
+  public readonly rateLimiter: RateLimiter;
+  public readonly circuitBreaker: CircuitBreaker;
+  public readonly checkpointManager: CheckpointManager;
+  public readonly auditLogger: AuditLogger;
+  public readonly metrics: MetricsCollector;
+  public readonly logger: StructuredLogger;
 
-  constructor(issueId: string, config: AutonomousConfig, options: RunOptions) {
+  constructor(
+    issueId: string,
+    config: AutonomousConfig,
+    options: RunOptions,
+    dependencies?: {
+      rateLimiter?: RateLimiter;
+      circuitBreaker?: CircuitBreaker;
+      checkpointManager?: CheckpointManager;
+      auditLogger?: AuditLogger;
+      metrics?: MetricsCollector;
+    }
+  ) {
     this.runId = `ralph-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     this.issueId = issueId;
     this.config = config;
     this.options = options;
+
+    // Dependency injection with defaults
+    this.rateLimiter = dependencies?.rateLimiter ?? new RateLimiter(config.safety.max_api_calls_per_hour);
+    this.circuitBreaker = dependencies?.circuitBreaker ?? new CircuitBreaker();
+    this.checkpointManager = dependencies?.checkpointManager ?? new CheckpointManager();
+    this.auditLogger = dependencies?.auditLogger ?? new AuditLogger();
+    this.metrics = dependencies?.metrics ?? new MetricsCollector();
+    this.logger = new StructuredLogger(this.runId);
   }
 
-  // Rate limiting
-  public checkRateLimit(): boolean {
-    if (this.apiCallCount >= this.config.safety.max_api_calls_per_hour) {
-      return false;
-    }
-    this.apiCallCount++;
-    return true;
-  }
-
-  // Circuit breaker
-  public recordFailure(): void {
-    this.circuitBreaker.failures++;
-    this.circuitBreaker.lastFailure = Date.now();
-    if (this.circuitBreaker.failures >= 5) {
-      this.circuitBreaker.isOpen = true;
-      this.log("warn", "Circuit breaker OPEN - too many failures");
-    }
-  }
-
-  public recordSuccess(): void {
-    this.circuitBreaker.failures = 0;
-    if (this.circuitBreaker.isOpen) {
-      this.circuitBreaker.isOpen = false;
-      this.log("info", "Circuit breaker CLOSED - recovered");
-    }
-  }
-
-  public isCircuitOpen(): boolean {
-    if (!this.circuitBreaker.isOpen) return false;
-
-    // Check if cooldown period passed (5 minutes)
-    const cooldownMs = 5 * 60 * 1000;
-    if (Date.now() - this.circuitBreaker.lastFailure > cooldownMs) {
-      this.circuitBreaker.isOpen = false;
-      this.circuitBreaker.failures = 0;
-      return false;
-    }
-    return true;
-  }
-
-  // Issue creation limit
-  public canCreateIssue(): boolean {
-    return this.issuesCreated.length < this.config.safety.max_issues_created_per_run;
-  }
-
-  // Structured logging
-  public log(level: "info" | "warn" | "error" | "debug", message: string, data?: object): void {
-    const entry = {
-      timestamp: new Date().toISOString(),
-      runId: this.runId,
-      level,
-      message,
-      ...data,
-    };
-
-    if (level === "error") {
-      console.error(JSON.stringify(entry));
-    } else if (level === "warn") {
-      console.warn(`   [WARN] ${message}`);
-    } else if (level === "debug" && process.env.DEBUG) {
-      console.log(`   [DEBUG] ${message}`);
-    } else if (level === "info") {
-      console.log(`   ${message}`);
-    }
-  }
-
-  // State persistence for crash recovery
   public saveCheckpoint(): void {
     const state: RunState = {
       runId: this.runId,
@@ -225,72 +493,44 @@ class RunContext {
       sessionId: this.sessionId,
       iteration: this.iteration,
       lastScore: 0,
-      createdIssues: this.issuesCreated,
+      createdIssues: this.metrics.issuesCreated,
       startTime: this.startTime.toISOString(),
       lastCheckpoint: new Date().toISOString(),
     };
-    writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+    this.checkpointManager.save(state);
   }
 
-  public static loadCheckpoint(): RunState | null {
-    if (!existsSync(STATE_FILE)) return null;
-    try {
-      return JSON.parse(readFileSync(STATE_FILE, "utf-8"));
-    } catch {
-      return null;
-    }
+  public saveMetrics(): void {
+    this.metrics.save(this.runId, this.issueId, this.startTime, this.iteration);
   }
-
-  // Metrics
-  public getMetrics(): object {
-    return {
-      runId: this.runId,
-      issueId: this.issueId,
-      startTime: this.startTime.toISOString(),
-      duration: Date.now() - this.startTime.getTime(),
-      iterations: this.iteration,
-      apiCalls: this.apiCallCount,
-      issuesCreated: this.issuesCreated.length,
-      autoFixesApplied: this.autoFixesApplied,
-      filesModified: Array.from(this.filesModified),
-    };
-  }
-}
-
-interface RunOptions {
-  preset?: string;
-  supervised: boolean;
-  dryRun: boolean;
 }
 
 // ============================================
 // INPUT VALIDATION & SANITIZATION
 // ============================================
 function validateIssueId(input: string): string {
-  // Must be numeric only (no shell metacharacters)
   if (!/^\d+$/.test(input)) {
     throw new Error(`Invalid issue ID: "${input}". Must be numeric.`);
   }
   return input;
 }
 
-function validatePreset(input: string | undefined): string | undefined {
+function validatePreset(input: string | undefined): Preset | undefined {
   if (!input) return undefined;
-  if (!VALID_PRESETS.includes(input as any)) {
+  if (!VALID_PRESETS.includes(input as Preset)) {
     throw new Error(`Invalid preset: "${input}". Valid: ${VALID_PRESETS.join(", ")}`);
   }
-  return input;
+  return input as Preset;
 }
 
 function sanitizeForShell(input: string): string {
-  // Remove shell metacharacters
   return input.replace(/[;&|`$(){}[\]<>\\'"!#*?~\n\r]/g, "");
 }
 
 function sanitizeFilePath(input: string, projectRoot: string): string | null {
   const resolved = resolve(projectRoot, input);
   if (!resolved.startsWith(projectRoot)) {
-    return null; // Path traversal attempt
+    return null;
   }
   return resolved;
 }
@@ -314,7 +554,6 @@ function validateEnvironment(): void {
     process.exit(1);
   }
 
-  // Warn about optional
   if (!process.env.GITHUB_TOKEN) {
     console.warn("[WARN] GITHUB_TOKEN not set - using gh CLI authentication");
   }
@@ -362,12 +601,10 @@ function loadConfig(preset?: string): AutonomousConfig {
       const fileContent = readFileSync(CONFIG_PATH, "utf-8");
       const fileConfig = yaml.parse(fileContent, { strict: true });
 
-      // Validate config structure
       if (typeof fileConfig !== "object" || fileConfig === null) {
         throw new Error("Invalid config: must be an object");
       }
 
-      // Deep merge with validation
       if (fileConfig.target_score !== undefined) {
         if (typeof fileConfig.target_score !== "number" || fileConfig.target_score < 0 || fileConfig.target_score > 100) {
           throw new Error("Invalid target_score: must be 0-100");
@@ -389,14 +626,12 @@ function loadConfig(preset?: string): AutonomousConfig {
       if (fileConfig.presets) {
         defaultConfig.presets = fileConfig.presets;
       }
-
     } catch (e) {
       const message = e instanceof Error ? e.message : "Unknown error";
       console.warn(`[WARN] Config error: ${message}. Using defaults.`);
     }
   }
 
-  // Apply validated preset
   const validatedPreset = validatePreset(preset);
   if (validatedPreset && defaultConfig.presets?.[validatedPreset]) {
     Object.assign(defaultConfig, defaultConfig.presets[validatedPreset]);
@@ -406,287 +641,132 @@ function loadConfig(preset?: string): AutonomousConfig {
 }
 
 // ============================================
-// QUALITY GATE SUBAGENTS
+// GATE DEFINITIONS LOADER
 // ============================================
-const qualityGateAgents: Record<string, AgentDefinition> = {
-  "test-runner": {
-    description: "Run tests and report coverage",
-    prompt: `You are a test execution specialist. Run the project's test suite.
+function loadGateDefinitions(): Record<string, AgentDefinition> {
+  const agents: Record<string, AgentDefinition> = {};
 
-STEPS:
-1. Detect test framework (jest, pytest, phpunit, cargo test, go test)
-2. Run tests with coverage
-3. Parse results
+  if (!existsSync(GATES_DIR)) {
+    console.warn(`[WARN] Gates directory not found: ${GATES_DIR}. Using embedded definitions.`);
+    return getEmbeddedGateDefinitions();
+  }
 
-OUTPUT JSON ONLY:
-{
-  "passed": boolean,
-  "total": number,
-  "failed": number,
-  "skipped": number,
-  "coverage": number,
-  "failures": [{ "test": string, "error": string, "file": string }],
-  "score": number
+  const files = readdirSync(GATES_DIR).filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"));
+
+  if (files.length === 0) {
+    console.warn("[WARN] No gate definition files found. Using embedded definitions.");
+    return getEmbeddedGateDefinitions();
+  }
+
+  for (const file of files) {
+    try {
+      const content = readFileSync(join(GATES_DIR, file), "utf-8");
+      const def: GateDefinition = yaml.parse(content);
+
+      if (!def.name || !def.prompt) {
+        console.warn(`[WARN] Invalid gate definition in ${file}: missing name or prompt`);
+        continue;
+      }
+
+      agents[def.name] = {
+        description: def.description || def.name,
+        prompt: def.prompt,
+        tools: def.tools || ["Read", "Glob", "Grep"],
+      };
+    } catch (e) {
+      console.warn(`[WARN] Failed to load gate ${file}:`, e);
+    }
+  }
+
+  return agents;
 }
 
-SCORING:
-- All tests pass: +20 points
-- Coverage >= 80%: +5 points
-- Coverage >= 90%: +2 bonus
-- Each failure: -5 points (min 0)`,
-    tools: ["Bash", "Read", "Glob"],
-  },
-
-  "security-auditor": {
-    description: "Security vulnerability scanner",
-    prompt: `You are a security auditor. Scan for vulnerabilities.
-
-CHECK FOR:
-1. Hardcoded secrets (API keys, passwords, tokens)
-2. SQL injection risks (string concatenation in queries)
-3. XSS vulnerabilities (unescaped output)
-4. Command injection (user input in shell commands)
-5. Insecure dependencies (npm audit, composer audit)
-6. Weak cryptography (MD5, SHA1 for passwords)
-
-OUTPUT JSON ONLY:
-{
-  "critical": number,
-  "high": number,
-  "medium": number,
-  "low": number,
-  "issues": [{
-    "severity": "critical|high|medium|low",
-    "title": string,
-    "file": string,
-    "line": number,
-    "description": string,
-    "recommendation": string,
-    "autoFixable": boolean
-  }],
-  "score": number
+function getEmbeddedGateDefinitions(): Record<string, AgentDefinition> {
+  // Fallback embedded definitions (minimal)
+  return {
+    "test-runner": {
+      description: "Run tests and report coverage",
+      prompt: "Run the project's test suite. Output JSON with passed, total, failed, coverage, score.",
+      tools: ["Bash", "Read", "Glob"],
+    },
+    "security-auditor": {
+      description: "Security vulnerability scanner",
+      prompt: "Scan for security vulnerabilities. Output JSON with critical, high, medium, low counts and issues array.",
+      tools: ["Read", "Grep", "Glob", "Bash"],
+    },
+    "build-fixer": {
+      description: "Build and fix compilation errors",
+      prompt: "Build the project. Output JSON with success, errors, fixed, attempts, score.",
+      tools: ["Bash", "Read", "Edit", "Glob"],
+    },
+    "code-reviewer": {
+      description: "Code quality review",
+      prompt: "Review code quality. Output JSON with smells, duplication_percent, fixed_count, score.",
+      tools: ["Read", "Edit", "Glob", "Grep", "Bash"],
+    },
+    "mentor-advisor": {
+      description: "Architecture review",
+      prompt: "Review architecture. Output JSON with concerns, strengths, recommendations, score.",
+      tools: ["Read", "Glob", "Grep"],
+    },
+    "ux-reviewer": {
+      description: "UX and accessibility review",
+      prompt: "Review UX and accessibility. Output JSON with a11y_issues, ux_issues, score.",
+      tools: ["Read", "Glob", "Grep"],
+    },
+    "architect-advisor": {
+      description: "System architecture advisor",
+      prompt: "Review system architecture. Output JSON with security_posture, performance_rating, findings.",
+      tools: ["Read", "Glob", "Grep"],
+    },
+    "devops-advisor": {
+      description: "CI/CD review",
+      prompt: "Review CI/CD setup. Output JSON with ci_cd_health, container_health, findings.",
+      tools: ["Read", "Glob", "Grep"],
+    },
+  };
 }
-
-SCORING: Base 25, Critical=-25, High=-10, Medium=-1 each`,
-    tools: ["Read", "Grep", "Glob", "Bash"],
-  },
-
-  "build-fixer": {
-    description: "Build and fix compilation errors",
-    prompt: `You are a build specialist. Build the project and fix errors.
-
-STEPS:
-1. Detect build system (npm, composer, cargo, go, make)
-2. Run build command
-3. If fails, analyze errors and fix
-4. Retry up to 5 times
-
-OUTPUT JSON ONLY:
-{
-  "success": boolean,
-  "errors": [{ "message": string, "file": string, "line": number }],
-  "fixed": [{ "error": string, "fix": string }],
-  "attempts": number,
-  "score": number
-}
-
-SCORING: Build succeeds = 15, fails = 0`,
-    tools: ["Bash", "Read", "Edit", "Glob"],
-  },
-
-  "code-reviewer": {
-    description: "Code quality and style review",
-    prompt: `You are a code review specialist. Review for quality issues.
-
-CHECK FOR:
-1. Code smells (long functions, deep nesting, magic numbers)
-2. Duplication (copy-paste code)
-3. Complexity (cyclomatic complexity > 10)
-4. Naming (unclear variable/function names)
-5. Dead code (unused variables, unreachable code)
-
-OUTPUT JSON ONLY:
-{
-  "smells": number,
-  "duplication_percent": number,
-  "complexity_issues": [{ "function": string, "file": string, "complexity": number }],
-  "fixable": [{ "issue": string, "file": string, "fix": string }],
-  "unfixable": [{ "issue": string, "file": string, "recommendation": string }],
-  "fixed_count": number,
-  "score": number
-}
-
-SCORING: Base 20, -2 per smell, -5 if duplication > 5%`,
-    tools: ["Read", "Edit", "Glob", "Grep", "Bash"],
-  },
-
-  "mentor-advisor": {
-    description: "Architecture and design review",
-    prompt: `You are a senior architect mentor. Review architecture decisions.
-
-EVALUATE:
-1. SOLID principles adherence
-2. Design patterns usage
-3. Separation of concerns
-4. Scalability considerations
-5. Technical debt
-
-DO NOT auto-fix. Only advise.
-
-OUTPUT JSON ONLY:
-{
-  "concerns": [{
-    "category": "architecture|patterns|scalability|performance|debt",
-    "severity": "high|medium|low",
-    "title": string,
-    "description": string,
-    "recommendation": string,
-    "effort": "low|medium|high"
-  }],
-  "strengths": [string],
-  "recommendations": [string],
-  "score": number
-}
-
-SCORING: Base 10, High concern=-3, Medium=-1`,
-    tools: ["Read", "Glob", "Grep"],
-  },
-
-  "ux-reviewer": {
-    description: "UX and accessibility review",
-    prompt: `You are a UX specialist. Review accessibility and UX.
-
-CHECK FOR:
-1. Accessibility (WCAG 2.1 AA - alt text, ARIA, keyboard nav)
-2. Responsive design
-3. Loading states
-4. Error messages
-5. Form validation UX
-
-APPLIES TO: tsx, jsx, vue, html, css files
-
-OUTPUT JSON ONLY:
-{
-  "a11y_issues": [{ "rule": string, "element": string, "file": string, "fix": string }],
-  "ux_issues": [{ "type": string, "description": string, "file": string }],
-  "responsive_ok": boolean,
-  "score": number
-}
-
-SCORING: Base 5, -1 per a11y violation, -1 per major UX issue`,
-    tools: ["Read", "Glob", "Grep"],
-  },
-
-  "architect-advisor": {
-    description: "System architecture and security hardening advisor",
-    prompt: `You are a system architect specializing in security and performance.
-
-ANALYZE:
-1. Authentication/authorization design
-2. API security (rate limiting, input validation)
-3. Data flow and privacy
-4. Infrastructure security posture
-5. Caching strategy
-6. Database query optimization
-
-OUTPUT JSON ONLY:
-{
-  "security_posture": "strong|adequate|weak",
-  "performance_rating": "optimized|acceptable|needs_work",
-  "findings": [{
-    "category": "security|performance|scalability|reliability",
-    "severity": "critical|high|medium|low",
-    "title": string,
-    "current_state": string,
-    "recommendation": string,
-    "implementation_effort": "hours|days|weeks"
-  }],
-  "quick_wins": [string],
-  "roadmap": [{ "phase": string, "items": [string] }]
-}`,
-    tools: ["Read", "Glob", "Grep"],
-  },
-
-  "devops-advisor": {
-    description: "CI/CD and infrastructure review",
-    prompt: `You are a DevOps engineer. Review deployment and infrastructure.
-
-ANALYZE:
-1. CI/CD pipeline configuration
-2. Docker/container setup
-3. Environment configuration
-4. Secrets management
-5. Monitoring and logging
-
-CHECK FILES: .github/workflows/, Dockerfile, docker-compose.yml, terraform/, k8s/
-
-OUTPUT JSON ONLY:
-{
-  "ci_cd_health": "healthy|needs_attention|broken",
-  "container_health": "optimized|acceptable|needs_work|missing",
-  "findings": [{
-    "category": "ci_cd|containers|secrets|monitoring|deployment",
-    "severity": "critical|high|medium|low",
-    "title": string,
-    "description": string,
-    "recommendation": string
-  }],
-  "missing_essentials": [string],
-  "recommendations": [string]
-}`,
-    tools: ["Read", "Glob", "Grep"],
-  },
-};
 
 // ============================================
-// HOOKS (Using Context, Not Globals)
+// HOOKS FACTORY
 // ============================================
 function createAuditHook(ctx: RunContext): HookCallback {
-  return async (input) => {
-    const toolInput = (input as any).tool_input || {};
-    const filePath = toolInput.file_path || toolInput.path;
+  return async (input: unknown) => {
+    if (!isToolUseInput(input)) return {};
 
-    // Validate file path if present
+    const filePath = input.tool_input.file_path || input.tool_input.path;
+
     if (filePath) {
       const sanitized = sanitizeFilePath(filePath, process.cwd());
       if (!sanitized) {
-        ctx.log("warn", `Blocked path traversal attempt: ${filePath}`);
+        ctx.logger.warn(`Blocked path traversal attempt: ${filePath}`);
         return { decision: "block", message: "Path traversal blocked" };
       }
-      ctx.filesModified.add(sanitized);
+      ctx.metrics.recordFileModified(sanitized);
     }
 
-    // Rotate audit log if too large
-    if (existsSync(AUDIT_LOG)) {
-      const stats = require("fs").statSync(AUDIT_LOG);
-      if (stats.size > MAX_AUDIT_LOG_SIZE) {
-        const rotatedPath = `${AUDIT_LOG}.${Date.now()}`;
-        require("fs").renameSync(AUDIT_LOG, rotatedPath);
-      }
-    }
-
-    const logEntry = {
+    ctx.auditLogger.log({
       timestamp: new Date().toISOString(),
       runId: ctx.runId,
-      tool: (input as any).tool,
+      tool: input.tool,
       file: filePath,
-      command: toolInput.command?.substring(0, 100),
-    };
+      command: input.tool_input.command?.substring(0, 100),
+    });
 
-    appendFileSync(AUDIT_LOG, JSON.stringify(logEntry) + "\n");
     return {};
   };
 }
 
 function createGitBlockHook(ctx: RunContext): HookCallback {
-  return async (input) => {
-    const command = ((input as any).tool_input?.command || "").toLowerCase();
+  return async (input: unknown) => {
+    if (!isToolUseInput(input)) return {};
 
-    // Block direct push to protected branches (case-insensitive)
+    const command = (input.tool_input.command || "").toLowerCase();
+
     for (const branch of ctx.config.git_rules.protected_branches) {
       const pattern = new RegExp(`git\\s+push.*${escapeRegex(branch)}`, "i");
       if (pattern.test(command)) {
-        ctx.log("warn", `Blocked push to ${branch}`);
+        ctx.logger.warn(`Blocked push to ${branch}`);
         return {
           decision: "block",
           message: `[BLOCKED] Direct push to ${branch}. Use PR workflow.`,
@@ -694,12 +774,10 @@ function createGitBlockHook(ctx: RunContext): HookCallback {
       }
     }
 
-    // Block force push
     if (/git\s+push.*--force/i.test(command)) {
       return { decision: "block", message: "[BLOCKED] Force push is forbidden." };
     }
 
-    // Block hard reset
     if (/git\s+reset\s+--hard/i.test(command)) {
       return { decision: "block", message: "[BLOCKED] Hard reset requires manual confirmation." };
     }
@@ -709,24 +787,24 @@ function createGitBlockHook(ctx: RunContext): HookCallback {
 }
 
 function createAttributionStripHook(ctx: RunContext): HookCallback {
-  return async (input) => {
-    const command = (input as any).tool_input?.command || "";
+  return async (input: unknown) => {
+    if (!isToolUseInput(input)) return {};
+
+    const command = input.tool_input.command || "";
 
     if (!command.toLowerCase().includes("git commit")) {
       return {};
     }
 
-    let sanitizedCommand = command;
+    // Check for forbidden patterns
     for (const pattern of ctx.config.git_rules.commit_rules.forbidden_patterns) {
-      sanitizedCommand = sanitizedCommand.replace(new RegExp(pattern, "gi"), "");
-    }
-
-    if (sanitizedCommand !== command) {
-      ctx.log("info", "Stripped AI attribution from commit");
-      return {
-        decision: "modify",
-        tool_input: { command: sanitizedCommand },
-      };
+      if (new RegExp(pattern, "gi").test(command)) {
+        ctx.logger.warn(`Blocked commit with AI attribution pattern: ${pattern}`);
+        return {
+          decision: "block",
+          message: `[BLOCKED] Commit contains forbidden pattern: ${pattern}. Remove AI attribution before committing.`,
+        };
+      }
     }
 
     return {};
@@ -735,34 +813,56 @@ function createAttributionStripHook(ctx: RunContext): HookCallback {
 
 function createRateLimitHook(ctx: RunContext): HookCallback {
   return async () => {
-    if (!ctx.checkRateLimit()) {
+    if (!ctx.rateLimiter.canProceed()) {
       return {
         decision: "block",
         message: "[RATE LIMIT] API call limit exceeded. Pausing for cooldown.",
       };
     }
 
-    if (ctx.isCircuitOpen()) {
+    if (!ctx.circuitBreaker.canProceed()) {
       return {
         decision: "block",
         message: "[CIRCUIT OPEN] Too many failures. Waiting for cooldown.",
       };
     }
 
+    ctx.rateLimiter.recordCall();
+    ctx.metrics.recordApiCall();
     return {};
   };
 }
 
 // ============================================
-// GATE EXECUTION
+// GATE EXECUTION WITH TIMEOUT
 // ============================================
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number
+): Promise<{ result: T; timedOut: false } | { result: null; timedOut: true }> {
+  let timeoutId: NodeJS.Timeout;
+
+  const timeoutPromise = new Promise<{ result: null; timedOut: true }>((resolve) => {
+    timeoutId = setTimeout(() => {
+      resolve({ result: null, timedOut: true });
+    }, timeoutMs);
+  });
+
+  const resultPromise = promise.then((result) => {
+    clearTimeout(timeoutId);
+    return { result, timedOut: false as const };
+  });
+
+  return Promise.race([resultPromise, timeoutPromise]);
+}
+
 async function runGatesInParallel(
   gates: string[],
-  ctx: RunContext
+  ctx: RunContext,
+  gateAgents: Record<string, AgentDefinition>
 ): Promise<GateResult[]> {
   const results: GateResult[] = [];
 
-  // Group gates by parallel_group
   const groups = new Map<number, string[]>();
   for (const gate of gates) {
     const group = ctx.config.gates[gate]?.parallel_group || 0;
@@ -776,32 +876,36 @@ async function runGatesInParallel(
 
   for (const groupNum of sortedGroups) {
     const groupGates = groups.get(groupNum)!;
-    ctx.log("info", `[Group ${groupNum}] Running: ${groupGates.join(", ")}`);
+    ctx.logger.info(`[Group ${groupNum}] Running: ${groupGates.join(", ")}`);
 
-    const groupPromises = groupGates.map((gate) => runSingleGate(gate, ctx));
+    const groupPromises = groupGates.map((gate) => runSingleGate(gate, ctx, gateAgents));
     const groupResults = await Promise.all(groupPromises);
     results.push(...groupResults);
 
-    // Check for blockers before next group
     const blockers = groupResults.filter(
       (r) => ctx.config.gates[r.gate]?.required && !r.passed
     );
 
     if (blockers.length > 0) {
-      ctx.log("warn", `Required gate(s) failed: ${blockers.map((b) => b.gate).join(", ")}`);
-      ctx.recordFailure();
+      ctx.logger.warn(`Required gate(s) failed: ${blockers.map((b) => b.gate).join(", ")}`);
+      ctx.circuitBreaker.recordFailure();
       break;
     } else {
-      ctx.recordSuccess();
+      ctx.circuitBreaker.recordSuccess();
     }
   }
 
   return results;
 }
 
-async function runSingleGate(gateName: string, ctx: RunContext): Promise<GateResult> {
+async function runSingleGate(
+  gateName: string,
+  ctx: RunContext,
+  gateAgents: Record<string, AgentDefinition>
+): Promise<GateResult> {
   const startTime = Date.now();
   const gateConfig = ctx.config.gates[gateName];
+  const timeoutMs = gateConfig.timeout_ms || DEFAULT_GATE_TIMEOUT_MS;
 
   const result: GateResult = {
     gate: gateName,
@@ -811,38 +915,49 @@ async function runSingleGate(gateName: string, ctx: RunContext): Promise<GateRes
     issues: [],
     duration: 0,
     autoFixed: 0,
+    timedOut: false,
   };
 
   const agentName = getAgentNameForGate(gateName);
 
-  try {
+  const executeGate = async (): Promise<void> => {
     for await (const message of query({
       prompt: `Use the ${agentName} agent to evaluate this codebase. Return only valid JSON.`,
       options: {
         resume: ctx.sessionId,
         allowedTools: ["Task", "Read", "Glob", "Grep", "Bash", "Edit"],
-        agents: qualityGateAgents,
+        agents: gateAgents,
         permissionMode: gateConfig.auto_fix ? "acceptEdits" : "bypassPermissions",
       },
     })) {
-      if ("result" in message) {
+      if (isResultMessage(message)) {
         try {
           const parsed = JSON.parse(extractJson(message.result));
           result.score = Math.min(parsed.score || 0, gateConfig.weight);
           result.passed = gateConfig.required
             ? result.score >= gateConfig.weight * GATE_PASS_THRESHOLD
             : true;
-          result.issues = (parsed.issues || parsed.findings || []).slice(0, 50); // Limit
+          result.issues = (parsed.issues || parsed.findings || []).slice(0, 50);
           result.autoFixed = parsed.fixed_count || parsed.fixed?.length || 0;
-          ctx.autoFixesApplied += result.autoFixed;
+          ctx.metrics.recordAutoFix(result.autoFixed);
         } catch (e) {
-          ctx.log("error", `Failed to parse ${gateName} result`, { error: String(e) });
+          ctx.logger.error(`Failed to parse ${gateName} result`, { error: String(e) });
         }
       }
     }
+  };
+
+  try {
+    const { timedOut } = await withTimeout(executeGate(), timeoutMs);
+    if (timedOut) {
+      result.timedOut = true;
+      result.passed = false;
+      ctx.logger.warn(`Gate ${gateName} timed out after ${timeoutMs}ms`);
+      ctx.circuitBreaker.recordFailure();
+    }
   } catch (e) {
-    ctx.log("error", `Gate ${gateName} execution failed`, { error: String(e) });
-    ctx.recordFailure();
+    ctx.logger.error(`Gate ${gateName} execution failed`, { error: String(e) });
+    ctx.circuitBreaker.recordFailure();
   }
 
   result.duration = Date.now() - startTime;
@@ -874,7 +989,7 @@ function extractJson(text: string): string {
 }
 
 // ============================================
-// ISSUE INTEGRATION (Sanitized)
+// ISSUE INTEGRATION
 // ============================================
 async function createSubIssue(
   parentIssue: string,
@@ -882,70 +997,67 @@ async function createSubIssue(
   gateName: string,
   ctx: RunContext
 ): Promise<string | null> {
-  if (!ctx.canCreateIssue()) {
-    ctx.log("warn", "Issue creation limit reached");
+  if (!ctx.metrics.canCreateIssue(ctx.config.safety.max_issues_created_per_run)) {
+    ctx.logger.warn("Issue creation limit reached");
     return null;
   }
 
-  // Sanitize all user-controllable content
   const title = sanitizeForShell(`[${gateName.toUpperCase()}] ${gateIssue.title}`).slice(0, 100);
   const labels = ["auto-generated", gateName, gateIssue.severity].join(",");
 
-  const body = `## ${gateIssue.severity.toUpperCase()}: ${sanitizeForShell(gateIssue.title)}
-
-**Found by:** \`/${gateName}\` gate
-**File:** ${sanitizeForShell(gateIssue.file || "N/A")}
-**Auto-fixable:** ${gateIssue.autoFixable ? "Yes" : "No"}
-
-### Description
-${sanitizeForShell(gateIssue.description).slice(0, 500)}
-
-### Recommendation
-${sanitizeForShell(gateIssue.recommendation || "Review and address manually.").slice(0, 500)}
-
----
-*Auto-generated by CodeAssist Ralph runner*
-*Parent issue: #${parentIssue}*`;
+  const description = sanitizeForShell(gateIssue.description).slice(0, 500);
+  const recommendation = sanitizeForShell(gateIssue.recommendation || "Review and address manually.").slice(0, 500);
 
   try {
     for await (const message of query({
-      prompt: `Create a GitHub issue. Title: "${title}". Labels: "${labels}". Use gh issue create command with proper escaping.`,
+      prompt: `Create a GitHub issue with:
+- Title: "${title}"
+- Labels: "${labels}"
+- Body should include:
+  - Severity: ${gateIssue.severity.toUpperCase()}
+  - Found by: /${gateName} gate
+  - File: ${sanitizeForShell(gateIssue.file || "N/A")}
+  - Auto-fixable: ${gateIssue.autoFixable ? "Yes" : "No"}
+  - Description: ${description}
+  - Recommendation: ${recommendation}
+  - Parent issue: #${parentIssue}
+Use gh issue create command with proper escaping.`,
       options: {
         resume: ctx.sessionId,
         allowedTools: ["Bash"],
       },
     })) {
-      if ("result" in message) {
+      if (isResultMessage(message)) {
         const issueMatch = message.result.match(/#(\d+)/);
         if (issueMatch) {
-          ctx.issuesCreated.push(issueMatch[1]);
+          ctx.metrics.recordIssueCreated(issueMatch[1]);
           return issueMatch[1];
         }
       }
     }
   } catch (e) {
-    ctx.log("error", "Failed to create sub-issue", { error: String(e) });
+    ctx.logger.error("Failed to create sub-issue", { error: String(e) });
   }
 
   return null;
 }
 
 async function postToIssue(issueId: string, body: string, ctx: RunContext): Promise<void> {
-  // Sanitize body for shell safety
-  const sanitizedBody = sanitizeForShell(body).slice(0, 5000);
+  const commentBody = sanitizeForShell(body).slice(0, 5000);
 
   try {
-    for await (const _ of query({
-      prompt: `Post a comment to GitHub issue #${issueId}. Use gh issue comment with proper escaping for the body content.`,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for await (const _message of query({
+      prompt: `Post a comment to GitHub issue #${issueId}. Content: ${commentBody.slice(0, 1000)}... Use gh issue comment with proper escaping.`,
       options: {
         resume: ctx.sessionId,
         allowedTools: ["Bash"],
       },
     })) {
-      // Comment posted
+      // Comment posted - consume the async iterator
     }
   } catch (e) {
-    ctx.log("error", "Failed to post to issue", { error: String(e) });
+    ctx.logger.error("Failed to post to issue", { error: String(e) });
   }
 }
 
@@ -955,7 +1067,9 @@ async function postToIssue(issueId: string, body: string, ctx: RunContext): Prom
 function generateProgressReport(result: IterationResult, ctx: RunContext): string {
   const gateRows = result.gates
     .map((g) => {
-      const status = g.passed ? "PASS" : g.maxScore === 0 ? "INFO" : "FAIL";
+      let status = g.passed ? "PASS" : "FAIL";
+      if (g.timedOut) status = "TIMEOUT";
+      if (g.maxScore === 0) status = "INFO";
       return `| /${g.gate} | ${g.score}/${g.maxScore} | ${status} | ${g.issues.length} issues |`;
     })
     .join("\n");
@@ -974,8 +1088,8 @@ ${gateRows}
 
 ### Metrics
 - API calls: ${result.apiCalls}
-- Auto-fixes: ${ctx.autoFixesApplied}
-- Files modified: ${ctx.filesModified.size}
+- Auto-fixes: ${ctx.metrics.autoFixesApplied}
+- Files modified: ${ctx.metrics.filesModified.size}
 
 ---
 *Run ID: ${ctx.runId} | Iteration ${result.iteration}*`;
@@ -987,6 +1101,7 @@ ${gateRows}
 async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<void> {
   const config = loadConfig(options.preset);
   const ctx = new RunContext(issueId, config, options);
+  const gateAgents = loadGateDefinitions();
 
   console.log("\n" + "=".repeat(60));
   console.log("          RALPH WIGGUM - Autonomous Development");
@@ -1005,11 +1120,12 @@ async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<
     console.log(`  - Create branch: feature/${issueId}-implement`);
     console.log(`  - Run gates: ${Object.keys(config.gates).join(", ")}`);
     console.log(`  - Target score: ${config.target_score}`);
+    console.log(`  - Gate timeout: ${DEFAULT_GATE_TIMEOUT_MS / 1000}s`);
     return;
   }
 
   // === PHASE 1: Implementation ===
-  ctx.log("info", "Phase 1: Fetching issue and implementing...");
+  ctx.logger.info("Phase 1: Fetching issue and implementing...");
 
   const hooks = {
     PreToolUse: [
@@ -1035,48 +1151,44 @@ RULES:
 - Keep commits atomic and focused`,
     options: {
       allowedTools: ["Read", "Edit", "Write", "Bash", "Glob", "Grep", "Task"],
-      agents: qualityGateAgents,
+      agents: gateAgents,
       permissionMode: "acceptEdits",
       hooks,
     },
   })) {
-    if (message.type === "system" && message.subtype === "init") {
+    if (isSystemMessage(message) && message.subtype === "init") {
       ctx.sessionId = message.session_id;
-      ctx.log("info", `Session initialized: ${ctx.sessionId}`);
+      ctx.logger.info(`Session initialized: ${ctx.sessionId}`);
     }
-    if ("result" in message) {
-      ctx.log("info", "Implementation phase complete");
+    if (isResultMessage(message)) {
+      ctx.logger.info("Implementation phase complete");
     }
   }
 
   if (!ctx.sessionId) {
-    ctx.log("error", "Failed to initialize session");
+    ctx.logger.error("Failed to initialize session");
     return;
   }
 
   ctx.saveCheckpoint();
 
   // === PHASE 2: Quality Gate Loop ===
-  ctx.log("info", "\nPhase 2: Running quality gates...");
+  ctx.logger.info("\nPhase 2: Running quality gates...");
 
   const enabledGates = Object.keys(config.gates);
   let currentScore = 0;
-  let lastGateResults: GateResult[] = [];
 
   while (ctx.iteration < config.max_iterations && currentScore < config.target_score) {
     ctx.iteration++;
     const iterationStart = Date.now();
-    const iterationApiStart = ctx.apiCallCount;
+    const iterationApiStart = ctx.metrics.apiCallCount;
 
     console.log(`\n${"─".repeat(60)}`);
     console.log(`Iteration ${ctx.iteration}/${config.max_iterations}`);
     console.log(`${"─".repeat(60)}`);
 
-    // Run gates
-    const gateResults = await runGatesInParallel(enabledGates, ctx);
-    lastGateResults = gateResults;
+    const gateResults = await runGatesInParallel(enabledGates, ctx, gateAgents);
 
-    // Calculate score
     currentScore = gateResults
       .filter((g) => ctx.config.gates[g.gate].weight > 0)
       .reduce((sum, g) => sum + g.score, 0);
@@ -1085,13 +1197,13 @@ RULES:
     const testGate = gateResults.find((g) => g.gate === "test");
     if (testGate && testGate.score >= 25) {
       currentScore += 2;
-      ctx.log("info", "[BONUS] +2 for excellent test coverage");
+      ctx.logger.info("[BONUS] +2 for excellent test coverage");
     }
 
     const reviewGate = gateResults.find((g) => g.gate === "review");
     if (reviewGate && reviewGate.issues.length === 0) {
       currentScore += 2;
-      ctx.log("info", "[BONUS] +2 for zero code smells");
+      ctx.logger.info("[BONUS] +2 for zero code smells");
     }
 
     currentScore = Math.min(currentScore, MAX_SCORE);
@@ -1104,10 +1216,9 @@ RULES:
       gates: gateResults,
       passed: currentScore >= config.target_score,
       duration: Date.now() - iterationStart,
-      apiCalls: ctx.apiCallCount - iterationApiStart,
+      apiCalls: ctx.metrics.apiCallCount - iterationApiStart,
     };
 
-    // Post progress
     await postToIssue(issueId, generateProgressReport(iterationResult, ctx), ctx);
 
     // Create issues for advisory gate findings
@@ -1116,7 +1227,7 @@ RULES:
         for (const issue of gate.issues.slice(0, MAX_ISSUES_PER_GATE)) {
           if (issue.severity === "critical" || issue.severity === "high") {
             const newId = await createSubIssue(issueId, issue, gate.gate, ctx);
-            if (newId) ctx.log("info", `Created issue #${newId} for ${gate.gate} finding`);
+            if (newId) ctx.logger.info(`Created issue #${newId} for ${gate.gate} finding`);
           }
         }
       }
@@ -1124,19 +1235,17 @@ RULES:
 
     ctx.saveCheckpoint();
 
-    // Check completion
     if (currentScore >= config.target_score) {
-      ctx.log("info", "\nTarget score reached!");
+      ctx.logger.info("\nTarget score reached!");
       break;
     }
 
-    // Check blockers
     const requiredFailed = gateResults.filter(
       (g) => ctx.config.gates[g.gate]?.required && !g.passed
     );
 
     if (requiredFailed.length > 0 && ctx.iteration >= BLOCKER_ITERATION_THRESHOLD) {
-      ctx.log("warn", `BLOCKED: Required gates failed after ${ctx.iteration} iterations`);
+      ctx.logger.warn(`BLOCKED: Required gates failed after ${ctx.iteration} iterations`);
       await postToIssue(
         issueId,
         `## BLOCKED\n\nRequired gates failed: ${requiredFailed.map((g) => `/${g.gate}`).join(", ")}\n\nComment \`@resume\` to retry.`,
@@ -1145,9 +1254,8 @@ RULES:
       break;
     }
 
-    // Supervised pause
     if (options.supervised) {
-      ctx.log("info", "[SUPERVISED] Pausing for review (30s)...");
+      ctx.logger.info("[SUPERVISED] Pausing for review (30s)...");
       await new Promise((r) => setTimeout(r, SUPERVISED_PAUSE_MS));
     } else {
       await new Promise((r) => setTimeout(r, config.iteration_delay * 1000));
@@ -1156,7 +1264,7 @@ RULES:
 
   // === PHASE 3: Create PR ===
   if (currentScore >= config.target_score || (currentScore >= PR_FALLBACK_SCORE && ctx.iteration >= config.max_iterations)) {
-    ctx.log("info", "\nPhase 3: Creating pull request...");
+    ctx.logger.info("\nPhase 3: Creating pull request...");
 
     for await (const message of query({
       prompt: `Create a pull request from the current branch to staging.
@@ -1168,14 +1276,13 @@ Use: gh pr create --fill --base staging`,
         allowedTools: ["Bash", "Read"],
       },
     })) {
-      if ("result" in message) {
-        ctx.log("info", "PR created successfully");
+      if (isResultMessage(message)) {
+        ctx.logger.info("PR created successfully");
       }
     }
   }
 
-  // Save final metrics
-  writeFileSync(METRICS_FILE, JSON.stringify(ctx.getMetrics(), null, 2));
+  ctx.saveMetrics();
 
   console.log("\n" + "=".repeat(60));
   console.log("                    RUN COMPLETE");
@@ -1183,7 +1290,7 @@ Use: gh pr create --fill --base staging`,
   console.log(`  Final Score: ${currentScore}/${config.target_score}`);
   console.log(`  Iterations: ${ctx.iteration}`);
   console.log(`  Duration: ${((Date.now() - ctx.startTime.getTime()) / 1000 / 60).toFixed(1)} minutes`);
-  console.log(`  Issues Created: ${ctx.issuesCreated.length}`);
+  console.log(`  Issues Created: ${ctx.metrics.issuesCreated.length}`);
   console.log("=".repeat(60) + "\n");
 }
 
@@ -1199,7 +1306,6 @@ process.on("SIGINT", () => {
   }
   shutdownRequested = true;
   console.log("\nShutdown requested. Saving state...");
-  // State is saved via checkpoints
   process.exit(0);
 });
 
@@ -1211,11 +1317,10 @@ process.on("SIGTERM", () => {
 // ============================================
 // CLI
 // ============================================
-function parseArgs(): { issueId?: string; epicId?: string; preset?: string; supervised: boolean; dryRun: boolean } {
+function parseArgs(): { issueId?: string; preset?: string; supervised: boolean; dryRun: boolean } {
   const args = process.argv.slice(2);
   return {
     issueId: args.find((a) => a.startsWith("--issue="))?.split("=")[1],
-    epicId: args.find((a) => a.startsWith("--epic="))?.split("=")[1],
     preset: args.find((a) => a.startsWith("--preset="))?.split("=")[1],
     supervised: args.includes("--supervised"),
     dryRun: args.includes("--dry-run"),
@@ -1234,7 +1339,6 @@ USAGE:
 
 OPTIONS:
   --issue=ID      Run on a single issue (required)
-  --epic=ID       Run on all issues in epic (not yet implemented)
   --preset=NAME   Use config preset (default, production, prototype, frontend)
   --supervised    Pause after each iteration for review
   --dry-run       Validate config without executing
@@ -1254,12 +1358,20 @@ QUALITY GATES:
   /architect   0pts  System security (creates issues)
   /devops      0pts  CI/CD review (creates issues)
 
+GATE DEFINITIONS:
+  External YAML files in: scripts/gates/
+  Override or add gates by creating *.yml files
+
+TIMEOUTS:
+  Default gate timeout: ${DEFAULT_GATE_TIMEOUT_MS / 1000 / 60} minutes
+  Configure per-gate: timeout_ms in autonomous.yml
+
 CONFIG: .claude/autonomous.yml
 `);
 }
 
 // Main
-const { issueId, epicId, preset, supervised, dryRun } = parseArgs();
+const { issueId, preset, supervised, dryRun } = parseArgs();
 
 if (issueId) {
   validateEnvironment();
@@ -1273,9 +1385,6 @@ if (issueId) {
     console.error("[ERROR]", (e as Error).message);
     process.exit(1);
   }
-} else if (epicId) {
-  console.log("Epic mode not yet implemented. Use --issue for now.");
-  process.exit(1);
 } else {
   printUsage();
 }

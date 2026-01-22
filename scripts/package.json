@@ -9,8 +9,11 @@
   "scripts": {
     "start": "npx ts-node ralph-runner.ts",
     "ralph": "npx ts-node ralph-runner.ts",
+    "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ralph-runner.ts"
+    "lint": "eslint ralph-runner.ts --max-warnings 0",
+    "lint:fix": "eslint ralph-runner.ts --fix",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.15",

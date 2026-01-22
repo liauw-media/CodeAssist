@@ -15,6 +15,9 @@ Autonomous development loop powered by the Claude Agent SDK. Runs quality gates,
 cd scripts
 npm install
 
+# Validate configuration (dry run)
+npx ts-node ralph-runner.ts --issue=123 --dry-run
+
 # Run on a single issue
 npx ts-node ralph-runner.ts --issue=123
 
@@ -77,11 +80,70 @@ gates:
     required: true
     auto_fix: true
     parallel_group: 1
+    timeout_ms: 300000  # 5 minutes
 
 presets:
   production:
     target_score: 98
 ```
+
+### Custom Gate Definitions
+
+Gate definitions are loaded from `scripts/gates/*.yml`. Create custom gates:
+
+```yaml
+# gates/custom-gate.yml
+name: custom-gate
+description: My custom quality gate
+tools:
+  - Read
+  - Glob
+  - Grep
+prompt: |
+  You are a custom quality gate. Analyze the codebase for [specific criteria].
+
+  OUTPUT JSON ONLY:
+  {
+    "passed": boolean,
+    "issues": [...],
+    "score": number
+  }
+```
+
+### Docker Deployment
+
+```bash
+# Build
+docker build -t ralph-wiggum scripts/
+
+# Run
+docker run -e ANTHROPIC_API_KEY=your-key \
+  -e GITHUB_TOKEN=your-token \
+  -v $(pwd):/workspace \
+  ralph-wiggum --issue=123
+
+# With version pinning
+docker build --build-arg CLAUDE_CLI_VERSION=1.0.0 -t ralph-wiggum scripts/
+```
+
+### Architecture
+
+```
+ralph-runner.ts
+├── RateLimiter        - API call rate limiting
+├── CircuitBreaker     - Failure isolation (5 failures → 5min cooldown)
+├── CheckpointManager  - Crash recovery state persistence
+├── AuditLogger        - Tool call audit trail with rotation
+├── MetricsCollector   - Run metrics and statistics
+├── StructuredLogger   - JSON logging with levels
+└── RunContext         - Coordinates all components
+```
+
+**Key Features:**
+- Dependency injection for testability
+- Type guards for SDK interfaces
+- Gate execution timeouts (default: 5 minutes)
+- External YAML gate definitions
 
 ### Safety Features
 
