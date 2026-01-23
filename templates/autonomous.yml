@@ -67,19 +67,6 @@ max_iterations: 15
 # Pause between iterations (seconds) - prevents API abuse
 iteration_delay: 5
 
-# Issue tracking integration
-issue_tracking:
-  provider: auto  # auto-detect, github, gitlab
-  create_sub_issues: true  # Create issues for unresolved points
-  post_comments: true  # Post progress to issues
-  labels:
-    in_progress: "in-progress"
-    blocked: "blocked"
-    ready_for_review: "ready-for-review"
-    auto_generated: "auto-generated"
-    tech_debt: "tech-debt"
-    security_debt: "security"
-
 # Quality gates configuration
 # Gates are organized into parallel groups for faster execution
 gates:
@@ -324,12 +311,6 @@ safety:
   max_api_calls_per_hour: 100
   max_issues_created_per_run: 10
   max_file_changes_per_iteration: 50
-
-  # Circuit breaker
-  circuit_breaker:
-    enabled: true
-    failure_threshold: 5  # Consecutive failures
-    reset_timeout: 300  # Seconds before retry
 
   # Forbidden actions
   forbidden:
