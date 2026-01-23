@@ -244,6 +244,7 @@ interface GateResult {
   duration: number;
   autoFixed: number;
   timedOut: boolean;
+  provider: string;  // Provider name (e.g., "Claude", "Ollama/qwen3-coder")
 }
 
 interface GateIssue {
@@ -1561,6 +1562,13 @@ async function runSingleGate(
   const gateConfig = ctx.config.gates[gateName];
   const timeoutMs = gateConfig.timeout_ms || DEFAULT_GATE_TIMEOUT_MS;
 
+  // Get the provider for this gate (may be different from default in hybrid mode)
+  const providerClient = ctx.providerRegistry.getClientForGate(gateName);
+  const modelName = providerClient.getModel();
+  const providerDisplay = modelName
+    ? `${providerClient.getDisplayName()}/${modelName}`
+    : providerClient.getDisplayName();
+
   const result: GateResult = {
     gate: gateName,
     score: 0,
@@ -1570,14 +1578,11 @@ async function runSingleGate(
     duration: 0,
     autoFixed: 0,
     timedOut: false,
+    provider: providerDisplay,
   };
 
   const agentName = getAgentNameForGate(gateName);
-
-  // Get the provider for this gate (may be different from default in hybrid mode)
-  const providerClient = ctx.providerRegistry.getClientForGate(gateName);
-  const modelInfo = providerClient.getModel() ? ` (${providerClient.getModel()})` : "";
-  ctx.logger.info(`[${gateName}] Provider: ${providerClient.getDisplayName()}${modelInfo}`);
+  ctx.logger.info(`[${gateName}] Provider: ${providerDisplay}`);
 
   const executeGate = async (): Promise<void> => {
     for await (const message of query({
@@ -1730,7 +1735,7 @@ function generateProgressReport(result: IterationResult, ctx: RunContext): strin
       let status = g.passed ? "PASS" : "FAIL";
       if (g.timedOut) status = "TIMEOUT";
       if (g.maxScore === 0) status = "INFO";
-      return `| /${g.gate} | ${g.score}/${g.maxScore} | ${status} | ${g.issues.length} issues |`;
+      return `| /${g.gate} | ${g.score}/${g.maxScore} | ${status} | ${g.provider} | ${g.issues.length} issues |`;
     })
     .join("\n");
 
@@ -1742,8 +1747,8 @@ function generateProgressReport(result: IterationResult, ctx: RunContext): strin
 
 ### Quality Gates
 
-| Gate | Score | Status | Issues |
-|------|-------|--------|--------|
+| Gate | Score | Status | Provider | Issues |
+|------|-------|--------|----------|--------|
 ${gateRows}
 
 ### Metrics
@@ -1869,6 +1874,14 @@ RULES:
     console.log(`${"─".repeat(60)}`);
 
     const gateResults = await runGatesInParallel(enabledGates, ctx, gateAgents);
+
+    // Display gate results summary with provider info
+    console.log("\n   Gate Results:");
+    for (const g of gateResults) {
+      const status = g.timedOut ? "TIMEOUT" : g.passed ? "PASS" : "FAIL";
+      const statusIcon = g.timedOut ? "⏱️" : g.passed ? "✅" : "❌";
+      console.log(`   ${statusIcon} /${g.gate}: ${g.score}/${g.maxScore} (${g.provider}) [${status}]`);
+    }
 
     currentScore = gateResults
       .filter((g) => ctx.config.gates[g.gate].weight > 0)
