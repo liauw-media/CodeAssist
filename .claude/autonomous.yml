@@ -12,18 +12,47 @@ providers:
   ollama:
     enabled: true
     base_url: http://100.114.54.54:11434
-    model: qwen3-coder  # Best for coding tasks (30.5B)
+    model: qwen3-coder  # Default model (30.5B, coding-optimized)
 
-  # Hybrid mode: Claude for critical, Ollama for others
+  # Hybrid mode with per-gate model optimization
+  # RTX 3090 (24GB) - all models fit in VRAM
   gate_providers:
+    # Critical gates - use Claude for accuracy
     test: claude
     security: claude
-    build: ollama
-    review: ollama
     mentor: claude
-    ux: ollama
-    architect: ollama
-    devops: ollama
+
+    # Build gate - fast compilation checks
+    build:
+      provider: ollama
+      model: qwen2.5-coder:32b
+
+    # Review gate - deep code analysis
+    review:
+      provider: ollama
+      model: qwen3-coder
+
+    # UX gate - accessibility/usability
+    ux:
+      provider: ollama
+      model: qwen3-coder
+
+    # Architect gate - strong reasoning for design
+    architect:
+      provider: ollama
+      model: qwq:32b
+
+    # DevOps gate - CI/CD analysis
+    devops:
+      provider: ollama
+      model: qwen2.5-coder:32b
+
+# Recommended models for RTX 3090 (24GB):
+# ollama pull qwen3-coder          # 18GB - agentic coding
+# ollama pull qwen2.5-coder:32b    # 18GB - fast completion
+# ollama pull qwq:32b              # 20GB - reasoning + coding
+# ollama pull deepseek-coder-v2:16b # 10GB - GPT-4 level
+# ollama pull codestral:22b        # 13GB - IDE/FIM tasks
 
 # Gate configuration
 gates:
@@ -49,5 +78,13 @@ gates:
     auto_fix: false
   ux:
     weight: 5
+    required: false
+    auto_fix: false
+  architect:
+    weight: 0
+    required: false
+    auto_fix: false
+  devops:
+    weight: 0
     required: false
     auto_fix: false

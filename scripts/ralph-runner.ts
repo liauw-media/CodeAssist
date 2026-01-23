@@ -140,10 +140,22 @@ const OllamaConfigSchema = z.object({
   api_key: z.string().optional(),
 }).strict();
 
+// Gate provider can be a simple string or an object with provider + model
+const GateProviderConfigSchema = z.object({
+  provider: ProviderNameSchema,
+  model: z.string().optional(),
+}).strict();
+
+// Support both formats: "ollama" or { provider: "ollama", model: "qwen3-coder" }
+const GateProviderSchema = z.union([
+  ProviderNameSchema,
+  GateProviderConfigSchema,
+]);
+
 const ProvidersConfigSchema = z.object({
   default: ProviderNameSchema,
   ollama: OllamaConfigSchema.optional(),
-  gate_providers: z.record(ProviderNameSchema).optional(),
+  gate_providers: z.record(GateProviderSchema).optional(),
 }).strict();
 
 type ProvidersConfig = z.infer<typeof ProvidersConfigSchema>;
@@ -549,12 +561,16 @@ type ModelCapability = "coding" | "reasoning" | "general" | "fast";
 const MODEL_FAMILY_CAPABILITIES: Record<string, ModelCapability> = {
   // Coding-focused models
   qwen: "coding",
+  qwen2: "coding",
   qwen3: "coding",
   qwen3moe: "coding",
   "qwen3-coder": "coding",
+  "qwen2.5-coder": "coding",
   codellama: "coding",
   "deepseek-coder": "coding",
+  deepseek2: "coding",
   starcoder: "coding",
+  codestral: "coding",
   // Reasoning models
   llama: "reasoning",
   mistral: "reasoning",
@@ -741,57 +757,122 @@ class ProviderClient {
 // ============================================
 // PROVIDER REGISTRY (Single Responsibility)
 // ============================================
+
+// Resolved gate config (normalized from string or object)
+interface ResolvedGateProvider {
+  provider: ProviderName;
+  model?: string;
+}
+
 class ProviderRegistry {
   private readonly claudeClient: ProviderClient;
-  private readonly ollamaClient?: ProviderClient;
+  private readonly defaultOllamaClient?: ProviderClient;
+  private readonly ollamaBaseUrl?: string;
+  private readonly ollamaApiKey?: string;
   private readonly defaultProvider: ProviderName;
-  private readonly gateProviders: Record<string, ProviderName>;
+  private readonly defaultOllamaModel?: string;
+  private readonly gateProviders: Record<string, ResolvedGateProvider>;
+  private readonly gateClientCache: Map<string, ProviderClient> = new Map();
 
   constructor(config?: ProvidersConfig) {
     // Default to Claude-only if no config provided
     const effectiveConfig = config || { default: "claude" as const };
 
     this.defaultProvider = effectiveConfig.default;
-    this.gateProviders = effectiveConfig.gate_providers || {};
+
+    // Store Ollama config for creating per-gate clients
+    if (effectiveConfig.ollama?.enabled) {
+      this.ollamaBaseUrl = effectiveConfig.ollama.base_url;
+      this.ollamaApiKey = effectiveConfig.ollama.api_key;
+      this.defaultOllamaModel = effectiveConfig.ollama.model;
+    }
 
     // Always create Claude client
     this.claudeClient = new ProviderClient({ name: "claude" });
 
-    // Create Ollama client if enabled
+    // Create default Ollama client if enabled
     if (effectiveConfig.ollama?.enabled) {
-      this.ollamaClient = new ProviderClient({
+      this.defaultOllamaClient = new ProviderClient({
         name: "ollama",
         baseUrl: effectiveConfig.ollama.base_url,
         apiKey: effectiveConfig.ollama.api_key,
         model: effectiveConfig.ollama.model,
       });
     }
+
+    // Normalize gate_providers to ResolvedGateProvider format
+    this.gateProviders = {};
+    if (effectiveConfig.gate_providers) {
+      for (const [gate, config] of Object.entries(effectiveConfig.gate_providers)) {
+        if (typeof config === "string") {
+          // Simple format: "ollama"
+          this.gateProviders[gate] = { provider: config };
+        } else {
+          // Object format: { provider: "ollama", model: "qwen3-coder" }
+          this.gateProviders[gate] = {
+            provider: config.provider,
+            model: config.model,
+          };
+        }
+      }
+    }
   }
 
   /**
-   * Get the provider client for a specific gate
+   * Get the provider client for a specific gate (with per-gate model support)
    */
   public getClientForGate(gateName: string): ProviderClient {
-    const providerName = this.gateProviders[gateName] || this.defaultProvider;
+    const gateConfig = this.gateProviders[gateName];
+    const providerName = gateConfig?.provider || this.defaultProvider;
+    const gateModel = gateConfig?.model;
 
-    if (providerName === "ollama" && this.ollamaClient) {
-      return this.ollamaClient;
+    // Claude doesn't support model override
+    if (providerName === "claude") {
+      return this.claudeClient;
     }
 
-    // Fallback to Claude if Ollama requested but not configured
-    if (providerName === "ollama" && !this.ollamaClient) {
-      console.warn(`[WARN] Ollama requested for gate "${gateName}" but not configured. Using Claude.`);
+    // Ollama with per-gate model
+    if (providerName === "ollama") {
+      if (!this.ollamaBaseUrl) {
+        console.warn(`[WARN] Ollama requested for gate "${gateName}" but not configured. Using Claude.`);
+        return this.claudeClient;
+      }
+
+      // If no custom model, use default Ollama client
+      if (!gateModel) {
+        return this.defaultOllamaClient!;
+      }
+
+      // Create or retrieve cached client for this gate's model
+      const cacheKey = `ollama:${gateModel}`;
+      if (!this.gateClientCache.has(cacheKey)) {
+        this.gateClientCache.set(cacheKey, new ProviderClient({
+          name: "ollama",
+          baseUrl: this.ollamaBaseUrl,
+          apiKey: this.ollamaApiKey,
+          model: gateModel,
+        }));
+      }
+      return this.gateClientCache.get(cacheKey)!;
     }
 
     return this.claudeClient;
   }
 
   /**
+   * Get the model name for a specific gate (for display)
+   */
+  public getModelForGate(gateName: string): string | undefined {
+    const gateConfig = this.gateProviders[gateName];
+    return gateConfig?.model || this.defaultOllamaModel;
+  }
+
+  /**
    * Get the default provider client (for implementation phase)
    */
   public getDefaultClient(): ProviderClient {
-    if (this.defaultProvider === "ollama" && this.ollamaClient) {
-      return this.ollamaClient;
+    if (this.defaultProvider === "ollama" && this.defaultOllamaClient) {
+      return this.defaultOllamaClient;
     }
     return this.claudeClient;
   }
@@ -804,8 +885,8 @@ class ProviderRegistry {
 
     results.claude = await this.claudeClient.healthCheck();
 
-    if (this.ollamaClient) {
-      results.ollama = await this.ollamaClient.healthCheck();
+    if (this.defaultOllamaClient) {
+      results.ollama = await this.defaultOllamaClient.healthCheck();
     }
 
     return results;
@@ -815,7 +896,7 @@ class ProviderRegistry {
    * Check if Ollama is configured
    */
   public hasOllama(): boolean {
-    return !!this.ollamaClient;
+    return !!this.defaultOllamaClient;
   }
 
   /**
@@ -824,20 +905,27 @@ class ProviderRegistry {
   public getSummary(): string {
     const parts = [`Default: ${this.defaultProvider}`];
 
-    if (this.ollamaClient) {
-      parts.push(`Ollama: ${this.ollamaClient.getDisplayName()}`);
+    if (this.defaultOllamaClient) {
+      parts.push(`Ollama: ${this.defaultOllamaClient.getDisplayName()}`);
+      if (this.defaultOllamaModel) {
+        parts.push(`Model: ${this.defaultOllamaModel}`);
+      }
     }
 
     const overrides = Object.entries(this.gateProviders);
     if (overrides.length > 0) {
-      const claudeGates = overrides.filter(([, p]) => p === "claude").map(([g]) => g);
-      const ollamaGates = overrides.filter(([, p]) => p === "ollama").map(([g]) => g);
+      const claudeGates = overrides.filter(([, cfg]) => cfg.provider === "claude").map(([g]) => g);
+      const ollamaGates = overrides.filter(([, cfg]) => cfg.provider === "ollama").map(([g]) => g);
+      const customModelGates = overrides.filter(([, cfg]) => cfg.model).map(([g, cfg]) => `${g}:${cfg.model}`);
 
       if (claudeGates.length > 0) {
         parts.push(`Claude gates: ${claudeGates.join(", ")}`);
       }
       if (ollamaGates.length > 0) {
         parts.push(`Ollama gates: ${ollamaGates.join(", ")}`);
+      }
+      if (customModelGates.length > 0) {
+        parts.push(`Custom models: ${customModelGates.join(", ")}`);
       }
     }
 
@@ -1435,7 +1523,8 @@ async function runSingleGate(
 
   // Get the provider for this gate (may be different from default in hybrid mode)
   const providerClient = ctx.providerRegistry.getClientForGate(gateName);
-  ctx.logger.info(`[${gateName}] Provider: ${providerClient.getDisplayName()}`);
+  const modelInfo = providerClient.getModel() ? ` (${providerClient.getModel()})` : "";
+  ctx.logger.info(`[${gateName}] Provider: ${providerClient.getDisplayName()}${modelInfo}`);
 
   const executeGate = async (): Promise<void> => {
     for await (const message of query({
