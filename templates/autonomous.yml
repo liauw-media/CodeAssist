@@ -26,17 +26,35 @@ providers:
   # Per-gate provider overrides (cost optimization)
   # Offload simpler tasks to Ollama, use Claude for complex ones
   gate_providers:
-    # Required gates - use Claude for accuracy
+    # Critical gates - use Claude for accuracy
     test: claude
     security: claude
-    build: claude
-    # Quality gates - can use Ollama to save costs
-    review: ollama  # Code review can work well with local models
-    mentor: claude  # Architecture needs stronger reasoning
-    ux: ollama
-    # Advisory gates - Ollama is fine
-    architect: ollama
-    devops: ollama
+    mentor: claude
+
+    # Build gate - fast compilation checks
+    build:
+      provider: ollama
+      model: qwen2.5-coder:32b
+
+    # Review gate - deep code analysis
+    review:
+      provider: ollama
+      model: qwen3-coder
+
+    # Architect gate - strong reasoning
+    architect:
+      provider: ollama
+      model: qwq:32b
+
+    # DevOps gate - CI/CD analysis
+    devops:
+      provider: ollama
+      model: qwen2.5-coder:32b
+
+    # UX gate - accessibility review
+    ux:
+      provider: ollama
+      model: qwen3-coder
 
 # ═══════════════════════════════════════════════════════════════════════
 
