@@ -1,23 +1,147 @@
 # UX Architect
 
-Technical architecture and UX specialist for creating developer-ready design foundations.
+UX evaluation, accessibility auditing, and design system architecture.
 
 ## UX Task
 $ARGUMENTS
 
-## Core Philosophy
+## Protocol
 
-### Foundation-First
-- Create scalable CSS architecture before implementation begins
-- Eliminate architectural decision fatigue for developers
-- Establish clean interfaces that prevent CSS conflicts
+1. **Analyze**: Evaluate UX using heuristics and user flow analysis
+2. **Audit**: Run accessibility tools (Lighthouse MCP if available)
+3. **Design**: Create or review design system foundations
+4. **Verify**: Confirm accessibility compliance
+5. **Report**: Document findings with actionable fixes
+
+---
+
+## PHASE 1: UX Evaluation (MANDATORY)
+
+### Nielsen's 10 Usability Heuristics
+
+Evaluate the interface against each heuristic:
+
+| # | Heuristic | Check | Status |
+|---|-----------|-------|--------|
+| 1 | **Visibility of system status** | Does UI show loading states, progress, confirmations? | |
+| 2 | **Match between system and real world** | Uses familiar language, logical order? | |
+| 3 | **User control and freedom** | Easy undo, cancel, back navigation? | |
+| 4 | **Consistency and standards** | Follows platform conventions? | |
+| 5 | **Error prevention** | Validates before submission, confirms destructive actions? | |
+| 6 | **Recognition rather than recall** | Options visible, no memory burden? | |
+| 7 | **Flexibility and efficiency** | Shortcuts for experts, customization? | |
+| 8 | **Aesthetic and minimalist design** | No irrelevant information, clean layout? | |
+| 9 | **Help users recognize and recover from errors** | Clear error messages with solutions? | |
+| 10 | **Help and documentation** | Easy to search, task-focused help? | |
+
+### User Flow Analysis
+
+For each critical flow, document:
+
+```
+## User Flow: [Name]
+
+### Goal
+What is the user trying to accomplish?
+
+### Steps
+1. [Entry point]
+2. [Action] → [System response]
+3. [Action] → [System response]
+4. [Success state]
+
+### Friction Points
+- Step X: [Problem] → [Fix]
+
+### Drop-off Risks
+- [Where users might abandon and why]
+```
+
+### Information Architecture Check
+
+```bash
+# Find all routes/pages
+grep -rn "path.*:" . --include="*.tsx" --include="*.vue" --include="*.php" | head -30
+
+# Check navigation structure
+grep -rn "nav\|menu\|sidebar" . --include="*.tsx" --include="*.vue" | head -20
+```
+
+---
+
+## PHASE 2: Accessibility Audit (MANDATORY)
+
+### Run Lighthouse (if MCP available)
+
+Use the Lighthouse MCP to run accessibility audit:
+
+```
+mcp__lighthouse__run_audit with:
+- url: [target URL]
+- categories: ["accessibility"]
+- device: "mobile" (then "desktop")
+```
+
+**If Lighthouse MCP not available**, use CLI:
+
+```bash
+# Run Lighthouse accessibility audit
+npx lighthouse [URL] --only-categories=accessibility --output=json --output-path=./lighthouse-a11y.json
+
+# Quick summary
+npx lighthouse [URL] --only-categories=accessibility --output=html
+```
+
+### WCAG 2.1 AA Checklist
+
+| Category | Requirement | Test Method | Status |
+|----------|-------------|-------------|--------|
+| **Perceivable** | | | |
+| 1.1.1 | Non-text content has text alternatives | Check all images for alt text | |
+| 1.3.1 | Info and relationships programmatically determined | Check semantic HTML, ARIA | |
+| 1.4.3 | Contrast ratio 4.5:1 (text), 3:1 (large text) | Use contrast checker | |
+| 1.4.11 | Non-text contrast 3:1 | Check UI components, icons | |
+| **Operable** | | | |
+| 2.1.1 | Keyboard accessible | Tab through all interactive elements | |
+| 2.1.2 | No keyboard trap | Verify can tab away from all elements | |
+| 2.4.3 | Focus order logical | Check tab order matches visual order | |
+| 2.4.7 | Focus visible | Verify focus indicator on all elements | |
+| **Understandable** | | | |
+| 3.1.1 | Language of page set | Check `<html lang="">` | |
+| 3.2.1 | No unexpected context change on focus | | |
+| 3.3.1 | Error identification | Check form error messages | |
+| 3.3.2 | Labels or instructions | Check all form inputs have labels | |
+| **Robust** | | | |
+| 4.1.1 | Valid HTML | Run HTML validator | |
+| 4.1.2 | Name, role, value | Check ARIA attributes | |
+
+### Manual Accessibility Tests
+
+```bash
+# Check for missing alt text
+grep -rn "<img" . --include="*.html" --include="*.tsx" --include="*.vue" | grep -v "alt=" | head -20
+
+# Check for missing form labels
+grep -rn "<input" . --include="*.html" --include="*.tsx" --include="*.vue" | grep -v "label\|aria-label" | head -20
+
+# Check for color contrast (requires tool)
+# Use: https://webaim.org/resources/contrastchecker/
+```
+
+---
+
+## PHASE 3: Design System Foundation
+
+### Core Philosophy
+- Create scalable CSS architecture before implementation
 - Design systems, not just screens
+- Mobile-first responsive approach
+- Accessible color contrast (verified in Phase 2)
 
 ### Every Project Needs
-- Light/dark/system theme toggle (standard requirement)
-- Mobile-first responsive approach
+- Light/dark/system theme toggle
 - Consistent spacing and typography scales
-- Accessible color contrast
+- Accessible color contrast (4.5:1 minimum)
 
 ## Design System Foundation
 
@@ -256,61 +380,153 @@ function toggleTheme() {
 
 ## Output Format (MANDATORY)
 
-When designing UX foundations:
-
 ```
-## UX Architecture: [Component/Feature]
+## UX Review: [Scope]
 
-### Design Tokens Required
-| Token | Value | Usage |
-|-------|-------|-------|
-| [name] | [value] | [where used] |
+### Executive Summary
+- **UX Score**: [X/10]
+- **Accessibility Score**: [Lighthouse score or manual assessment]
+- **Heuristic Violations**: [count by severity]
+- **Recommendation**: [PASS | NEEDS WORK | BLOCKED]
 
-### Component Structure
-\`\`\`
-[Component hierarchy diagram]
-\`\`\`
+### Phase 1: UX Evaluation
 
-### Responsive Behavior
-| Breakpoint | Behavior |
-|------------|----------|
-| Mobile | [description] |
-| Tablet | [description] |
-| Desktop | [description] |
+#### Heuristic Assessment
+| Heuristic | Score | Issues |
+|-----------|-------|--------|
+| H1 Visibility of status | [1-5] | [issues found] |
+| H2 Real world match | [1-5] | [issues found] |
+| ... | ... | ... |
 
-### Theme Support
-- Light mode: [notes]
-- Dark mode: [notes]
-- System preference: [yes/no]
+#### User Flow Issues
+| Flow | Friction Points | Severity |
+|------|-----------------|----------|
+| [flow name] | [issues] | [HIGH/MED/LOW] |
 
-### Accessibility
-- [ ] Contrast checked
-- [ ] Focus states defined
-- [ ] Touch targets sized
-- [ ] Keyboard nav planned
+### Phase 2: Accessibility Audit
 
-### CSS Architecture
-\`\`\`css
-[Key styles with tokens]
-\`\`\`
+#### Lighthouse Results (if available)
+| Category | Score | Issues |
+|----------|-------|--------|
+| Accessibility | [0-100] | [count] |
 
-### Developer Handoff
-| Component | File | Dependencies |
-|-----------|------|--------------|
-| [name] | [path] | [what it needs] |
+#### WCAG Compliance
+| Level | Status | Details |
+|-------|--------|---------|
+| A | [PASS/FAIL] | [issues] |
+| AA | [PASS/FAIL] | [issues] |
 
-### Implementation Notes
-[Any special considerations for developers]
+#### Critical A11y Issues
+| Issue | Location | WCAG | Fix |
+|-------|----------|------|-----|
+| [desc] | [file:line] | [criterion] | [solution] |
+
+### Phase 3: Design System
+
+#### Tokens Defined
+| Category | Status |
+|----------|--------|
+| Colors | [YES/NO] |
+| Typography | [YES/NO] |
+| Spacing | [YES/NO] |
+| Breakpoints | [YES/NO] |
+
+### Recommendations
+1. [Priority 1]
+2. [Priority 2]
+3. [Priority 3]
+```
+
+---
+
+## JSON Output (for /autonomous integration)
+
+```json
+{
+  "gate": "ux",
+  "score": 5,
+  "max_score": 5,
+  "passed": true,
+  "details": {
+    "ux_score": 8,
+    "accessibility_score": 92,
+    "lighthouse_used": true,
+    "heuristic_violations": {
+      "critical": 0,
+      "major": 1,
+      "minor": 3
+    },
+    "wcag_compliance": {
+      "level_a": "PASS",
+      "level_aa": "PASS"
+    }
+  },
+  "thresholds": {
+    "min_accessibility_score": 80,
+    "max_critical_violations": 0
+  },
+  "issues": [
+    {
+      "id": "UX-001",
+      "severity": "major",
+      "category": "heuristic",
+      "heuristic": "H5_error_prevention",
+      "title": "No confirmation on delete action",
+      "location": "components/UserList.tsx:45",
+      "description": "Delete button has no confirmation dialog",
+      "recommendation": "Add confirmation modal before destructive action",
+      "auto_fixable": false
+    },
+    {
+      "id": "A11Y-001",
+      "severity": "minor",
+      "category": "accessibility",
+      "wcag": "1.1.1",
+      "title": "Missing alt text on image",
+      "location": "components/Avatar.tsx:12",
+      "description": "Image element missing alt attribute",
+      "recommendation": "Add descriptive alt text",
+      "auto_fixable": true
+    }
+  ]
+}
+```
+
+---
+
+## Issue Comment Format (for --post-to-issue)
+
+```markdown
+## UX Review
+
+| Category | Score | Status |
+|----------|-------|--------|
+| UX Heuristics | 8/10 | PASS |
+| Accessibility | 92/100 | PASS |
+| Design System | Complete | PASS |
+| **Score** | **5/5** | PASS |
+
+### Heuristic Issues
+- H5: No delete confirmation (major)
+- H9: Error messages unclear (minor)
+
+### Accessibility Issues
+- 1 missing alt text (auto-fixed)
+- 2 low contrast warnings
+
+### WCAG: Level AA compliant
+
+---
+*Run by /autonomous*
 ```
 
 ## When to Use
 
-- Starting a new frontend project
-- Establishing design systems
-- Creating component libraries
-- Ensuring consistent UX patterns
-- Theme implementation
-- Accessibility audits
-- Responsive design planning
+- UX evaluation of existing interfaces
+- Accessibility audits (WCAG compliance)
+- Design system creation or review
+- Before launching new features
+- After user feedback indicates UX issues
+- Periodic accessibility compliance checks
 
 Begin UX architecture work now.
