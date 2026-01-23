@@ -111,19 +111,6 @@ No cloud API calls - complete privacy:
 **Cost savings:** 100% (no API costs)
 **Accuracy:** Good for simpler tasks, may need lower thresholds
 
-### Mode 3: Claude Default with Ollama Fallback
-
-Use Claude normally, fall back to Ollama on rate limits:
-
-```yaml
-providers:
-  default: claude
-  fallback: ollama
-  fallback_on:
-    - rate_limit
-    - api_error
-```
-
 ## Remote Ollama Server
 
 ### On Your Server (e.g., Tailscale network)
@@ -187,7 +174,7 @@ curl http://localhost:11434/v1/messages \
 ### Configuration
 - Base URL: http://localhost:11434
 - Default model: qwen3-coder
-- Mode: [hybrid/ollama_only/fallback]
+- Mode: [hybrid/ollama_only]
 
 ### Test Results
 | Test | Status |

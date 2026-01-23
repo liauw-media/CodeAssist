@@ -27,6 +27,7 @@ import {
 } from "fs";
 import { join, resolve } from "path";
 import * as yaml from "yaml";
+import { z } from "zod";
 
 // ============================================
 // CONSTANTS
@@ -55,6 +56,134 @@ const CIRCUIT_BREAKER_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
 const VALID_PRESETS = ["default", "production", "prototype", "frontend"] as const;
 type Preset = (typeof VALID_PRESETS)[number];
 
+// Provider presets (handled separately from general presets)
+const VALID_PROVIDER_PRESETS = ["ollama_hybrid", "ollama_only"] as const;
+
+// ============================================
+// ZOD SCHEMAS (Config Validation)
+// ============================================
+const GateConfigSchema = z.object({
+  weight: z.number()
+    .min(0, "Gate weight must be >= 0")
+    .max(100, "Gate weight must be <= 100"),
+  required: z.boolean(),
+  auto_fix: z.boolean(),
+  command: z.string().optional(),
+  description: z.string().optional(),
+  thresholds: z.record(z.number()).optional(),
+  parallel_group: z.number().int().min(0).optional(),
+  timeout_ms: z.number().int().positive().optional(),
+}).strict();
+
+const SafetyConfigSchema = z.object({
+  max_api_calls_per_hour: z.number()
+    .int()
+    .min(1, "Must allow at least 1 API call per hour")
+    .max(1000, "API call limit too high (max 1000)"),
+  max_issues_created_per_run: z.number()
+    .int()
+    .min(0, "Cannot create negative issues")
+    .max(50, "Issue creation limit too high (max 50)"),
+  forbidden: z.array(z.string()),
+}).strict();
+
+const GitCommitRulesSchema = z.object({
+  forbidden_patterns: z.array(z.string()),
+  auto_strip: z.boolean(),
+}).strict();
+
+const GitRulesConfigSchema = z.object({
+  protected_branches: z.array(z.string()),
+  commit_rules: GitCommitRulesSchema,
+}).strict();
+
+const AutonomousConfigSchema = z.object({
+  target_score: z.number()
+    .min(0, "Target score must be >= 0")
+    .max(100, "Target score must be <= 100"),
+  max_iterations: z.number()
+    .int()
+    .min(1, "Must allow at least 1 iteration")
+    .max(100, "Too many iterations (max 100)"),
+  iteration_delay: z.number()
+    .min(0, "Delay cannot be negative")
+    .max(300, "Delay too long (max 300 seconds)"),
+  gates: z.record(GateConfigSchema),
+  presets: z.record(z.any()).optional(),
+  safety: SafetyConfigSchema,
+  git_rules: GitRulesConfigSchema,
+  providers: z.any().optional(), // Validated separately in loadConfig
+}).strict();
+
+// Partial schema for user config files (all fields optional)
+const PartialAutonomousConfigSchema = z.object({
+  target_score: z.number().min(0).max(100).optional(),
+  max_iterations: z.number().int().min(1).max(100).optional(),
+  iteration_delay: z.number().min(0).max(300).optional(),
+  gates: z.record(GateConfigSchema.partial()).optional(),
+  presets: z.record(z.any()).optional(),
+  safety: SafetyConfigSchema.partial().optional(),
+  git_rules: GitRulesConfigSchema.deepPartial().optional(),
+  providers: z.any().optional(), // Validated separately
+}).passthrough();
+
+// ============================================
+// PROVIDER SCHEMAS
+// ============================================
+const ProviderNameSchema = z.enum(["claude", "ollama"]);
+type ProviderName = z.infer<typeof ProviderNameSchema>;
+
+const OllamaConfigSchema = z.object({
+  enabled: z.boolean(),
+  base_url: z.string().url("Invalid Ollama URL - must be a valid URL like http://localhost:11434"),
+  model: z.string().optional(),
+  api_key: z.string().optional(),
+}).strict();
+
+const ProvidersConfigSchema = z.object({
+  default: ProviderNameSchema,
+  ollama: OllamaConfigSchema.optional(),
+  gate_providers: z.record(ProviderNameSchema).optional(),
+}).strict();
+
+type ProvidersConfig = z.infer<typeof ProvidersConfigSchema>;
+
+// Provider presets for CLI
+const PROVIDER_PRESETS: Record<string, ProvidersConfig> = {
+  // Default: Claude only
+  default: {
+    default: "claude",
+  },
+
+  // Hybrid: Claude for critical gates, Ollama for others
+  ollama_hybrid: {
+    default: "claude",
+    ollama: {
+      enabled: true,
+      base_url: "http://localhost:11434",
+    },
+    gate_providers: {
+      test: "claude",
+      security: "claude",
+      build: "ollama",
+      review: "ollama",
+      mentor: "claude",
+      ux: "ollama",
+      architect: "ollama",
+      devops: "ollama",
+    },
+  },
+
+  // Fully local: Ollama only
+  ollama_only: {
+    default: "ollama",
+    ollama: {
+      enabled: true,
+      base_url: "http://localhost:11434",
+    },
+  },
+};
+
 // ============================================
 // TYPE DEFINITIONS
 // ============================================
@@ -77,6 +206,7 @@ interface AutonomousConfig {
   presets?: Record<string, Partial<AutonomousConfig>>;
   safety: SafetyConfig;
   git_rules: GitRulesConfig;
+  providers?: ProvidersConfig;
 }
 
 interface SafetyConfig {
@@ -398,6 +528,324 @@ class MetricsCollector {
 }
 
 // ============================================
+// PROVIDER CLIENT (Single Responsibility)
+// ============================================
+
+// Ollama model info from /api/tags
+interface OllamaModelInfo {
+  name: string;
+  size: number;
+  details: {
+    family: string;
+    families?: string[];
+    parameter_size: string;
+    quantization_level: string;
+  };
+}
+
+// Model classification for task routing
+type ModelCapability = "coding" | "reasoning" | "general" | "fast";
+
+const MODEL_FAMILY_CAPABILITIES: Record<string, ModelCapability> = {
+  // Coding-focused models
+  qwen: "coding",
+  qwen3: "coding",
+  qwen3moe: "coding",
+  "qwen3-coder": "coding",
+  codellama: "coding",
+  "deepseek-coder": "coding",
+  starcoder: "coding",
+  // Reasoning models
+  llama: "reasoning",
+  mistral: "reasoning",
+  minimaxm2: "reasoning",
+  // Fast/lightweight models
+  phi: "fast",
+  phi3: "fast",
+  gemma: "fast",
+  gemma3: "fast",
+  tinyllama: "fast",
+};
+
+function classifyModel(family: string, parameterSize: string): { capability: ModelCapability; tier: "small" | "medium" | "large" } {
+  const capability = MODEL_FAMILY_CAPABILITIES[family.toLowerCase()] || "general";
+
+  // Parse parameter size (e.g., "7B", "32B", "3.2B")
+  const sizeMatch = parameterSize.match(/(\d+\.?\d*)/);
+  const sizeNum = sizeMatch ? parseFloat(sizeMatch[1]) : 7;
+
+  let tier: "small" | "medium" | "large";
+  if (sizeNum < 7) {
+    tier = "small";
+  } else if (sizeNum < 20) {
+    tier = "medium";
+  } else {
+    tier = "large";
+  }
+
+  return { capability, tier };
+}
+
+interface ProviderClientConfig {
+  name: ProviderName;
+  baseUrl?: string;
+  apiKey?: string;
+  model?: string;
+}
+
+interface HealthCheckResult {
+  ok: boolean;
+  error?: string;
+  latencyMs?: number;
+  models?: OllamaModelInfo[];
+  configuredModelValid?: boolean;
+  configuredModelInfo?: OllamaModelInfo;
+}
+
+class ProviderClient {
+  private readonly config: ProviderClientConfig;
+
+  constructor(config: ProviderClientConfig) {
+    this.config = config;
+  }
+
+  /**
+   * Get isolated environment variables for this provider.
+   * Used with query({ options: { env: client.getEnv() }})
+   * This is the KEY to avoiding race conditions - each query gets its own env.
+   */
+  public getEnv(): Record<string, string | undefined> {
+    const env = { ...process.env };
+
+    if (this.config.name === "ollama") {
+      env.ANTHROPIC_BASE_URL = this.config.baseUrl;
+      env.ANTHROPIC_API_KEY = this.config.apiKey || "ollama";
+      env.ANTHROPIC_AUTH_TOKEN = this.config.apiKey || "ollama";
+    }
+    // For claude, we just use existing env vars (no override needed)
+
+    return env;
+  }
+
+  /**
+   * Fetch available models from Ollama server
+   */
+  public async listModels(): Promise<OllamaModelInfo[]> {
+    if (this.config.name !== "ollama") {
+      return [];
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(`${this.config.baseUrl}/api/tags`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        return [];
+      }
+
+      const data = await response.json() as { models: OllamaModelInfo[] };
+      return data.models || [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Check if the provider is reachable and configured model is valid
+   */
+  public async healthCheck(): Promise<HealthCheckResult> {
+    if (this.config.name === "claude") {
+      // Claude is always "healthy" if API key exists
+      const hasKey = !!process.env.ANTHROPIC_API_KEY;
+      return {
+        ok: hasKey,
+        error: hasKey ? undefined : "ANTHROPIC_API_KEY not set",
+      };
+    }
+
+    if (this.config.name === "ollama") {
+      const start = Date.now();
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+
+        const response = await fetch(`${this.config.baseUrl}/api/tags`, {
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+          return { ok: false, error: `HTTP ${response.status}` };
+        }
+
+        const data = await response.json() as { models: OllamaModelInfo[] };
+        const models = data.models || [];
+        const latencyMs = Date.now() - start;
+
+        // Validate configured model if specified
+        let configuredModelValid = true;
+        let configuredModelInfo: OllamaModelInfo | undefined;
+
+        if (this.config.model) {
+          // Match model name (with or without tag)
+          const configuredName = this.config.model.toLowerCase();
+          configuredModelInfo = models.find((m) => {
+            const modelName = m.name.toLowerCase();
+            // Exact match or prefix match (e.g., "llama3.2" matches "llama3.2:3b")
+            return modelName === configuredName || modelName.startsWith(configuredName + ":");
+          });
+          configuredModelValid = !!configuredModelInfo;
+        }
+
+        return {
+          ok: configuredModelValid,
+          error: configuredModelValid ? undefined : `Model "${this.config.model}" not found on server`,
+          latencyMs,
+          models,
+          configuredModelValid,
+          configuredModelInfo,
+        };
+      } catch (e) {
+        const error = e as Error;
+        if (error.name === "AbortError") {
+          return { ok: false, error: "Connection timeout (5s)" };
+        }
+        return { ok: false, error: error.message };
+      }
+    }
+
+    return { ok: false, error: "Unknown provider" };
+  }
+
+  public getName(): ProviderName {
+    return this.config.name;
+  }
+
+  public getDisplayName(): string {
+    if (this.config.name === "ollama") {
+      return `Ollama (${this.config.baseUrl})`;
+    }
+    return "Claude";
+  }
+
+  public getModel(): string | undefined {
+    return this.config.model;
+  }
+}
+
+// ============================================
+// PROVIDER REGISTRY (Single Responsibility)
+// ============================================
+class ProviderRegistry {
+  private readonly claudeClient: ProviderClient;
+  private readonly ollamaClient?: ProviderClient;
+  private readonly defaultProvider: ProviderName;
+  private readonly gateProviders: Record<string, ProviderName>;
+
+  constructor(config?: ProvidersConfig) {
+    // Default to Claude-only if no config provided
+    const effectiveConfig = config || { default: "claude" as const };
+
+    this.defaultProvider = effectiveConfig.default;
+    this.gateProviders = effectiveConfig.gate_providers || {};
+
+    // Always create Claude client
+    this.claudeClient = new ProviderClient({ name: "claude" });
+
+    // Create Ollama client if enabled
+    if (effectiveConfig.ollama?.enabled) {
+      this.ollamaClient = new ProviderClient({
+        name: "ollama",
+        baseUrl: effectiveConfig.ollama.base_url,
+        apiKey: effectiveConfig.ollama.api_key,
+        model: effectiveConfig.ollama.model,
+      });
+    }
+  }
+
+  /**
+   * Get the provider client for a specific gate
+   */
+  public getClientForGate(gateName: string): ProviderClient {
+    const providerName = this.gateProviders[gateName] || this.defaultProvider;
+
+    if (providerName === "ollama" && this.ollamaClient) {
+      return this.ollamaClient;
+    }
+
+    // Fallback to Claude if Ollama requested but not configured
+    if (providerName === "ollama" && !this.ollamaClient) {
+      console.warn(`[WARN] Ollama requested for gate "${gateName}" but not configured. Using Claude.`);
+    }
+
+    return this.claudeClient;
+  }
+
+  /**
+   * Get the default provider client (for implementation phase)
+   */
+  public getDefaultClient(): ProviderClient {
+    if (this.defaultProvider === "ollama" && this.ollamaClient) {
+      return this.ollamaClient;
+    }
+    return this.claudeClient;
+  }
+
+  /**
+   * Run health checks on all configured providers
+   */
+  public async healthCheckAll(): Promise<Record<string, HealthCheckResult>> {
+    const results: Record<string, HealthCheckResult> = {};
+
+    results.claude = await this.claudeClient.healthCheck();
+
+    if (this.ollamaClient) {
+      results.ollama = await this.ollamaClient.healthCheck();
+    }
+
+    return results;
+  }
+
+  /**
+   * Check if Ollama is configured
+   */
+  public hasOllama(): boolean {
+    return !!this.ollamaClient;
+  }
+
+  /**
+   * Get summary of provider configuration
+   */
+  public getSummary(): string {
+    const parts = [`Default: ${this.defaultProvider}`];
+
+    if (this.ollamaClient) {
+      parts.push(`Ollama: ${this.ollamaClient.getDisplayName()}`);
+    }
+
+    const overrides = Object.entries(this.gateProviders);
+    if (overrides.length > 0) {
+      const claudeGates = overrides.filter(([, p]) => p === "claude").map(([g]) => g);
+      const ollamaGates = overrides.filter(([, p]) => p === "ollama").map(([g]) => g);
+
+      if (claudeGates.length > 0) {
+        parts.push(`Claude gates: ${claudeGates.join(", ")}`);
+      }
+      if (ollamaGates.length > 0) {
+        parts.push(`Ollama gates: ${ollamaGates.join(", ")}`);
+      }
+    }
+
+    return parts.join(" | ");
+  }
+}
+
+// ============================================
 // STRUCTURED LOGGER (Single Responsibility)
 // ============================================
 class StructuredLogger {
@@ -459,6 +907,7 @@ class RunContext {
   public readonly auditLogger: AuditLogger;
   public readonly metrics: MetricsCollector;
   public readonly logger: StructuredLogger;
+  public readonly providerRegistry: ProviderRegistry;
 
   constructor(
     issueId: string,
@@ -470,6 +919,7 @@ class RunContext {
       checkpointManager?: CheckpointManager;
       auditLogger?: AuditLogger;
       metrics?: MetricsCollector;
+      providerRegistry?: ProviderRegistry;
     }
   ) {
     this.runId = `ralph-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -484,6 +934,7 @@ class RunContext {
     this.auditLogger = dependencies?.auditLogger ?? new AuditLogger();
     this.metrics = dependencies?.metrics ?? new MetricsCollector();
     this.logger = new StructuredLogger(this.runId);
+    this.providerRegistry = dependencies?.providerRegistry ?? new ProviderRegistry(config.providers);
   }
 
   public saveCheckpoint(): void {
@@ -517,8 +968,13 @@ function validateIssueId(input: string): string {
 
 function validatePreset(input: string | undefined): Preset | undefined {
   if (!input) return undefined;
+  // Allow provider presets (they're handled separately in loadConfig)
+  if (VALID_PROVIDER_PRESETS.includes(input as typeof VALID_PROVIDER_PRESETS[number])) {
+    return undefined; // Not a general preset, but valid
+  }
   if (!VALID_PRESETS.includes(input as Preset)) {
-    throw new Error(`Invalid preset: "${input}". Valid: ${VALID_PRESETS.join(", ")}`);
+    const allValid = [...VALID_PRESETS, ...VALID_PROVIDER_PRESETS].join(", ");
+    throw new Error(`Invalid preset: "${input}". Valid: ${allValid}`);
   }
   return input as Preset;
 }
@@ -562,6 +1018,13 @@ function validateEnvironment(): void {
 // ============================================
 // CONFIGURATION
 // ============================================
+function formatZodError(error: z.ZodError): string {
+  return error.errors.map((e) => {
+    const path = e.path.join(".");
+    return `  - ${path ? `${path}: ` : ""}${e.message}`;
+  }).join("\n");
+}
+
 function loadConfig(preset?: string): AutonomousConfig {
   const defaultConfig: AutonomousConfig = {
     target_score: 95,
@@ -601,43 +1064,93 @@ function loadConfig(preset?: string): AutonomousConfig {
       const fileContent = readFileSync(CONFIG_PATH, "utf-8");
       const fileConfig = yaml.parse(fileContent, { strict: true });
 
-      if (typeof fileConfig !== "object" || fileConfig === null) {
-        throw new Error("Invalid config: must be an object");
-      }
+      // Validate with Zod (partial schema allows missing fields)
+      const parseResult = PartialAutonomousConfigSchema.safeParse(fileConfig);
+      if (!parseResult.success) {
+        console.error("[ERROR] Configuration validation failed:");
+        console.error(formatZodError(parseResult.error));
+        console.error("\nUsing defaults. Fix the issues above in .claude/autonomous.yml");
+      } else {
+        const validConfig = parseResult.data;
 
-      if (fileConfig.target_score !== undefined) {
-        if (typeof fileConfig.target_score !== "number" || fileConfig.target_score < 0 || fileConfig.target_score > 100) {
-          throw new Error("Invalid target_score: must be 0-100");
+        // Merge validated config with defaults
+        if (validConfig.target_score !== undefined) {
+          defaultConfig.target_score = validConfig.target_score;
         }
-        defaultConfig.target_score = fileConfig.target_score;
-      }
-
-      if (fileConfig.max_iterations !== undefined) {
-        if (typeof fileConfig.max_iterations !== "number" || fileConfig.max_iterations < 1) {
-          throw new Error("Invalid max_iterations: must be >= 1");
+        if (validConfig.max_iterations !== undefined) {
+          defaultConfig.max_iterations = validConfig.max_iterations;
         }
-        defaultConfig.max_iterations = fileConfig.max_iterations;
-      }
+        if (validConfig.iteration_delay !== undefined) {
+          defaultConfig.iteration_delay = validConfig.iteration_delay;
+        }
+        if (validConfig.gates) {
+          for (const [gateName, gateConfig] of Object.entries(validConfig.gates)) {
+            if (defaultConfig.gates[gateName]) {
+              Object.assign(defaultConfig.gates[gateName], gateConfig);
+            } else {
+              // New gate - ensure required fields have defaults
+              defaultConfig.gates[gateName] = {
+                weight: gateConfig.weight ?? 0,
+                required: gateConfig.required ?? false,
+                auto_fix: gateConfig.auto_fix ?? false,
+                ...gateConfig,
+              };
+            }
+          }
+        }
+        if (validConfig.safety) {
+          Object.assign(defaultConfig.safety, validConfig.safety);
+        }
+        if (validConfig.git_rules) {
+          if (validConfig.git_rules.protected_branches) {
+            defaultConfig.git_rules.protected_branches = validConfig.git_rules.protected_branches;
+          }
+          if (validConfig.git_rules.commit_rules) {
+            Object.assign(defaultConfig.git_rules.commit_rules, validConfig.git_rules.commit_rules);
+          }
+        }
+        if (validConfig.presets) {
+          defaultConfig.presets = validConfig.presets;
+        }
 
-      if (fileConfig.gates) {
-        Object.assign(defaultConfig.gates, fileConfig.gates);
-      }
-
-      if (fileConfig.presets) {
-        defaultConfig.presets = fileConfig.presets;
+        // Handle providers config
+        if (validConfig.providers) {
+          const providersResult = ProvidersConfigSchema.safeParse(validConfig.providers);
+          if (!providersResult.success) {
+            console.error("[ERROR] Provider configuration validation failed:");
+            console.error(formatZodError(providersResult.error));
+            console.error("\nProviders config ignored. Using Claude only.");
+          } else {
+            defaultConfig.providers = providersResult.data;
+          }
+        }
       }
     } catch (e) {
       const message = e instanceof Error ? e.message : "Unknown error";
-      console.warn(`[WARN] Config error: ${message}. Using defaults.`);
+      console.warn(`[WARN] Config parse error: ${message}. Using defaults.`);
     }
   }
 
+  // Apply general preset (default, production, prototype, frontend)
   const validatedPreset = validatePreset(preset);
   if (validatedPreset && defaultConfig.presets?.[validatedPreset]) {
     Object.assign(defaultConfig, defaultConfig.presets[validatedPreset]);
   }
 
-  return defaultConfig;
+  // Apply provider preset if specified (ollama_hybrid, ollama_only)
+  if (preset && PROVIDER_PRESETS[preset]) {
+    defaultConfig.providers = PROVIDER_PRESETS[preset];
+  }
+
+  // Final validation of merged config
+  const finalResult = AutonomousConfigSchema.safeParse(defaultConfig);
+  if (!finalResult.success) {
+    console.error("[ERROR] Final config validation failed:");
+    console.error(formatZodError(finalResult.error));
+    throw new Error("Configuration validation failed");
+  }
+
+  return finalResult.data;
 }
 
 // ============================================
@@ -920,6 +1433,10 @@ async function runSingleGate(
 
   const agentName = getAgentNameForGate(gateName);
 
+  // Get the provider for this gate (may be different from default in hybrid mode)
+  const providerClient = ctx.providerRegistry.getClientForGate(gateName);
+  ctx.logger.info(`[${gateName}] Provider: ${providerClient.getDisplayName()}`);
+
   const executeGate = async (): Promise<void> => {
     for await (const message of query({
       prompt: `Use the ${agentName} agent to evaluate this codebase. Return only valid JSON.`,
@@ -928,6 +1445,7 @@ async function runSingleGate(
         allowedTools: ["Task", "Read", "Glob", "Grep", "Bash", "Edit"],
         agents: gateAgents,
         permissionMode: gateConfig.auto_fix ? "acceptEdits" : "bypassPermissions",
+        env: providerClient.getEnv(),  // Isolated env for this provider
       },
     })) {
       if (isResultMessage(message)) {
@@ -1111,8 +1629,23 @@ async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<
   console.log(`  Max iterations: ${config.max_iterations}`);
   console.log(`  Preset: ${options.preset || "default"}`);
   console.log(`  Run ID: ${ctx.runId}`);
+  console.log(`  Providers: ${ctx.providerRegistry.getSummary()}`);
   if (options.dryRun) console.log("  MODE: DRY RUN (no changes will be made)");
   console.log("=".repeat(60) + "\n");
+
+  // Health check providers if Ollama is configured
+  if (ctx.providerRegistry.hasOllama()) {
+    ctx.logger.info("Checking provider health...");
+    const health = await ctx.providerRegistry.healthCheckAll();
+    for (const [name, result] of Object.entries(health)) {
+      if (result.ok) {
+        ctx.logger.info(`  ${name}: OK${result.latencyMs ? ` (${result.latencyMs}ms)` : ""}`);
+      } else {
+        ctx.logger.warn(`  ${name}: FAILED - ${result.error}`);
+      }
+    }
+    console.log();
+  }
 
   if (options.dryRun) {
     console.log("[DRY RUN] Configuration validated. Would execute:");
@@ -1121,6 +1654,7 @@ async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<
     console.log(`  - Run gates: ${Object.keys(config.gates).join(", ")}`);
     console.log(`  - Target score: ${config.target_score}`);
     console.log(`  - Gate timeout: ${DEFAULT_GATE_TIMEOUT_MS / 1000}s`);
+    console.log(`  - Providers: ${ctx.providerRegistry.getSummary()}`);
     return;
   }
 
@@ -1134,6 +1668,10 @@ async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<
     ],
     PostToolUse: [{ matcher: "Edit|Write|Bash", hooks: [createAuditHook(ctx)] }],
   };
+
+  // Use default provider for implementation phase
+  const implementationProvider = ctx.providerRegistry.getDefaultClient();
+  ctx.logger.info(`Implementation provider: ${implementationProvider.getDisplayName()}`);
 
   for await (const message of query({
     prompt: `You are starting an autonomous development session for issue #${issueId}.
@@ -1154,6 +1692,7 @@ RULES:
       agents: gateAgents,
       permissionMode: "acceptEdits",
       hooks,
+      env: implementationProvider.getEnv(),  // Isolated env for provider
     },
   })) {
     if (isSystemMessage(message) && message.subtype === "init") {
@@ -1274,6 +1813,7 @@ Use: gh pr create --fill --base staging`,
       options: {
         resume: ctx.sessionId,
         allowedTools: ["Bash", "Read"],
+        env: implementationProvider.getEnv(),
       },
     })) {
       if (isResultMessage(message)) {
@@ -1317,14 +1857,129 @@ process.on("SIGTERM", () => {
 // ============================================
 // CLI
 // ============================================
-function parseArgs(): { issueId?: string; preset?: string; supervised: boolean; dryRun: boolean } {
+function parseArgs(): { issueId?: string; preset?: string; supervised: boolean; dryRun: boolean; testProvider: boolean } {
   const args = process.argv.slice(2);
   return {
     issueId: args.find((a) => a.startsWith("--issue="))?.split("=")[1],
     preset: args.find((a) => a.startsWith("--preset="))?.split("=")[1],
     supervised: args.includes("--supervised"),
     dryRun: args.includes("--dry-run"),
+    testProvider: args.includes("--test-provider"),
   };
+}
+
+async function testProviders(preset?: string): Promise<void> {
+  console.log("\n" + "=".repeat(50));
+  console.log("           PROVIDER HEALTH CHECK");
+  console.log("=".repeat(50) + "\n");
+
+  const config = loadConfig(preset);
+  const registry = new ProviderRegistry(config.providers);
+
+  console.log("Testing providers...\n");
+
+  const results = await registry.healthCheckAll();
+  let allHealthy = true;
+
+  // Display Claude results
+  if (results.claude) {
+    console.log("  Claude API:");
+    if (results.claude.ok) {
+      console.log("    \u2713 ANTHROPIC_API_KEY is set");
+      console.log("    \u2713 Provider configured");
+    } else {
+      console.log("    \u2717 " + (results.claude.error || "Not configured"));
+      allHealthy = false;
+    }
+    console.log();
+  }
+
+  // Display Ollama results
+  if (results.ollama) {
+    const ollamaConfig = config.providers?.ollama;
+    const url = ollamaConfig?.base_url || "http://localhost:11434";
+    console.log(`  Ollama (${url}):`);
+
+    // Check if server is reachable (latencyMs indicates successful connection)
+    const serverReachable = results.ollama.latencyMs !== undefined;
+
+    if (serverReachable) {
+      console.log("    \u2713 Server reachable");
+      console.log(`    \u2713 Response time: ${results.ollama.latencyMs}ms`);
+
+      // Show available models
+      if (results.ollama.models && results.ollama.models.length > 0) {
+        console.log(`    \u2713 Available models: ${results.ollama.models.length}`);
+        console.log();
+        console.log("    Available Models:");
+        for (const model of results.ollama.models) {
+          const { capability, tier } = classifyModel(
+            model.details.family,
+            model.details.parameter_size
+          );
+          const sizeGB = (model.size / 1024 / 1024 / 1024).toFixed(1);
+          console.log(
+            `      - ${model.name} (${model.details.parameter_size}, ${sizeGB}GB)`
+          );
+          console.log(
+            `        Family: ${model.details.family} | Capability: ${capability} | Tier: ${tier}`
+          );
+        }
+        console.log();
+      } else {
+        console.log("    \u26a0 No models found. Pull one with: ollama pull <model>");
+        allHealthy = false;
+      }
+
+      // Validate configured model
+      if (ollamaConfig?.model) {
+        if (results.ollama.configuredModelValid && results.ollama.configuredModelInfo) {
+          const info = results.ollama.configuredModelInfo;
+          const { capability, tier } = classifyModel(
+            info.details.family,
+            info.details.parameter_size
+          );
+          console.log(`    \u2713 Configured model: ${ollamaConfig.model}`);
+          console.log(`      Matched: ${info.name} (${info.details.parameter_size})`);
+          console.log(`      Capability: ${capability} | Tier: ${tier}`);
+        } else {
+          console.log(`    \u2717 Configured model "${ollamaConfig.model}" NOT FOUND`);
+          console.log("      Available models:");
+          for (const model of results.ollama.models || []) {
+            console.log(`        - ${model.name}`);
+          }
+          allHealthy = false;
+        }
+      } else {
+        console.log("    \u26a0 No model configured. Add 'model: <name>' to config.");
+      }
+    } else {
+      console.log("    \u2717 " + (results.ollama.error || "Connection failed"));
+      allHealthy = false;
+    }
+    console.log();
+  }
+
+  // Summary
+  console.log("=".repeat(50));
+  if (allHealthy) {
+    console.log("\u2713 All providers healthy.");
+    console.log("=".repeat(50) + "\n");
+    process.exit(0);
+  } else {
+    console.log("\u2717 Some providers are unhealthy.");
+    console.log("=".repeat(50));
+    console.log("\nTroubleshooting:");
+    if (results.ollama && !results.ollama.ok) {
+      console.log("  - Start Ollama: ollama serve");
+      console.log("  - Check URL in config: .claude/autonomous.yml");
+    }
+    if (results.claude && !results.claude.ok) {
+      console.log("  - Set ANTHROPIC_API_KEY environment variable");
+    }
+    console.log();
+    process.exit(1);
+  }
 }
 
 function printUsage(): void {
@@ -1336,12 +1991,15 @@ USAGE:
   npx ts-node ralph-runner.ts --issue=123 --preset=production
   npx ts-node ralph-runner.ts --issue=123 --supervised
   npx ts-node ralph-runner.ts --issue=123 --dry-run
+  npx ts-node ralph-runner.ts --test-provider
+  npx ts-node ralph-runner.ts --test-provider --preset=ollama_hybrid
 
 OPTIONS:
-  --issue=ID      Run on a single issue (required)
-  --preset=NAME   Use config preset (default, production, prototype, frontend)
-  --supervised    Pause after each iteration for review
-  --dry-run       Validate config without executing
+  --issue=ID       Run on a single issue (required for runs)
+  --preset=NAME    Use config preset (default, production, ollama_hybrid, ollama_only)
+  --supervised     Pause after each iteration for review
+  --dry-run        Validate config without executing
+  --test-provider  Test provider connectivity and exit
 
 ENVIRONMENT:
   ANTHROPIC_API_KEY  Required: Your Anthropic API key
@@ -1371,9 +2029,15 @@ CONFIG: .claude/autonomous.yml
 }
 
 // Main
-const { issueId, preset, supervised, dryRun } = parseArgs();
+const { issueId, preset, supervised, dryRun, testProvider } = parseArgs();
 
-if (issueId) {
+if (testProvider) {
+  // Health check mode - test providers and exit
+  testProviders(preset).catch((e) => {
+    console.error("[FATAL]", e.message);
+    process.exit(1);
+  });
+} else if (issueId) {
   validateEnvironment();
   try {
     const validatedIssueId = validateIssueId(issueId);
