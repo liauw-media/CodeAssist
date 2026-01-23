@@ -53,54 +53,18 @@ OLLAMA_HOST=0.0.0.0:11434 ollama serve
 
 ## Configuration
 
-### Configuration Hierarchy
-
-Ralph Runner uses a layered configuration system (highest to lowest priority):
-
-1. **CLI flags**: `--provider=ollama --model=qwen3-coder`
-2. **Environment variables**: `CODEASSIST_PROVIDER=ollama`
-3. **Project config**: `.claude/autonomous.yml`
-4. **User config**: `~/.claude/codeassist.yml`
-5. **Built-in defaults**: Claude API
-
-### User Configuration (Recommended)
-
-Create `~/.claude/codeassist.yml` for user-level settings that apply across all projects:
-
-```yaml
-# ~/.claude/codeassist.yml
-providers:
-  default: claude  # or ollama
-
-  claude:
-    model: claude-sonnet-4-20250514
-
-  ollama:
-    base_url: http://localhost:11434
-    model: qwen3-coder
-
-defaults:
-  target_score: 95
-  preset: default  # or ollama_hybrid, ollama_only
-```
-
-You can copy the template from `templates/codeassist.yml`.
-
 ### Environment Variables
 
 ```bash
-# Override provider via environment
-export CODEASSIST_PROVIDER=ollama
-export OLLAMA_BASE_URL=http://localhost:11434
-
-# For Claude Code direct usage (not ralph-runner)
+# For Claude Code with Ollama backend
 export ANTHROPIC_BASE_URL=http://localhost:11434
 export ANTHROPIC_API_KEY=ollama  # Required but not validated
+export ANTHROPIC_AUTH_TOKEN=ollama
 ```
 
-### Project Configuration
+### Autonomous Configuration
 
-Add to `.claude/autonomous.yml` for project-specific overrides:
+Add to `.claude/autonomous.yml`:
 
 ```yaml
 providers:

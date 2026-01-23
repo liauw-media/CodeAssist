@@ -26,23 +26,16 @@ import {
   unlinkSync,
 } from "fs";
 import { join, resolve } from "path";
-import { homedir } from "os";
 import * as yaml from "yaml";
 
 // ============================================
 // CONSTANTS
 // ============================================
-const PROJECT_CONFIG_PATH = join(process.cwd(), ".claude", "autonomous.yml");
-const USER_CONFIG_PATH = join(homedir(), ".claude", "codeassist.yml");
+const CONFIG_PATH = join(process.cwd(), ".claude", "autonomous.yml");
 const AUDIT_LOG = join(process.cwd(), "autonomous-audit.log");
 const METRICS_FILE = join(process.cwd(), "autonomous-metrics.json");
 const STATE_FILE = join(process.cwd(), ".ralph-state.json");
 const GATES_DIR = join(__dirname, "gates");
-
-// Provider defaults
-const DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-20250514";
-const DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434";
-const DEFAULT_OLLAMA_MODEL = "qwen3-coder";
 
 // Scoring thresholds
 const GATE_PASS_THRESHOLD = 0.8;
@@ -59,49 +52,12 @@ const CIRCUIT_BREAKER_THRESHOLD = 5;
 const CIRCUIT_BREAKER_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
 
 // Valid presets
-const VALID_PRESETS = ["default", "production", "prototype", "frontend", "ollama_hybrid", "ollama_only"] as const;
+const VALID_PRESETS = ["default", "production", "prototype", "frontend"] as const;
 type Preset = (typeof VALID_PRESETS)[number];
-
-// Valid providers
-const VALID_PROVIDERS = ["claude", "ollama"] as const;
-type Provider = (typeof VALID_PROVIDERS)[number];
 
 // ============================================
 // TYPE DEFINITIONS
 // ============================================
-
-// Provider configuration types
-interface ProviderConfig {
-  default: Provider;
-  claude?: {
-    model?: string;
-    api_key?: string;
-  };
-  ollama?: {
-    enabled?: boolean;
-    base_url?: string;
-    model?: string;
-  };
-  gate_providers?: Record<string, Provider>;
-  fallback?: Provider;
-  fallback_on?: string[];
-}
-
-interface UserConfig {
-  providers?: ProviderConfig;
-  defaults?: {
-    target_score?: number;
-    preset?: Preset;
-    max_iterations?: number;
-    iteration_delay?: number;
-  };
-  safety?: Partial<SafetyConfig>;
-  logging?: {
-    level?: string;
-    directory?: string;
-  };
-}
-
 interface GateConfig {
   weight: number;
   required: boolean;
@@ -121,7 +77,6 @@ interface AutonomousConfig {
   presets?: Record<string, Partial<AutonomousConfig>>;
   safety: SafetyConfig;
   git_rules: GitRulesConfig;
-  providers: ProviderConfig;
 }
 
 interface SafetyConfig {
@@ -184,8 +139,6 @@ interface RunOptions {
   preset?: string;
   supervised: boolean;
   dryRun: boolean;
-  provider?: Provider;
-  model?: string;
 }
 
 interface GateDefinition {
@@ -570,14 +523,6 @@ function validatePreset(input: string | undefined): Preset | undefined {
   return input as Preset;
 }
 
-function validateProvider(input: string | undefined): Provider | undefined {
-  if (!input) return undefined;
-  if (!VALID_PROVIDERS.includes(input as Provider)) {
-    throw new Error(`Invalid provider: "${input}". Valid: ${VALID_PROVIDERS.join(", ")}`);
-  }
-  return input as Provider;
-}
-
 function sanitizeForShell(input: string): string {
   return input.replace(/[;&|`$(){}[\]<>\\'"!#*?~\n\r]/g, "");
 }
@@ -597,16 +542,7 @@ function escapeRegex(input: string): string {
 // ============================================
 // ENVIRONMENT VALIDATION
 // ============================================
-function validateEnvironment(provider: Provider = "claude"): void {
-  // For Ollama-only mode, ANTHROPIC_API_KEY is not required
-  if (provider === "ollama") {
-    // Ollama mode - check if base URL is accessible
-    const baseUrl = process.env.OLLAMA_BASE_URL || DEFAULT_OLLAMA_BASE_URL;
-    console.log(`[INFO] Using Ollama provider at ${baseUrl}`);
-    return;
-  }
-
-  // For Claude or hybrid mode, require API key
+function validateEnvironment(): void {
   const required = ["ANTHROPIC_API_KEY"];
   const missing = required.filter((key) => !process.env[key]);
 
@@ -615,7 +551,6 @@ function validateEnvironment(provider: Provider = "claude"): void {
     missing.forEach((key) => console.error(`  - ${key}`));
     console.error("\nSet them in your environment or .env file:");
     console.error("  export ANTHROPIC_API_KEY=your-api-key\n");
-    console.error("Or use Ollama mode: --provider=ollama");
     process.exit(1);
   }
 
@@ -627,130 +562,7 @@ function validateEnvironment(provider: Provider = "claude"): void {
 // ============================================
 // CONFIGURATION
 // ============================================
-
-/**
- * Configuration Hierarchy (highest to lowest priority):
- * 1. CLI flags (--provider=ollama, --model=qwen3-coder)
- * 2. Environment variables (CODEASSIST_PROVIDER, OLLAMA_BASE_URL)
- * 3. Project config (.claude/autonomous.yml)
- * 4. User config (~/.claude/codeassist.yml)
- * 5. Built-in defaults
- */
-
-function loadUserConfig(): UserConfig | null {
-  if (!existsSync(USER_CONFIG_PATH)) {
-    return null;
-  }
-
-  try {
-    const content = readFileSync(USER_CONFIG_PATH, "utf-8");
-    const config = yaml.parse(content, { strict: true });
-    if (typeof config !== "object" || config === null) {
-      throw new Error("Invalid user config: must be an object");
-    }
-    return config as UserConfig;
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Unknown error";
-    console.warn(`[WARN] User config error (${USER_CONFIG_PATH}): ${message}`);
-    return null;
-  }
-}
-
-function loadProjectConfig(): Partial<AutonomousConfig> | null {
-  if (!existsSync(PROJECT_CONFIG_PATH)) {
-    return null;
-  }
-
-  try {
-    const content = readFileSync(PROJECT_CONFIG_PATH, "utf-8");
-    const config = yaml.parse(content, { strict: true });
-    if (typeof config !== "object" || config === null) {
-      throw new Error("Invalid project config: must be an object");
-    }
-    return config as Partial<AutonomousConfig>;
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Unknown error";
-    console.warn(`[WARN] Project config error (${PROJECT_CONFIG_PATH}): ${message}`);
-    return null;
-  }
-}
-
-function getDefaultProviderConfig(): ProviderConfig {
-  return {
-    default: "claude",
-    claude: {
-      model: DEFAULT_CLAUDE_MODEL,
-    },
-    ollama: {
-      enabled: false,
-      base_url: DEFAULT_OLLAMA_BASE_URL,
-      model: DEFAULT_OLLAMA_MODEL,
-    },
-    gate_providers: {
-      // Default: all gates use default provider
-    },
-  };
-}
-
-function mergeProviderConfigs(
-  base: ProviderConfig,
-  override: Partial<ProviderConfig> | undefined
-): ProviderConfig {
-  if (!override) return base;
-
-  return {
-    default: override.default || base.default,
-    claude: { ...base.claude, ...override.claude },
-    ollama: { ...base.ollama, ...override.ollama },
-    gate_providers: { ...base.gate_providers, ...override.gate_providers },
-    fallback: override.fallback || base.fallback,
-    fallback_on: override.fallback_on || base.fallback_on,
-  };
-}
-
-function applyPresetProviders(preset: string, providers: ProviderConfig): ProviderConfig {
-  switch (preset) {
-    case "ollama_hybrid":
-      // Claude for critical gates, Ollama for others (~60% cost savings)
-      return {
-        ...providers,
-        default: "ollama",
-        ollama: { ...providers.ollama, enabled: true },
-        gate_providers: {
-          test: "claude",
-          security: "claude",
-          build: "claude",
-          review: "ollama",
-          mentor: "claude",
-          ux: "ollama",
-          architect: "ollama",
-          devops: "ollama",
-        },
-      };
-    case "ollama_only":
-      // Fully local, no API costs
-      return {
-        ...providers,
-        default: "ollama",
-        ollama: { ...providers.ollama, enabled: true },
-        gate_providers: {
-          test: "ollama",
-          security: "ollama",
-          build: "ollama",
-          review: "ollama",
-          mentor: "ollama",
-          ux: "ollama",
-          architect: "ollama",
-          devops: "ollama",
-        },
-      };
-    default:
-      return providers;
-  }
-}
-
-function loadConfig(options: { preset?: string; provider?: Provider; model?: string }): AutonomousConfig {
-  // Step 1: Built-in defaults
+function loadConfig(preset?: string): AutonomousConfig {
   const defaultConfig: AutonomousConfig = {
     target_score: 95,
     max_iterations: 15,
@@ -782,131 +594,50 @@ function loadConfig(options: { preset?: string; provider?: Provider; model?: str
         auto_strip: true,
       },
     },
-    providers: getDefaultProviderConfig(),
   };
 
-  // Step 2: Apply user config (~/.claude/codeassist.yml)
-  const userConfig = loadUserConfig();
-  if (userConfig) {
-    if (userConfig.defaults?.target_score !== undefined) {
-      defaultConfig.target_score = userConfig.defaults.target_score;
-    }
-    if (userConfig.defaults?.max_iterations !== undefined) {
-      defaultConfig.max_iterations = userConfig.defaults.max_iterations;
-    }
-    if (userConfig.defaults?.iteration_delay !== undefined) {
-      defaultConfig.iteration_delay = userConfig.defaults.iteration_delay;
-    }
-    if (userConfig.safety) {
-      Object.assign(defaultConfig.safety, userConfig.safety);
-    }
-    if (userConfig.providers) {
-      defaultConfig.providers = mergeProviderConfigs(defaultConfig.providers, userConfig.providers);
-    }
-    console.log(`[INFO] Loaded user config from ${USER_CONFIG_PATH}`);
-  }
+  if (existsSync(CONFIG_PATH)) {
+    try {
+      const fileContent = readFileSync(CONFIG_PATH, "utf-8");
+      const fileConfig = yaml.parse(fileContent, { strict: true });
 
-  // Step 3: Apply project config (.claude/autonomous.yml)
-  const projectConfig = loadProjectConfig();
-  if (projectConfig) {
-    if (projectConfig.target_score !== undefined) {
-      if (typeof projectConfig.target_score !== "number" || projectConfig.target_score < 0 || projectConfig.target_score > 100) {
-        throw new Error("Invalid target_score: must be 0-100");
+      if (typeof fileConfig !== "object" || fileConfig === null) {
+        throw new Error("Invalid config: must be an object");
       }
-      defaultConfig.target_score = projectConfig.target_score;
-    }
 
-    if (projectConfig.max_iterations !== undefined) {
-      if (typeof projectConfig.max_iterations !== "number" || projectConfig.max_iterations < 1) {
-        throw new Error("Invalid max_iterations: must be >= 1");
+      if (fileConfig.target_score !== undefined) {
+        if (typeof fileConfig.target_score !== "number" || fileConfig.target_score < 0 || fileConfig.target_score > 100) {
+          throw new Error("Invalid target_score: must be 0-100");
+        }
+        defaultConfig.target_score = fileConfig.target_score;
       }
-      defaultConfig.max_iterations = projectConfig.max_iterations;
-    }
 
-    if (projectConfig.gates) {
-      Object.assign(defaultConfig.gates, projectConfig.gates);
-    }
+      if (fileConfig.max_iterations !== undefined) {
+        if (typeof fileConfig.max_iterations !== "number" || fileConfig.max_iterations < 1) {
+          throw new Error("Invalid max_iterations: must be >= 1");
+        }
+        defaultConfig.max_iterations = fileConfig.max_iterations;
+      }
 
-    if (projectConfig.presets) {
-      defaultConfig.presets = projectConfig.presets;
-    }
+      if (fileConfig.gates) {
+        Object.assign(defaultConfig.gates, fileConfig.gates);
+      }
 
-    if (projectConfig.providers) {
-      defaultConfig.providers = mergeProviderConfigs(defaultConfig.providers, projectConfig.providers);
-    }
-
-    console.log(`[INFO] Loaded project config from ${PROJECT_CONFIG_PATH}`);
-  }
-
-  // Step 4: Apply preset
-  const validatedPreset = validatePreset(options.preset);
-  if (validatedPreset) {
-    // Apply preset-specific general settings
-    if (defaultConfig.presets?.[validatedPreset]) {
-      const presetConfig = defaultConfig.presets[validatedPreset];
-      Object.assign(defaultConfig, presetConfig);
-    }
-    // Apply preset-specific provider settings
-    defaultConfig.providers = applyPresetProviders(validatedPreset, defaultConfig.providers);
-  }
-
-  // Step 5: Apply environment variables
-  const envProvider = process.env.CODEASSIST_PROVIDER;
-  if (envProvider) {
-    const validated = validateProvider(envProvider);
-    if (validated) {
-      defaultConfig.providers.default = validated;
-      console.log(`[INFO] Provider from env: ${validated}`);
+      if (fileConfig.presets) {
+        defaultConfig.presets = fileConfig.presets;
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Unknown error";
+      console.warn(`[WARN] Config error: ${message}. Using defaults.`);
     }
   }
 
-  const envOllamaUrl = process.env.OLLAMA_BASE_URL;
-  if (envOllamaUrl && defaultConfig.providers.ollama) {
-    defaultConfig.providers.ollama.base_url = envOllamaUrl;
-  }
-
-  // Step 6: Apply CLI flags (highest priority)
-  if (options.provider) {
-    defaultConfig.providers.default = options.provider;
-    console.log(`[INFO] Provider from CLI: ${options.provider}`);
-  }
-
-  if (options.model) {
-    const provider = defaultConfig.providers.default;
-    if (provider === "ollama" && defaultConfig.providers.ollama) {
-      defaultConfig.providers.ollama.model = options.model;
-    } else if (provider === "claude" && defaultConfig.providers.claude) {
-      defaultConfig.providers.claude.model = options.model;
-    }
-    console.log(`[INFO] Model from CLI: ${options.model}`);
+  const validatedPreset = validatePreset(preset);
+  if (validatedPreset && defaultConfig.presets?.[validatedPreset]) {
+    Object.assign(defaultConfig, defaultConfig.presets[validatedPreset]);
   }
 
   return defaultConfig;
-}
-
-/**
- * Get the provider to use for a specific gate
- */
-function getProviderForGate(gateName: string, config: AutonomousConfig): {
-  provider: Provider;
-  baseUrl?: string;
-  model?: string;
-} {
-  const providers = config.providers;
-  const gateProvider = providers.gate_providers?.[gateName] || providers.default;
-
-  if (gateProvider === "ollama") {
-    return {
-      provider: "ollama",
-      baseUrl: providers.ollama?.base_url || DEFAULT_OLLAMA_BASE_URL,
-      model: providers.ollama?.model || DEFAULT_OLLAMA_MODEL,
-    };
-  }
-
-  return {
-    provider: "claude",
-    model: providers.claude?.model || DEFAULT_CLAUDE_MODEL,
-  };
 }
 
 // ============================================
@@ -1176,10 +907,6 @@ async function runSingleGate(
   const gateConfig = ctx.config.gates[gateName];
   const timeoutMs = gateConfig.timeout_ms || DEFAULT_GATE_TIMEOUT_MS;
 
-  // Get provider for this gate
-  const providerInfo = getProviderForGate(gateName, ctx.config);
-  ctx.logger.debug(`Gate ${gateName} using provider: ${providerInfo.provider} (model: ${providerInfo.model})`);
-
   const result: GateResult = {
     gate: gateName,
     score: 0,
@@ -1192,19 +919,6 @@ async function runSingleGate(
   };
 
   const agentName = getAgentNameForGate(gateName);
-
-  // Set environment for Ollama if needed
-  const originalBaseUrl = process.env.ANTHROPIC_BASE_URL;
-  const originalApiKey = process.env.ANTHROPIC_API_KEY;
-
-  if (providerInfo.provider === "ollama" && providerInfo.baseUrl) {
-    process.env.ANTHROPIC_BASE_URL = providerInfo.baseUrl;
-    // Ollama requires a dummy API key
-    if (!process.env.ANTHROPIC_API_KEY) {
-      process.env.ANTHROPIC_API_KEY = "ollama";
-    }
-    ctx.logger.info(`  [${gateName}] Using Ollama at ${providerInfo.baseUrl}`);
-  }
 
   const executeGate = async (): Promise<void> => {
     for await (const message of query({
@@ -1244,18 +958,6 @@ async function runSingleGate(
   } catch (e) {
     ctx.logger.error(`Gate ${gateName} execution failed`, { error: String(e) });
     ctx.circuitBreaker.recordFailure();
-  } finally {
-    // Restore original environment
-    if (providerInfo.provider === "ollama") {
-      if (originalBaseUrl !== undefined) {
-        process.env.ANTHROPIC_BASE_URL = originalBaseUrl;
-      } else {
-        delete process.env.ANTHROPIC_BASE_URL;
-      }
-      if (originalApiKey !== undefined) {
-        process.env.ANTHROPIC_API_KEY = originalApiKey;
-      }
-    }
   }
 
   result.duration = Date.now() - startTime;
@@ -1397,20 +1099,9 @@ ${gateRows}
 // MAIN AUTONOMOUS LOOP
 // ============================================
 async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<void> {
-  const config = loadConfig({
-    preset: options.preset,
-    provider: options.provider,
-    model: options.model,
-  });
+  const config = loadConfig(options.preset);
   const ctx = new RunContext(issueId, config, options);
   const gateAgents = loadGateDefinitions();
-
-  // Calculate provider distribution
-  const providerStats = { claude: 0, ollama: 0 };
-  for (const gate of Object.keys(config.gates)) {
-    const prov = config.providers.gate_providers?.[gate] || config.providers.default;
-    providerStats[prov]++;
-  }
 
   console.log("\n" + "=".repeat(60));
   console.log("          RALPH WIGGUM - Autonomous Development");
@@ -1419,14 +1110,6 @@ async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<
   console.log(`  Target: ${config.target_score}/100`);
   console.log(`  Max iterations: ${config.max_iterations}`);
   console.log(`  Preset: ${options.preset || "default"}`);
-  console.log(`  Provider: ${config.providers.default}`);
-  if (config.providers.default === "ollama" || providerStats.ollama > 0) {
-    console.log(`  Ollama URL: ${config.providers.ollama?.base_url || DEFAULT_OLLAMA_BASE_URL}`);
-    console.log(`  Ollama Model: ${config.providers.ollama?.model || DEFAULT_OLLAMA_MODEL}`);
-  }
-  if (providerStats.claude > 0 && providerStats.ollama > 0) {
-    console.log(`  Gate Distribution: Claude=${providerStats.claude}, Ollama=${providerStats.ollama}`);
-  }
   console.log(`  Run ID: ${ctx.runId}`);
   if (options.dryRun) console.log("  MODE: DRY RUN (no changes will be made)");
   console.log("=".repeat(60) + "\n");
@@ -1634,24 +1317,13 @@ process.on("SIGTERM", () => {
 // ============================================
 // CLI
 // ============================================
-function parseArgs(): {
-  issueId?: string;
-  preset?: string;
-  supervised: boolean;
-  dryRun: boolean;
-  provider?: Provider;
-  model?: string;
-} {
+function parseArgs(): { issueId?: string; preset?: string; supervised: boolean; dryRun: boolean } {
   const args = process.argv.slice(2);
-  const providerArg = args.find((a) => a.startsWith("--provider="))?.split("=")[1];
-
   return {
     issueId: args.find((a) => a.startsWith("--issue="))?.split("=")[1],
     preset: args.find((a) => a.startsWith("--preset="))?.split("=")[1],
     supervised: args.includes("--supervised"),
     dryRun: args.includes("--dry-run"),
-    provider: validateProvider(providerArg),
-    model: args.find((a) => a.startsWith("--model="))?.split("=")[1],
   };
 }
 
@@ -1664,33 +1336,17 @@ USAGE:
   npx ts-node ralph-runner.ts --issue=123 --preset=production
   npx ts-node ralph-runner.ts --issue=123 --supervised
   npx ts-node ralph-runner.ts --issue=123 --dry-run
-  npx ts-node ralph-runner.ts --issue=123 --preset=ollama_hybrid
-  npx ts-node ralph-runner.ts --issue=123 --provider=ollama --model=qwen3-coder
 
 OPTIONS:
-  --issue=ID       Run on a single issue (required)
-  --preset=NAME    Use config preset:
-                   - default, production, prototype, frontend
-                   - ollama_hybrid (Claude for critical, Ollama for others)
-                   - ollama_only (fully local, no API costs)
-  --provider=NAME  Override provider (claude, ollama)
-  --model=NAME     Override model (e.g., qwen3-coder, codellama:34b)
-  --supervised     Pause after each iteration for review
-  --dry-run        Validate config without executing
+  --issue=ID      Run on a single issue (required)
+  --preset=NAME   Use config preset (default, production, prototype, frontend)
+  --supervised    Pause after each iteration for review
+  --dry-run       Validate config without executing
 
 ENVIRONMENT:
-  ANTHROPIC_API_KEY    Required for Claude (not needed for ollama_only)
-  GITHUB_TOKEN         Optional: GitHub token (falls back to gh CLI)
-  CODEASSIST_PROVIDER  Override default provider (claude, ollama)
-  OLLAMA_BASE_URL      Ollama server URL (default: ${DEFAULT_OLLAMA_BASE_URL})
-  DEBUG                Enable debug logging
-
-CONFIGURATION HIERARCHY (highest to lowest priority):
-  1. CLI flags         --provider=ollama --model=qwen3-coder
-  2. Environment       CODEASSIST_PROVIDER=ollama
-  3. Project config    .claude/autonomous.yml
-  4. User config       ~/.claude/codeassist.yml
-  5. Built-in defaults
+  ANTHROPIC_API_KEY  Required: Your Anthropic API key
+  GITHUB_TOKEN       Optional: GitHub token (falls back to gh CLI)
+  DEBUG              Optional: Enable debug logging
 
 QUALITY GATES:
   /test       25pts  Tests + coverage
@@ -1702,14 +1358,6 @@ QUALITY GATES:
   /architect   0pts  System security (creates issues)
   /devops      0pts  CI/CD review (creates issues)
 
-OLLAMA PRESETS:
-  ollama_hybrid   Claude: test, security, build, mentor
-                  Ollama: review, ux, architect, devops
-                  (~60% API cost savings)
-
-  ollama_only     All gates use Ollama
-                  (100% local, no API costs)
-
 GATE DEFINITIONS:
   External YAML files in: scripts/gates/
   Override or add gates by creating *.yml files
@@ -1718,24 +1366,18 @@ TIMEOUTS:
   Default gate timeout: ${DEFAULT_GATE_TIMEOUT_MS / 1000 / 60} minutes
   Configure per-gate: timeout_ms in autonomous.yml
 
-CONFIG FILES:
-  User config:    ~/.claude/codeassist.yml
-  Project config: .claude/autonomous.yml
+CONFIG: .claude/autonomous.yml
 `);
 }
 
 // Main
-const { issueId, preset, supervised, dryRun, provider, model } = parseArgs();
+const { issueId, preset, supervised, dryRun } = parseArgs();
 
 if (issueId) {
-  // Determine effective provider for environment validation
-  // If preset is ollama_only, treat as ollama provider
-  const effectiveProvider = provider || (preset === "ollama_only" ? "ollama" : "claude");
-  validateEnvironment(effectiveProvider);
-
+  validateEnvironment();
   try {
     const validatedIssueId = validateIssueId(issueId);
-    runAutonomousLoop(validatedIssueId, { preset, supervised, dryRun, provider, model }).catch((e) => {
+    runAutonomousLoop(validatedIssueId, { preset, supervised, dryRun }).catch((e) => {
       console.error("[FATAL]", e.message);
       process.exit(1);
     });
