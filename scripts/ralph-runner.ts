@@ -583,8 +583,39 @@ const MODEL_FAMILY_CAPABILITIES: Record<string, ModelCapability> = {
   tinyllama: "fast",
 };
 
-function classifyModel(family: string, parameterSize: string): { capability: ModelCapability; tier: "small" | "medium" | "large" } {
-  const capability = MODEL_FAMILY_CAPABILITIES[family.toLowerCase()] || "general";
+// Model name patterns for classification (checked first, overrides family)
+const MODEL_NAME_PATTERNS: Array<{ pattern: RegExp; capability: ModelCapability }> = [
+  // Reasoning models (check first - some use coding model architectures)
+  { pattern: /deepseek-r1/i, capability: "reasoning" },
+  { pattern: /qwq/i, capability: "reasoning" },
+  // Coding models
+  { pattern: /codestral/i, capability: "coding" },
+  { pattern: /deepseek-coder/i, capability: "coding" },
+  { pattern: /qwen.*coder/i, capability: "coding" },
+  { pattern: /codellama/i, capability: "coding" },
+  { pattern: /starcoder/i, capability: "coding" },
+];
+
+function classifyModel(family: string, parameterSize: string, modelName?: string): { capability: ModelCapability; tier: "small" | "medium" | "large" } {
+  let capability: ModelCapability | undefined;
+
+  // First try model name patterns (most accurate for known models)
+  if (modelName) {
+    for (const { pattern, capability: cap } of MODEL_NAME_PATTERNS) {
+      if (pattern.test(modelName)) {
+        capability = cap;
+        break;
+      }
+    }
+  }
+
+  // Fall back to family-based classification
+  if (!capability) {
+    capability = MODEL_FAMILY_CAPABILITIES[family.toLowerCase()];
+  }
+
+  // Default to general if still not found
+  capability = capability || "general";
 
   // Parse parameter size (e.g., "7B", "32B", "3.2B")
   const sizeMatch = parameterSize.match(/(\d+\.?\d*)/);
@@ -2004,7 +2035,8 @@ async function testProviders(preset?: string): Promise<void> {
         for (const model of results.ollama.models) {
           const { capability, tier } = classifyModel(
             model.details.family,
-            model.details.parameter_size
+            model.details.parameter_size,
+            model.name
           );
           const sizeGB = (model.size / 1024 / 1024 / 1024).toFixed(1);
           console.log(
@@ -2026,7 +2058,8 @@ async function testProviders(preset?: string): Promise<void> {
           const info = results.ollama.configuredModelInfo;
           const { capability, tier } = classifyModel(
             info.details.family,
-            info.details.parameter_size
+            info.details.parameter_size,
+            info.name
           );
           console.log(`    \u2713 Configured model: ${ollamaConfig.model}`);
           console.log(`      Matched: ${info.name} (${info.details.parameter_size})`);
