@@ -1,6 +1,45 @@
 # CodeAssist Autonomous Development Configuration
 # Copy to .claude/autonomous.yml in your project
 
+# ═══════════════════════════════════════════════════════════════════════
+# LLM PROVIDERS
+# Configure which LLM to use for autonomous runs
+# ═══════════════════════════════════════════════════════════════════════
+
+providers:
+  # Default provider for all operations
+  default: claude  # claude | ollama
+
+  # Claude (Anthropic API)
+  claude:
+    # Uses ANTHROPIC_API_KEY from environment
+    model: claude-sonnet-4-20250514  # or claude-opus-4-20250514
+
+  # Ollama (local/self-hosted) - requires Ollama v0.14.0+
+  # See: https://docs.ollama.com/api/anthropic-compatibility
+  ollama:
+    enabled: false
+    base_url: http://localhost:11434  # or your Ollama server
+    model: qwen3-coder  # recommended for coding tasks
+    # Alternative models: glm-4.7:cloud, minimax-m2.1:cloud, codellama
+
+  # Per-gate provider overrides (cost optimization)
+  # Offload simpler tasks to Ollama, use Claude for complex ones
+  gate_providers:
+    # Required gates - use Claude for accuracy
+    test: claude
+    security: claude
+    build: claude
+    # Quality gates - can use Ollama to save costs
+    review: ollama  # Code review can work well with local models
+    mentor: claude  # Architecture needs stronger reasoning
+    ux: ollama
+    # Advisory gates - Ollama is fine
+    architect: ollama
+    devops: ollama
+
+# ═══════════════════════════════════════════════════════════════════════
+
 # Target score required to pass and create PR
 target_score: 95
 
@@ -363,3 +402,29 @@ presets:
         weight: 15  # Higher weight for frontend
       review:
         weight: 15
+
+  # Cost-optimized: Use Ollama for most gates
+  ollama_hybrid:
+    providers:
+      default: ollama
+      gate_providers:
+        security: claude  # Keep security on Claude for accuracy
+        test: claude      # Keep test analysis on Claude
+    target_score: 90  # Slightly lower threshold for local models
+
+  # Fully local: No cloud API calls (privacy/offline mode)
+  ollama_only:
+    providers:
+      default: ollama
+      ollama:
+        enabled: true
+      gate_providers:
+        test: ollama
+        security: ollama
+        build: ollama
+        review: ollama
+        mentor: ollama
+        ux: ollama
+        architect: ollama
+        devops: ollama
+    target_score: 85  # Lower threshold for fully local

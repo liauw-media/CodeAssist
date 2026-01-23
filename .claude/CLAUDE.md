@@ -93,6 +93,18 @@ An assistant library for Claude Code.
 
 # Headless mode (run outside Claude)
 cd scripts && npx ts-node ralph-runner.ts --issue=123
+
+# With Ollama (local LLM, no API costs)
+/autonomous --issue 123 --preset ollama_hybrid
+```
+
+**Ollama Integration** (v0.14.0+): Run autonomous with local models:
+```bash
+# Hybrid: Claude for critical gates, Ollama for others (~60% cost savings)
+/autonomous --issue 123 --preset ollama_hybrid
+
+# Fully local: No cloud API calls (privacy/offline mode)
+/autonomous --issue 123 --preset ollama_only
 ```
 
 > See `skills/workflow/autonomous-development/SKILL.md` and `templates/autonomous.yml`
@@ -176,6 +188,7 @@ Sessions are stored in `.claude/sessions/` with unique names, allowing multiple 
 | `/mem-setup` | Set up persistent memory with claude-mem |
 | `/aider-setup` | Configure Ollama host and model for Aider |
 | `/autonomous-setup` | Configure autonomous development mode |
+| `/ollama-setup` | Configure Ollama as local LLM backend (v0.14.0+) |
 
 ## External Tools
 
