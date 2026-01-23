@@ -26,17 +26,35 @@ providers:
   # Per-gate provider overrides (cost optimization)
   # Offload simpler tasks to Ollama, use Claude for complex ones
   gate_providers:
-    # Required gates - use Claude for accuracy
+    # Critical gates - use Claude for accuracy
     test: claude
     security: claude
-    build: claude
-    # Quality gates - can use Ollama to save costs
-    review: ollama  # Code review can work well with local models
-    mentor: claude  # Architecture needs stronger reasoning
-    ux: ollama
-    # Advisory gates - Ollama is fine
-    architect: ollama
-    devops: ollama
+    mentor: claude
+
+    # Build gate - fast compilation checks
+    build:
+      provider: ollama
+      model: qwen2.5-coder:32b
+
+    # Review gate - deep code analysis
+    review:
+      provider: ollama
+      model: qwen3-coder
+
+    # Architect gate - strong reasoning
+    architect:
+      provider: ollama
+      model: qwq:32b
+
+    # DevOps gate - CI/CD analysis
+    devops:
+      provider: ollama
+      model: qwen2.5-coder:32b
+
+    # UX gate - accessibility review
+    ux:
+      provider: ollama
+      model: qwen3-coder
 
 # ═══════════════════════════════════════════════════════════════════════
 
@@ -48,19 +66,6 @@ max_iterations: 15
 
 # Pause between iterations (seconds) - prevents API abuse
 iteration_delay: 5
-
-# Issue tracking integration
-issue_tracking:
-  provider: auto  # auto-detect, github, gitlab
-  create_sub_issues: true  # Create issues for unresolved points
-  post_comments: true  # Post progress to issues
-  labels:
-    in_progress: "in-progress"
-    blocked: "blocked"
-    ready_for_review: "ready-for-review"
-    auto_generated: "auto-generated"
-    tech_debt: "tech-debt"
-    security_debt: "security"
 
 # Quality gates configuration
 # Gates are organized into parallel groups for faster execution
@@ -306,12 +311,6 @@ safety:
   max_api_calls_per_hour: 100
   max_issues_created_per_run: 10
   max_file_changes_per_iteration: 50
-
-  # Circuit breaker
-  circuit_breaker:
-    enabled: true
-    failure_threshold: 5  # Consecutive failures
-    reset_timeout: 300  # Seconds before retry
 
   # Forbidden actions
   forbidden:
