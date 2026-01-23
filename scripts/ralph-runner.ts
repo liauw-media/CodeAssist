@@ -1257,8 +1257,30 @@ function loadConfig(preset?: string): AutonomousConfig {
   }
 
   // Apply provider preset if specified (ollama_hybrid, ollama_only)
+  // Merge with existing providers config to preserve user's base_url, model, etc.
   if (preset && PROVIDER_PRESETS[preset]) {
-    defaultConfig.providers = PROVIDER_PRESETS[preset];
+    const presetProviders = PROVIDER_PRESETS[preset];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existingProviders = (defaultConfig.providers || {}) as any;
+    const existingOllama = existingProviders.ollama || {};
+    const existingGateProviders = existingProviders.gate_providers || {};
+
+    defaultConfig.providers = {
+      ...presetProviders,
+      // Preserve user's ollama config (base_url, model) if they specified one
+      ollama: {
+        ...presetProviders.ollama,
+        // User's config takes precedence
+        ...(existingOllama.base_url && { base_url: existingOllama.base_url }),
+        ...(existingOllama.model && { model: existingOllama.model }),
+        ...(existingOllama.api_key && { api_key: existingOllama.api_key }),
+      },
+      // Merge gate_providers: user's config takes precedence
+      gate_providers: {
+        ...presetProviders.gate_providers,
+        ...existingGateProviders,
+      },
+    };
   }
 
   // Final validation of merged config
