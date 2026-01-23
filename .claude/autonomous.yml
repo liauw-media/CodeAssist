@@ -14,38 +14,40 @@ providers:
     base_url: http://100.114.54.54:11434
     model: qwen3-coder  # Default model (30.5B, coding-optimized)
 
-  # Hybrid mode with per-gate model optimization
-  # RTX 3090 (24GB) - all models fit in VRAM
+  # Gate providers - using Claude for all gates until Issue #14 is resolved
+  # (Claude Code CLI doesn't support model override for Ollama)
+  # TODO: Re-enable Ollama gates after fixing model name issue
   gate_providers:
-    # Critical gates - use Claude for accuracy
     test: claude
     security: claude
     mentor: claude
+    build: claude
+    review: claude
+    ux: claude
+    architect: claude
+    devops: claude
 
-    # Build gate - fast compilation checks
-    build:
-      provider: ollama
-      model: qwen2.5-coder:32b
-
-    # Review gate - deep code analysis
-    review:
-      provider: ollama
-      model: qwen3-coder
-
-    # UX gate - accessibility/usability
-    ux:
-      provider: ollama
-      model: qwen3-coder
-
-    # Architect gate - strong reasoning for design
-    architect:
-      provider: ollama
-      model: qwq:32b
-
-    # DevOps gate - CI/CD analysis
-    devops:
-      provider: ollama
-      model: qwen2.5-coder:32b
+  # FUTURE: Hybrid mode with per-gate model optimization
+  # Uncomment after Issue #14 is resolved:
+  # gate_providers:
+  #   test: claude
+  #   security: claude
+  #   mentor: claude
+  #   build:
+  #     provider: ollama
+  #     model: qwen2.5-coder:32b
+  #   review:
+  #     provider: ollama
+  #     model: qwen3-coder
+  #   ux:
+  #     provider: ollama
+  #     model: qwen3-coder
+  #   architect:
+  #     provider: ollama
+  #     model: qwq:32b
+  #   devops:
+  #     provider: ollama
+  #     model: qwen2.5-coder:32b
 
 # Recommended models for RTX 3090 (24GB):
 # ollama pull qwen3-coder          # 18GB - agentic coding
