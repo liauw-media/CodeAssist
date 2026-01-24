@@ -131,6 +131,26 @@ Claude will follow these automatically.
 /python write tests for the auth flow
 ```
 
+## Autonomous Development
+
+Let CodeAssist handle entire GitHub issues automatically:
+
+```
+/autonomous --issue 123     # Work on single issue
+/autonomous --epic 200      # Process entire epic
+```
+
+**How it works:**
+1. Creates feature branch
+2. Implements based on issue description
+3. Runs quality gates (test, security, build, review)
+4. Auto-fixes issues where possible
+5. Creates PR when score >= 95/100
+
+**Quality gates:** test (25pts), security (25pts), build (15pts), review (20pts), mentor (10pts)
+
+**For CI/CD pipelines:** Use [Ralph Wiggum](ralph.md) - a headless runner with Docker support.
+
 ## CI/CD Setup
 
 Copy a template and customize:
@@ -160,7 +180,8 @@ See all templates: [docs/ci-templates/](ci-templates/README.md)
 1. **Explore commands**: [commands/README.md](../commands/README.md)
 2. **Browse skills**: [skills/README.md](../skills/README.md)
 3. **Set up CI/CD**: [ci-templates/README.md](ci-templates/README.md)
-4. **Team usage**: [team-usage.md](team-usage.md)
+4. **Autonomous mode**: [ralph.md](ralph.md) for CI/CD pipelines
+5. **Team usage**: [team-usage.md](team-usage.md)
 
 ## Need Help?
 

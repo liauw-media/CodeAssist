@@ -2,6 +2,103 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.7.0] - 2025-01-24
+
+### Added - Ollama Local LLM Integration
+
+**Ollama Provider Support:**
+- Local LLM backend via Ollama v0.14.0+
+- Per-gate model selection (critical gates use Claude, others use Ollama)
+- Provider indicator shows which LLM runs each gate
+- Model validation with capability checking
+- Tailscale integration for remote Ollama servers
+
+**New Presets:**
+- `ollama_hybrid` - Claude for critical gates, Ollama for others
+- `ollama_only` - All gates use local Ollama models
+
+**Configuration:**
+```yaml
+providers:
+  default: claude
+  ollama:
+    enabled: true
+    base_url: http://localhost:11434
+    model: qwen3-coder
+  gate_providers:
+    test: claude      # Critical - use Claude
+    security: claude  # Critical - use Claude
+    build: ollama     # Less critical
+    review: ollama    # Less critical
+```
+
+### Fixed
+- Command improvements for `/security`, `/ux`, `/architect`, `/devops`, `/project`
+- All commands now execute tools and produce JSON output for `/autonomous`
+- Zod v4 and ESM compatibility for ralph-runner
+
+---
+
+## [1.6.0] - 2025-01-20
+
+### Added - Autonomous Development Integration
+
+**Autonomous Mode:**
+- `/autonomous --issue 123` - Run quality gates on GitHub issues
+- Integrates with `/plan` and `/orchestrate` for guided workflows
+- Quality gates: test, security, build, review, mentor, ux
+- Auto-fix capability for test failures and security issues
+- Human intervention via issue comments (`@claude`, `@pause`, `@resume`)
+
+**Ralph Wiggum Runner:**
+- Headless autonomous runner for CI/CD pipelines
+- Claude Agent SDK integration
+- Docker deployment support
+- Circuit breaker and rate limiting
+- Crash recovery with checkpoints
+
+**New Commands:**
+- `/autonomous --issue N` - Interactive autonomous mode
+- `/autonomous --epic N` - Process all issues in epic
+
+**Documentation:**
+- `docs/ralph.md` - Comprehensive Ralph documentation
+- Updated `scripts/README.md` with autonomous development section
+
+---
+
+## [1.5.0] - 2025-01-18
+
+### Added - Autonomous Development System
+
+**Core Autonomous Features:**
+- Quality gate framework with weighted scoring
+- Target score system (default: 95/100)
+- Gate execution with parallel groups
+- Auto-fix and retry logic
+- PR creation when targets are met
+
+**Quality Gates:**
+| Gate | Weight | Required |
+|------|--------|----------|
+| `/test` | 25 | Yes |
+| `/security` | 25 | Yes |
+| `/build` | 15 | Yes |
+| `/review` | 20 | No |
+| `/mentor` | 10 | No |
+| `/ux` | 5 | No |
+
+**Configuration:**
+- `.claude/autonomous.yml` for per-project settings
+- Preset system (default, production, prototype)
+- Safety limits and forbidden commands
+
+### Changed
+- `/orchestrate` enhanced with quality gates integration
+- Updated component counts in documentation
+
+---
+
 ## [1.4.6] - 2025-01-16
 
 ### Added - System Architect Command

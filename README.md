@@ -1,6 +1,6 @@
 # CodeAssist
 
-[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.5.0)
+[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.7.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 An assistant library for Claude Code - skills, commands, and prompts that help Claude work more effectively.
@@ -93,6 +93,85 @@ CodeAssist is a local development tool - don't commit it to your repo.
 ```
 
 That's it. You're ready to go.
+
+---
+
+## Examples
+
+### Example 1: Starting a New Feature
+
+```
+You: /branch 42 add-user-settings
+Claude: Created branch feature/42-add-user-settings with checklist
+
+You: /brainstorm user settings page
+Claude: Let's think about this before coding...
+        [discusses database schema, UI components, validation]
+
+You: /plan
+Claude: Breaking this down:
+        1. Create UserSettings model and migration
+        2. Build settings form component
+        3. Add API endpoints
+        4. Write tests
+
+You: [implement the feature]
+
+You: /review
+Claude: Running code review...
+        - Security: ✅ Input validation present
+        - Tests: ✅ 12 tests, 94% coverage
+        - Code quality: ⚠️ 1 minor smell
+        Grade: B (approved with notes)
+
+You: /commit
+Claude: ✅ Pre-commit checks passed
+        Created commit: feat: add user settings page
+```
+
+### Example 2: Fixing a Bug
+
+```
+You: /status
+Claude: On branch: main
+        Modified: src/auth/login.ts
+        Unstaged changes: 2 files
+
+You: /laravel fix the password reset flow - users aren't getting emails
+Claude: Let me investigate...
+        [finds issue in PasswordResetController]
+        Fixed: Added missing queue configuration
+
+You: /test
+Claude: Backup created ✅
+        Running tests... 47 passed, 0 failed
+        Coverage: 89%
+
+You: /commit
+Claude: Created commit: fix: password reset email delivery
+```
+
+### Example 3: Autonomous Development
+
+```
+You: /autonomous --issue 123
+Claude: Starting autonomous run on #123: Add dark mode support
+
+        Iteration 1:
+        - Created branch feature/123-dark-mode
+        - Implemented theme toggle
+        - Running quality gates...
+
+        /test: 25/25 ✅
+        /security: 25/25 ✅
+        /build: 15/15 ✅
+        /review: 18/20 ✅
+
+        Score: 98/100 (target: 95)
+        Creating PR...
+
+        ✅ PR #156 created - ready for human review
+```
 
 ---
 
@@ -192,6 +271,22 @@ Commands that do real work:
 | `/feedback [message]` | Submit feedback or report issues |
 | `/agent-select [task]` | Get agent recommendation for a task |
 | `/orchestrate [task]` | Coordinate multiple agents for complex tasks |
+
+### Autonomous Development
+
+Run quality gates automatically on GitHub/GitLab issues:
+
+| Command | What it Does |
+|---------|--------------|
+| `/autonomous --issue 123` | Run quality gates on single issue |
+| `/autonomous --epic 200` | Process all issues in an epic |
+| `/autonomous --preset production` | Use stricter quality thresholds |
+
+**Quality Gates:** `/test` (25pts), `/security` (25pts), `/build` (15pts), `/review` (20pts), `/mentor` (10pts), `/ux` (5pts)
+
+**Target Score:** 95/100 (configurable via `.claude/autonomous.yml`)
+
+**Headless Mode:** For CI/CD pipelines, use [Ralph Wiggum](docs/ralph.md) - a standalone runner with Docker support.
 
 ### AI/ML Commands
 
