@@ -117,6 +117,21 @@ Executable tools. Source: `scripts/`
 | `safe-test.sh` | Run tests with resource limits |
 | `backup-database.sh` | Database backup |
 | `install-codeassist.sh` | Install CodeAssist |
+| `ralph-runner.ts` | Headless autonomous development |
+
+### Ralph Wiggum (Headless Autonomous Runner)
+
+For CI/CD pipelines, overnight runs, and unattended development.
+
+```bash
+# Install (not included in standard CodeAssist)
+cd scripts && npm install
+
+# Run
+npx ts-node ralph-runner.ts --issue=123
+```
+
+Full documentation: [ralph.md](ralph.md)
 
 ## Workflows
 

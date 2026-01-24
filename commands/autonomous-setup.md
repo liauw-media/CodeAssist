@@ -27,6 +27,8 @@ git status
 **For headless mode (Ralph):**
 - Node.js 18+
 - `ANTHROPIC_API_KEY` environment variable
+- Install: `cd scripts && npm install`
+- Full docs: [docs/ralph.md](../docs/ralph.md)
 
 ### Step 2: Create Configuration
 

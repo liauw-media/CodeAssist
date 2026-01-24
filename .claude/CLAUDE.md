@@ -91,12 +91,15 @@ An assistant library for Claude Code.
 # Work on an epic (all linked issues)
 /autonomous --epic 100 --preset production
 
-# Headless mode (run outside Claude)
+# Headless mode (run outside Claude - see note below)
 cd scripts && npx ts-node ralph-runner.ts --issue=123
 
 # With Ollama (local LLM, no API costs)
 /autonomous --issue 123 --preset ollama_hybrid
 ```
+
+> **Ralph (Headless Runner)**: Not included in standard installation. Install separately:
+> `cd scripts && npm install`. Full docs: [docs/ralph.md](docs/ralph.md)
 
 **Ollama Integration** (v0.14.0+): Run autonomous with local models:
 ```bash
