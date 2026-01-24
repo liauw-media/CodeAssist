@@ -10,17 +10,17 @@ An assistant library for Claude Code - commands, skills, and workflows that help
 ```bash
 # Install in your project directory
 curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
-
-# Add to gitignore
-echo ".claude/" >> .gitignore
 ```
 
-Then try:
+Then run:
 ```
-/quickstart      # Interactive setup (recommended)
-/status          # See git status
-/guide           # Get suggestions
+/quickstart
 ```
+
+This automatically:
+- Adds `.claude/` to `.gitignore`
+- Installs git hooks (protects main branch, strips Claude mentions from commits)
+- Detects your framework and recommends commands
 
 **Full guide:** [Getting Started](docs/getting-started.md) | **All docs:** [Documentation Index](docs/INDEX.md)
 

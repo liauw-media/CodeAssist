@@ -1,124 +1,179 @@
 # Quickstart
 
-Interactive onboarding for new CodeAssist users.
+Interactive onboarding for new CodeAssist users. Handles essential setup automatically.
 
 ## Execute
 
-Welcome the user and guide them through CodeAssist setup.
-
-### Step 1: Confirm Installation
-
-First, verify CodeAssist is properly installed:
+### Step 1: Verify Installation
 
 ```bash
-# Check version
 cat .claude/VERSION 2>/dev/null || echo "NOT INSTALLED"
 ```
 
-If not installed, guide them:
+If not installed:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/liauw-media/CodeAssist/main/scripts/install-codeassist.sh | bash
 ```
 
-### Step 2: Understand the Project
+### Step 2: Add .claude to .gitignore
 
-Ask about their project:
+Check and add if missing:
 
-**Questions to ask:**
-1. What framework are you using? (Laravel, React, Python/Django, other)
-2. Do you have a database that needs protection?
-3. Are you working solo or on a team?
-
-### Step 3: Recommend Commands
-
-Based on their answers, recommend the most useful commands:
-
-**For Laravel developers:**
+```bash
+if [ -f .gitignore ]; then
+    if ! grep -q "^\.claude" .gitignore 2>/dev/null; then
+        echo ".claude/" >> .gitignore
+        echo "Added .claude/ to .gitignore"
+    else
+        echo ".claude/ already in .gitignore"
+    fi
+else
+    echo ".claude/" > .gitignore
+    echo "Created .gitignore with .claude/"
+fi
 ```
-/laravel [task]  - Laravel-specific assistance
+
+### Step 3: Set Up Git Hooks
+
+Install hooks to protect main branch and strip Claude mentions from commits:
+
+```bash
+# Create hooks directory
+mkdir -p .git/hooks
+
+# Pre-push hook (protect main/master)
+cat > .git/hooks/pre-push << 'EOF'
+#!/bin/bash
+protected_branches=("main" "master")
+current_branch=$(git symbolic-ref HEAD 2>/dev/null | sed 's|refs/heads/||')
+
+for branch in "${protected_branches[@]}"; do
+    if [ "$current_branch" = "$branch" ]; then
+        echo "ERROR: Direct push to '$branch' blocked. Use a feature branch."
+        exit 1
+    fi
+done
+exit 0
+EOF
+
+# Commit-msg hook (strip Claude mentions)
+cat > .git/hooks/commit-msg << 'EOF'
+#!/bin/bash
+COMMIT_MSG_FILE="$1"
+TEMP_FILE=$(mktemp)
+
+sed -E \
+    -e '/Generated with \[Claude Code\]/d' \
+    -e '/Generated with Claude Code/d' \
+    -e '/Co-Authored-By:.*Claude.*@anthropic\.com/d' \
+    -e '/Co-Authored-By:.*noreply@anthropic\.com/d' \
+    "$COMMIT_MSG_FILE" > "$TEMP_FILE"
+
+if ! diff -q "$COMMIT_MSG_FILE" "$TEMP_FILE" > /dev/null 2>&1; then
+    cat "$TEMP_FILE" > "$COMMIT_MSG_FILE"
+fi
+rm -f "$TEMP_FILE"
+exit 0
+EOF
+
+# Make executable
+chmod +x .git/hooks/pre-push .git/hooks/commit-msg
+echo "Git hooks installed (main protection + Claude mention stripping)"
+```
+
+### Step 4: Detect Project Type
+
+Check for framework indicators:
+
+```bash
+# Laravel
+[ -f artisan ] && echo "LARAVEL"
+
+# React/Next.js
+[ -f package.json ] && grep -q "react\|next" package.json 2>/dev/null && echo "REACT"
+
+# Python/Django
+[ -f manage.py ] || [ -f requirements.txt ] && echo "PYTHON"
+
+# PHP
+[ -f composer.json ] && echo "PHP"
+```
+
+### Step 5: Recommend Commands
+
+Based on detected framework:
+
+**Laravel:**
+```
+/laravel [task]  - Laravel-specific help
 /test            - Run tests with database backup
 /backup          - Manual database backup
+/db [task]       - Database operations
 ```
 
-**For React developers:**
+**React/Next.js:**
 ```
-/react [task]    - React/Next.js assistance
+/react [task]    - React/Next.js help
 /test            - Run tests
-/review          - Code review before commit
+/e2e [flow]      - End-to-end testing
+/review          - Code review
 ```
 
-**For Python developers:**
+**Python/Django:**
 ```
-/python [task]   - Django/FastAPI assistance
+/python [task]   - Django/FastAPI help
 /test            - Run tests
 /security        - Security audit
 ```
 
-**For everyone:**
+**Everyone:**
 ```
-/status          - Check git status
-/mentor [topic]  - Get critical feedback
-/guide           - Contextual help
-```
-
-### Step 4: Set Up Project Config (Optional)
-
-If they want to customize, guide them to edit `.claude/CLAUDE.md`:
-
-```markdown
-## Project Conventions
-
-Add your project-specific rules here:
-- Code style preferences
-- Testing requirements
-- Deployment notes
+/status          - Git status, branch, commits
+/branch [id] [desc] - Create feature branch
+/review          - Code review before commit
+/commit          - Pre-commit checks + commit
+/guide           - What to do next
+/mentor [topic]  - Critical feedback
 ```
 
-### Step 5: Quick Demo
+### Step 6: Offer Demo
 
-Offer to demonstrate with their actual project:
-
-```
-Would you like me to:
-1. Run /status to show your project state?
-2. Run /guide to suggest what to do next?
-3. Explore your codebase structure?
-```
+Ask if they want to:
+1. Run `/status` to see project state
+2. Run `/guide` for suggestions
+3. Explore the codebase
 
 ## Output Format
 
 ```
-## Welcome to CodeAssist!
+## CodeAssist Setup Complete
 
 **Version:** [version]
-**Project:** [detected framework or "Unknown"]
+**Project:** [detected framework]
 
-### Your Personalized Setup
+### Setup Completed
+- [x] .claude/ added to .gitignore
+- [x] Git hooks installed (main protection + commit cleaning)
 
-Based on your project, here are your key commands:
+### Your Key Commands
 
 | Command | What it does |
 |---------|--------------|
-| [command] | [description] |
+| /status | Git status and branch info |
+| /[framework] [task] | Framework-specific help |
+| /test | Run tests safely |
+| /review | Code review |
+| /commit | Pre-commit checks + commit |
 
-### Quick Start
+### Try Now
 
-Try this now:
-\`\`\`
-[recommended first command]
-\`\`\`
-
-### Next Steps
-
-1. [First thing to try]
-2. [Second thing to try]
-3. [Where to learn more]
+Run `/status` to see your project state.
 
 ### Need Help?
 
 - `/guide` - Contextual suggestions
-- `/mentor [question]` - Direct answers
-- `docs/INDEX.md` - Full documentation
+- `/mentor [topic]` - Direct answers
+- [docs/INDEX.md](docs/INDEX.md) - Full documentation
 ```
 
-Run the quickstart now. Be conversational and helpful.
+Run the quickstart now. Execute all setup steps automatically, then present the summary.
