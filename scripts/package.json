@@ -1,14 +1,15 @@
 {
   "name": "@codeassist/ralph-runner",
   "version": "1.0.0",
+  "type": "module",
   "description": "Ralph Wiggum - Autonomous Development Runner powered by Claude Agent SDK",
   "main": "ralph-runner.ts",
   "bin": {
     "ralph": "./ralph-runner.ts"
   },
   "scripts": {
-    "start": "npx ts-node ralph-runner.ts",
-    "ralph": "npx ts-node ralph-runner.ts",
+    "start": "npx tsx ralph-runner.ts",
+    "ralph": "npx tsx ralph-runner.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ralph-runner.ts --max-warnings 0",
@@ -18,12 +19,12 @@
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.15",
     "yaml": "^2.3.4",
-    "zod": "^3.22.0"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "typescript": "^5.3.0",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.7.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
     "eslint": "^8.54.0"

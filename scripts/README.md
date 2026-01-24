@@ -13,7 +13,7 @@ CodeAssist provides **two modes** of autonomous development:
 | Mode | Command | Use Case | Requirements |
 |------|---------|----------|--------------|
 | **Interactive** | `/autonomous --issue 123` | In-session, supervised | GitHub MCP, Claude Code |
-| **Headless** | `npx ts-node ralph-runner.ts --issue=123` | Background, CI/CD, overnight | API key, Node.js 18+ |
+| **Headless** | `npx tsx ralph-runner.ts --issue=123` | Background, CI/CD, overnight | API key, Node.js 18+ |
 
 ### When to Use Which
 
@@ -43,16 +43,16 @@ cd scripts
 npm install
 
 # Validate configuration (dry run)
-npx ts-node ralph-runner.ts --issue=123 --dry-run
+npx tsx ralph-runner.ts --issue=123 --dry-run
 
 # Run on a single issue
-npx ts-node ralph-runner.ts --issue=123
+npx tsx ralph-runner.ts --issue=123
 
 # Run with production preset (stricter thresholds)
-npx ts-node ralph-runner.ts --issue=123 --preset=production
+npx tsx ralph-runner.ts --issue=123 --preset=production
 
 # Supervised mode (pause after each iteration)
-npx ts-node ralph-runner.ts --issue=123 --supervised
+npx tsx ralph-runner.ts --issue=123 --supervised
 ```
 
 ### Prerequisites

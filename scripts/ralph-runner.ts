@@ -1,13 +1,13 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env npx tsx
 /**
  * Ralph Wiggum - Autonomous Development Runner
  * Powered by Claude Agent SDK
  *
  * Usage:
- *   npx ts-node ralph-runner.ts --issue=123
- *   npx ts-node ralph-runner.ts --issue=123 --preset=production
- *   npx ts-node ralph-runner.ts --issue=123 --supervised
- *   npx ts-node ralph-runner.ts --issue=123 --dry-run
+ *   npx tsx ralph-runner.ts --issue=123
+ *   npx tsx ralph-runner.ts --issue=123 --preset=production
+ *   npx tsx ralph-runner.ts --issue=123 --supervised
+ *   npx tsx ralph-runner.ts --issue=123 --dry-run
  */
 
 import {
@@ -25,9 +25,14 @@ import {
   renameSync,
   unlinkSync,
 } from "fs";
-import { join, resolve } from "path";
+import { join, resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 import * as yaml from "yaml";
 import { z } from "zod";
+
+// ESM __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // ============================================
 // CONSTANTS
@@ -61,6 +66,7 @@ const VALID_PROVIDER_PRESETS = ["ollama_hybrid", "ollama_only"] as const;
 
 // ============================================
 // ZOD SCHEMAS (Config Validation)
+// Note: zod v4 - .strict() is default, use z.record(keySchema, valueSchema)
 // ============================================
 const GateConfigSchema = z.object({
   weight: z.number()
@@ -70,10 +76,10 @@ const GateConfigSchema = z.object({
   auto_fix: z.boolean(),
   command: z.string().optional(),
   description: z.string().optional(),
-  thresholds: z.record(z.number()).optional(),
+  thresholds: z.record(z.string(), z.number()).optional(),
   parallel_group: z.number().int().min(0).optional(),
   timeout_ms: z.number().int().positive().optional(),
-}).strict();
+});
 
 const SafetyConfigSchema = z.object({
   max_api_calls_per_hour: z.number()
@@ -85,17 +91,17 @@ const SafetyConfigSchema = z.object({
     .min(0, "Cannot create negative issues")
     .max(50, "Issue creation limit too high (max 50)"),
   forbidden: z.array(z.string()),
-}).strict();
+});
 
 const GitCommitRulesSchema = z.object({
   forbidden_patterns: z.array(z.string()),
   auto_strip: z.boolean(),
-}).strict();
+});
 
 const GitRulesConfigSchema = z.object({
   protected_branches: z.array(z.string()),
   commit_rules: GitCommitRulesSchema,
-}).strict();
+});
 
 const AutonomousConfigSchema = z.object({
   target_score: z.number()
@@ -108,22 +114,33 @@ const AutonomousConfigSchema = z.object({
   iteration_delay: z.number()
     .min(0, "Delay cannot be negative")
     .max(300, "Delay too long (max 300 seconds)"),
-  gates: z.record(GateConfigSchema),
-  presets: z.record(z.any()).optional(),
+  gates: z.record(z.string(), GateConfigSchema),
+  presets: z.record(z.string(), z.any()).optional(),
   safety: SafetyConfigSchema,
   git_rules: GitRulesConfigSchema,
   providers: z.any().optional(), // Validated separately in loadConfig
-}).strict();
+});
 
 // Partial schema for user config files (all fields optional)
+// Note: zod v4 doesn't have deepPartial, define nested partials explicitly
+const PartialGitCommitRulesSchema = z.object({
+  forbidden_patterns: z.array(z.string()).optional(),
+  auto_strip: z.boolean().optional(),
+}).optional();
+
+const PartialGitRulesConfigSchema = z.object({
+  protected_branches: z.array(z.string()).optional(),
+  commit_rules: PartialGitCommitRulesSchema,
+}).optional();
+
 const PartialAutonomousConfigSchema = z.object({
   target_score: z.number().min(0).max(100).optional(),
   max_iterations: z.number().int().min(1).max(100).optional(),
   iteration_delay: z.number().min(0).max(300).optional(),
-  gates: z.record(GateConfigSchema.partial()).optional(),
-  presets: z.record(z.any()).optional(),
+  gates: z.record(z.string(), GateConfigSchema.partial()).optional(),
+  presets: z.record(z.string(), z.any()).optional(),
   safety: SafetyConfigSchema.partial().optional(),
-  git_rules: GitRulesConfigSchema.deepPartial().optional(),
+  git_rules: PartialGitRulesConfigSchema,
   providers: z.any().optional(), // Validated separately
 }).passthrough();
 
@@ -138,13 +155,13 @@ const OllamaConfigSchema = z.object({
   base_url: z.string().url("Invalid Ollama URL - must be a valid URL like http://localhost:11434"),
   model: z.string().optional(),
   api_key: z.string().optional(),
-}).strict();
+});
 
 // Gate provider can be a simple string or an object with provider + model
 const GateProviderConfigSchema = z.object({
   provider: ProviderNameSchema,
   model: z.string().optional(),
-}).strict();
+});
 
 // Support both formats: "ollama" or { provider: "ollama", model: "qwen3-coder" }
 const GateProviderSchema = z.union([
@@ -155,8 +172,8 @@ const GateProviderSchema = z.union([
 const ProvidersConfigSchema = z.object({
   default: ProviderNameSchema,
   ollama: OllamaConfigSchema.optional(),
-  gate_providers: z.record(GateProviderSchema).optional(),
-}).strict();
+  gate_providers: z.record(z.string(), GateProviderSchema).optional(),
+});
 
 type ProvidersConfig = z.infer<typeof ProvidersConfigSchema>;
 
@@ -1139,9 +1156,10 @@ function validateEnvironment(): void {
 // CONFIGURATION
 // ============================================
 function formatZodError(error: z.ZodError): string {
-  return error.errors.map((e) => {
-    const path = e.path.join(".");
-    return `  - ${path ? `${path}: ` : ""}${e.message}`;
+  // zod v4 uses .issues instead of .errors
+  return error.issues.map((issue) => {
+    const path = issue.path.join(".");
+    return `  - ${path ? `${path}: ` : ""}${issue.message}`;
   }).join("\n");
 }
 

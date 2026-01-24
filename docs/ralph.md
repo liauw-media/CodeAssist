@@ -13,7 +13,7 @@ Headless autonomous development loop powered by the Claude Agent SDK. Runs quali
 | Mode | Command | Use Case | Requirements |
 |------|---------|----------|--------------|
 | **Interactive** | `/autonomous --issue 123` | In-session, supervised | GitHub MCP, Claude Code |
-| **Headless (Ralph)** | `npx ts-node ralph-runner.ts --issue=123` | CI/CD, overnight runs | API key, Node.js 18+ |
+| **Headless (Ralph)** | `npx tsx ralph-runner.ts --issue=123` | CI/CD, overnight runs | API key, Node.js 18+ |
 
 ### When to Use Ralph
 
@@ -44,7 +44,7 @@ cd scripts
 npm install
 
 # Verify installation
-npx ts-node ralph-runner.ts --help
+npx tsx ralph-runner.ts --help
 ```
 
 ### Prerequisites
@@ -75,19 +75,19 @@ export DEBUG=1
 
 ```bash
 # Validate configuration (no execution)
-npx ts-node ralph-runner.ts --issue=123 --dry-run
+npx tsx ralph-runner.ts --issue=123 --dry-run
 
 # Run on a single issue
-npx ts-node ralph-runner.ts --issue=123
+npx tsx ralph-runner.ts --issue=123
 
 # Run with production preset (stricter thresholds)
-npx ts-node ralph-runner.ts --issue=123 --preset=production
+npx tsx ralph-runner.ts --issue=123 --preset=production
 
 # Supervised mode (pause after each iteration)
-npx ts-node ralph-runner.ts --issue=123 --supervised
+npx tsx ralph-runner.ts --issue=123 --supervised
 
 # Use Ollama for non-critical gates
-npx ts-node ralph-runner.ts --issue=123 --preset=ollama_hybrid
+npx tsx ralph-runner.ts --issue=123 --preset=ollama_hybrid
 ```
 
 ---
@@ -311,7 +311,7 @@ providers:
 Or use the CLI preset:
 
 ```bash
-npx ts-node ralph-runner.ts --issue=123 --preset=ollama_hybrid
+npx tsx ralph-runner.ts --issue=123 --preset=ollama_hybrid
 ```
 
 ### Ollama Only
@@ -330,7 +330,7 @@ providers:
 ### Testing Provider Connectivity
 
 ```bash
-npx ts-node ralph-runner.ts --test-provider --preset=ollama_hybrid
+npx tsx ralph-runner.ts --test-provider --preset=ollama_hybrid
 ```
 
 ---
@@ -451,7 +451,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd scripts
-          npx ts-node ralph-runner.ts \
+          npx tsx ralph-runner.ts \
             --issue=${{ github.event.issue.number }} \
             --preset=production
 ```
@@ -581,7 +581,7 @@ Wait 5 minutes or fix the underlying issue causing failures.
 ### Debug mode
 
 ```bash
-DEBUG=1 npx ts-node ralph-runner.ts --issue=123
+DEBUG=1 npx tsx ralph-runner.ts --issue=123
 ```
 
 ---
