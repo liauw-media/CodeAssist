@@ -1,6 +1,6 @@
 # CodeAssist
 
-[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.7.0)
+[![Version](https://img.shields.io/badge/version-1.7.1-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.7.1)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 An assistant library for Claude Code - commands, skills, and workflows that help Claude work more effectively.
@@ -26,10 +26,11 @@ This automatically:
 
 ---
 
-## What's New in 1.7.0
+## What's New in 1.7.1
 
+- **GitLab Support** - Ralph Wiggum now works with both GitHub and GitLab
+- **Platform Auto-Detection** - Detects from `.gitlab-ci.yml`, `.github/`, or git remote
 - **Ollama Integration** - Use local LLMs for non-critical quality gates
-- **Autonomous Development** - Run quality gates on GitHub issues automatically
 - **Per-gate Model Selection** - Critical gates use Claude, others can use Ollama
 
 See [CHANGELOG.md](CHANGELOG.md) for full history.
@@ -113,7 +114,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full history.
 
 **Quality Gates:** test (25), security (25), build (15), review (20), mentor (10), ux (5)
 
-**Headless/CI:** Use [Ralph Wiggum](docs/ralph.md) for CI/CD pipelines.
+**Headless/CI:** Use [Ralph Wiggum](docs/ralph.md) for CI/CD pipelines. Supports both GitHub and GitLab.
 
 ### All Commands
 
@@ -131,7 +132,7 @@ your-project/
 │   ├── rules/        # 6 enforced guidelines
 │   ├── templates/    # MCP presets, hooks
 │   ├── CLAUDE.md     # Project config
-│   └── VERSION       # 1.7.0
+│   └── VERSION       # 1.7.1
 └── .gitignore
 ```
 

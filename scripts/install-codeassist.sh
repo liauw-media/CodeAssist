@@ -2,7 +2,7 @@
 
 # ============================================
 # CodeAssist Installation Script
-# Version 1.7.0
+# Version 1.7.1
 # ============================================
 #
 # Downloads and installs CodeAssist from GitHub releases
@@ -50,8 +50,8 @@ if [ "$INSTALL_VERSION" = "latest" ]; then
     INSTALL_VERSION=$(curl -fsSL "https://api.github.com/repos/liauw-media/CodeAssist/releases/latest" 2>/dev/null | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' || echo "")
 
     if [ -z "$INSTALL_VERSION" ]; then
-        echo -e "${YELLOW}  Could not fetch latest version, using v1.7.0${NC}"
-        INSTALL_VERSION="v1.7.0"
+        echo -e "${YELLOW}  Could not fetch latest version, using v1.7.1${NC}"
+        INSTALL_VERSION="v1.7.1"
     fi
 fi
 

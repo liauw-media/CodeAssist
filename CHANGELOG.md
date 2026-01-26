@@ -2,6 +2,37 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.7.1] - 2025-01-26
+
+### Added - GitLab Support
+
+**Platform Abstraction:**
+- Ralph Wiggum now supports both GitHub and GitLab
+- Auto-detects platform from `.gitlab-ci.yml`, `.github/`, or git remote URL
+- Uses `gh` CLI for GitHub, `glab` CLI for GitLab
+
+**Platform Operations:**
+- Issue fetching: `gh issue view` / `glab issue view`
+- Issue creation: `gh issue create` / `glab issue create`
+- Comments: `gh issue comment` / `glab issue note`
+- PR/MR creation: `gh pr create` / `glab mr create`
+
+**Documentation:**
+- Added GitLab CI/CD example in `docs/ralph.md`
+- Updated troubleshooting for `glab` CLI
+- Updated environment variables documentation
+
+**Usage:**
+```bash
+# Platform is auto-detected - just run as usual
+npx tsx ralph-runner.ts --issue=123
+
+# GitLab projects need glab CLI installed
+glab auth login
+```
+
+---
+
 ## [1.7.0] - 2025-01-24
 
 ### Added - Ollama Local LLM Integration
