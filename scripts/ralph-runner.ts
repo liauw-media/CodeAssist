@@ -27,6 +27,7 @@ import {
 } from "fs";
 import { join, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { execFile } from "child_process";
 import * as yaml from "yaml";
 import { z } from "zod";
 
@@ -1021,10 +1022,9 @@ class ProviderRegistry {
  * Safe command execution helper (no shell, no injection risk)
  */
 async function execCommand(command: string, args: string[]): Promise<{ stdout: string; ok: boolean }> {
-  const { execFile } = require("child_process");
   return new Promise((resolve) => {
-    execFile(command, args, { encoding: "utf-8", timeout: 5000 }, (error: Error | null, stdout: string) => {
-      resolve({ stdout: stdout?.trim() || "", ok: !error });
+    execFile(command, args, { encoding: "utf-8", timeout: 5000 }, (error: Error | null, stdout: string | Buffer) => {
+      resolve({ stdout: (stdout?.toString() || "").trim(), ok: !error });
     });
   });
 }
