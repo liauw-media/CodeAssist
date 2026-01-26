@@ -43,6 +43,18 @@ const METRICS_FILE = join(process.cwd(), "autonomous-metrics.json");
 const STATE_FILE = join(process.cwd(), ".ralph-state.json");
 const GATES_DIR = join(__dirname, "gates");
 
+// Platform detection patterns
+const GITLAB_REMOTE_PATTERNS = [
+  /gitlab\.com/i,
+  /gitlab\./i,
+  /@gitlab/i,
+];
+const GITHUB_REMOTE_PATTERNS = [
+  /github\.com/i,
+  /github\./i,
+  /@github/i,
+];
+
 // Scoring thresholds
 const GATE_PASS_THRESHOLD = 0.8;
 const PR_FALLBACK_SCORE = 85;
@@ -306,6 +318,25 @@ interface GateDefinition {
   description: string;
   tools: string[];
   prompt: string;
+}
+
+// ============================================
+// PLATFORM TYPES (GitHub/GitLab abstraction)
+// ============================================
+type PlatformName = "github" | "gitlab";
+
+interface CreateIssueParams {
+  title: string;
+  body: string;
+  labels?: string[];
+  parentIssue?: string;
+}
+
+interface CreatePRParams {
+  title: string;
+  body: string;
+  sourceBranch: string;
+  targetBranch: string;
 }
 
 // SDK Type Guards
@@ -983,6 +1014,219 @@ class ProviderRegistry {
 }
 
 // ============================================
+// PLATFORM CLIENT (GitHub/GitLab abstraction)
+// ============================================
+
+/**
+ * Safe command execution helper (no shell, no injection risk)
+ */
+async function execCommand(command: string, args: string[]): Promise<{ stdout: string; ok: boolean }> {
+  const { execFile } = require("child_process");
+  return new Promise((resolve) => {
+    execFile(command, args, { encoding: "utf-8", timeout: 5000 }, (error: Error | null, stdout: string) => {
+      resolve({ stdout: stdout?.trim() || "", ok: !error });
+    });
+  });
+}
+
+/**
+ * Detect platform from git remote URL or config files
+ */
+async function detectPlatform(): Promise<PlatformName> {
+  // Check for GitLab CI file first (most reliable indicator)
+  if (existsSync(join(process.cwd(), ".gitlab-ci.yml"))) {
+    return "gitlab";
+  }
+
+  // Check for GitHub workflows directory
+  if (existsSync(join(process.cwd(), ".github", "workflows"))) {
+    return "github";
+  }
+
+  // Try to detect from git remote
+  const { stdout, ok } = await execCommand("git", ["remote", "get-url", "origin"]);
+  if (ok && stdout) {
+    for (const pattern of GITLAB_REMOTE_PATTERNS) {
+      if (pattern.test(stdout)) {
+        return "gitlab";
+      }
+    }
+
+    for (const pattern of GITHUB_REMOTE_PATTERNS) {
+      if (pattern.test(stdout)) {
+        return "github";
+      }
+    }
+  }
+
+  // Default to GitHub
+  return "github";
+}
+
+/**
+ * Abstract interface for platform operations (GitHub/GitLab)
+ */
+interface IPlatformClient {
+  getName(): PlatformName;
+  getDisplayName(): string;
+  getIssueViewCommand(issueId: string): string;
+  getIssueCreateCommand(params: CreateIssueParams): string;
+  getIssueCommentCommand(issueId: string, body: string): string;
+  getPRCreateCommand(params: CreatePRParams): string;
+  getTokenEnvVar(): string;
+  validateCLI(): Promise<boolean>;
+}
+
+/**
+ * GitHub CLI implementation
+ */
+class GitHubClient implements IPlatformClient {
+  getName(): PlatformName {
+    return "github";
+  }
+
+  getDisplayName(): string {
+    return "GitHub (gh)";
+  }
+
+  getIssueViewCommand(issueId: string): string {
+    return `gh issue view ${issueId}`;
+  }
+
+  getIssueCreateCommand(params: CreateIssueParams): string {
+    const labelArg = params.labels?.length ? ` --label "${params.labels.join(",")}"` : "";
+    // Use heredoc for body to handle multi-line content
+    return `gh issue create --title "${sanitizeForShell(params.title)}"${labelArg} --body "$(cat <<'RALPH_EOF'\n${params.body}\nRALPH_EOF\n)"`;
+  }
+
+  getIssueCommentCommand(issueId: string, body: string): string {
+    // Use heredoc for body to handle multi-line content
+    return `gh issue comment ${issueId} --body "$(cat <<'RALPH_EOF'\n${body}\nRALPH_EOF\n)"`;
+  }
+
+  getPRCreateCommand(params: CreatePRParams): string {
+    return `gh pr create --title "${sanitizeForShell(params.title)}" --body "$(cat <<'RALPH_EOF'\n${params.body}\nRALPH_EOF\n)" --base ${params.targetBranch}`;
+  }
+
+  getTokenEnvVar(): string {
+    return "GITHUB_TOKEN";
+  }
+
+  async validateCLI(): Promise<boolean> {
+    const { ok } = await execCommand("gh", ["--version"]);
+    return ok;
+  }
+}
+
+/**
+ * GitLab CLI implementation (glab)
+ */
+class GitLabClient implements IPlatformClient {
+  getName(): PlatformName {
+    return "gitlab";
+  }
+
+  getDisplayName(): string {
+    return "GitLab (glab)";
+  }
+
+  getIssueViewCommand(issueId: string): string {
+    return `glab issue view ${issueId}`;
+  }
+
+  getIssueCreateCommand(params: CreateIssueParams): string {
+    const labelArg = params.labels?.length ? ` --label "${params.labels.join(",")}"` : "";
+    // Use heredoc for description to handle multi-line content
+    return `glab issue create --title "${sanitizeForShell(params.title)}"${labelArg} --description "$(cat <<'RALPH_EOF'\n${params.body}\nRALPH_EOF\n)"`;
+  }
+
+  getIssueCommentCommand(issueId: string, body: string): string {
+    // GitLab uses 'note' for comments
+    return `glab issue note ${issueId} --message "$(cat <<'RALPH_EOF'\n${body}\nRALPH_EOF\n)"`;
+  }
+
+  getPRCreateCommand(params: CreatePRParams): string {
+    // GitLab uses 'mr' (merge request) instead of 'pr'
+    return `glab mr create --title "${sanitizeForShell(params.title)}" --description "$(cat <<'RALPH_EOF'\n${params.body}\nRALPH_EOF\n)" --target-branch ${params.targetBranch} --source-branch ${params.sourceBranch}`;
+  }
+
+  getTokenEnvVar(): string {
+    return "GITLAB_TOKEN";
+  }
+
+  async validateCLI(): Promise<boolean> {
+    const { ok } = await execCommand("glab", ["--version"]);
+    return ok;
+  }
+}
+
+/**
+ * Factory for creating platform clients
+ */
+class PlatformRegistry {
+  private client: IPlatformClient;
+  private detectedPlatform: PlatformName;
+  private initialized: boolean = false;
+
+  constructor() {
+    // Default to GitHub, will be updated in init()
+    this.detectedPlatform = "github";
+    this.client = new GitHubClient();
+  }
+
+  public async init(forcePlatform?: PlatformName): Promise<void> {
+    if (this.initialized && !forcePlatform) return;
+
+    this.detectedPlatform = forcePlatform || await detectPlatform();
+
+    if (this.detectedPlatform === "gitlab") {
+      this.client = new GitLabClient();
+    } else {
+      this.client = new GitHubClient();
+    }
+
+    this.initialized = true;
+  }
+
+  public getClient(): IPlatformClient {
+    return this.client;
+  }
+
+  public getPlatform(): PlatformName {
+    return this.detectedPlatform;
+  }
+
+  public async validateSetup(): Promise<{ ok: boolean; error?: string }> {
+    const cliValid = await this.client.validateCLI();
+    if (!cliValid) {
+      const cli = this.detectedPlatform === "gitlab" ? "glab" : "gh";
+      return {
+        ok: false,
+        error: `${cli} CLI not found. Install it from: ${
+          this.detectedPlatform === "gitlab"
+            ? "https://gitlab.com/gitlab-org/cli"
+            : "https://cli.github.com"
+        }`,
+      };
+    }
+
+    const tokenVar = this.client.getTokenEnvVar();
+    if (!process.env[tokenVar]) {
+      return {
+        ok: true, // CLI auth may work without explicit token
+        error: `${tokenVar} not set - using CLI authentication`,
+      };
+    }
+
+    return { ok: true };
+  }
+
+  public getSummary(): string {
+    return `Platform: ${this.client.getDisplayName()}`;
+  }
+}
+
+// ============================================
 // STRUCTURED LOGGER (Single Responsibility)
 // ============================================
 class StructuredLogger {
@@ -1045,6 +1289,7 @@ class RunContext {
   public readonly metrics: MetricsCollector;
   public readonly logger: StructuredLogger;
   public readonly providerRegistry: ProviderRegistry;
+  public readonly platformRegistry: PlatformRegistry;
 
   constructor(
     issueId: string,
@@ -1057,6 +1302,7 @@ class RunContext {
       auditLogger?: AuditLogger;
       metrics?: MetricsCollector;
       providerRegistry?: ProviderRegistry;
+      platformRegistry?: PlatformRegistry;
     }
   ) {
     this.runId = `ralph-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -1072,6 +1318,11 @@ class RunContext {
     this.metrics = dependencies?.metrics ?? new MetricsCollector();
     this.logger = new StructuredLogger(this.runId);
     this.providerRegistry = dependencies?.providerRegistry ?? new ProviderRegistry(config.providers);
+    this.platformRegistry = dependencies?.platformRegistry ?? new PlatformRegistry();
+  }
+
+  public async initPlatform(): Promise<void> {
+    await this.platformRegistry.init();
   }
 
   public saveCheckpoint(): void {
@@ -1135,7 +1386,7 @@ function escapeRegex(input: string): string {
 // ============================================
 // ENVIRONMENT VALIDATION
 // ============================================
-function validateEnvironment(): void {
+function validateEnvironment(platform?: PlatformName): void {
   const required = ["ANTHROPIC_API_KEY"];
   const missing = required.filter((key) => !process.env[key]);
 
@@ -1147,8 +1398,11 @@ function validateEnvironment(): void {
     process.exit(1);
   }
 
-  if (!process.env.GITHUB_TOKEN) {
-    console.warn("[WARN] GITHUB_TOKEN not set - using gh CLI authentication");
+  // Check platform-specific token
+  const tokenVar = platform === "gitlab" ? "GITLAB_TOKEN" : "GITHUB_TOKEN";
+  if (!process.env[tokenVar]) {
+    const cli = platform === "gitlab" ? "glab" : "gh";
+    console.warn(`[WARN] ${tokenVar} not set - using ${cli} CLI authentication`);
   }
 }
 
@@ -1686,32 +1940,47 @@ async function createSubIssue(
   }
 
   const title = sanitizeForShell(`[${gateName.toUpperCase()}] ${gateIssue.title}`).slice(0, 100);
-  const labels = ["auto-generated", gateName, gateIssue.severity].join(",");
+  const labels = ["auto-generated", gateName, gateIssue.severity];
 
   const description = sanitizeForShell(gateIssue.description).slice(0, 500);
   const recommendation = sanitizeForShell(gateIssue.recommendation || "Review and address manually.").slice(0, 500);
 
+  const body = `## Severity: ${gateIssue.severity.toUpperCase()}
+
+**Found by:** /${gateName} gate
+**File:** ${sanitizeForShell(gateIssue.file || "N/A")}
+**Auto-fixable:** ${gateIssue.autoFixable ? "Yes" : "No"}
+
+### Description
+${description}
+
+### Recommendation
+${recommendation}
+
+---
+Parent issue: #${parentIssue}`;
+
+  const platformClient = ctx.platformRegistry.getClient();
+  const platformName = ctx.platformRegistry.getPlatform();
+
   try {
     for await (const message of query({
-      prompt: `Create a GitHub issue with:
+      prompt: `Create an issue on ${platformName === "gitlab" ? "GitLab" : "GitHub"} with:
 - Title: "${title}"
-- Labels: "${labels}"
-- Body should include:
-  - Severity: ${gateIssue.severity.toUpperCase()}
-  - Found by: /${gateName} gate
-  - File: ${sanitizeForShell(gateIssue.file || "N/A")}
-  - Auto-fixable: ${gateIssue.autoFixable ? "Yes" : "No"}
-  - Description: ${description}
-  - Recommendation: ${recommendation}
-  - Parent issue: #${parentIssue}
-Use gh issue create command with proper escaping.`,
+- Labels: "${labels.join(",")}"
+- Body/Description (use heredoc for proper formatting):
+${body}
+
+Use this command (platform: ${platformClient.getDisplayName()}):
+${platformClient.getIssueCreateCommand({ title, body, labels })}`,
       options: {
         resume: ctx.sessionId,
         allowedTools: ["Bash"],
       },
     })) {
       if (isResultMessage(message)) {
-        const issueMatch = message.result.match(/#(\d+)/);
+        // Match issue number from both GitHub (#123) and GitLab (!123 or #123) output
+        const issueMatch = message.result.match(/[#!](\d+)/);
         if (issueMatch) {
           ctx.metrics.recordIssueCreated(issueMatch[1]);
           return issueMatch[1];
@@ -1727,11 +1996,17 @@ Use gh issue create command with proper escaping.`,
 
 async function postToIssue(issueId: string, body: string, ctx: RunContext): Promise<void> {
   const commentBody = sanitizeForShell(body).slice(0, 5000);
+  const platformClient = ctx.platformRegistry.getClient();
+  const platformName = ctx.platformRegistry.getPlatform();
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for await (const _message of query({
-      prompt: `Post a comment to GitHub issue #${issueId}. Content: ${commentBody.slice(0, 1000)}... Use gh issue comment with proper escaping.`,
+      prompt: `Post a comment to ${platformName === "gitlab" ? "GitLab" : "GitHub"} issue #${issueId}.
+Content (first 1000 chars): ${commentBody.slice(0, 1000)}...
+
+Use this command (platform: ${platformClient.getDisplayName()}):
+${platformClient.getIssueCommentCommand(issueId, commentBody)}`,
       options: {
         resume: ctx.sessionId,
         allowedTools: ["Bash"],
@@ -1786,6 +2061,21 @@ async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<
   const ctx = new RunContext(issueId, config, options);
   const gateAgents = loadGateDefinitions();
 
+  // Initialize platform detection
+  await ctx.initPlatform();
+  const platformClient = ctx.platformRegistry.getClient();
+  const platformName = ctx.platformRegistry.getPlatform();
+
+  // Validate environment with platform-specific checks
+  validateEnvironment(platformName);
+
+  // Validate platform CLI is available
+  const platformSetup = await ctx.platformRegistry.validateSetup();
+  if (!platformSetup.ok) {
+    console.error(`\n[ERROR] ${platformSetup.error}`);
+    process.exit(1);
+  }
+
   console.log("\n" + "=".repeat(60));
   console.log("          RALPH WIGGUM - Autonomous Development");
   console.log("=".repeat(60));
@@ -1794,6 +2084,7 @@ async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<
   console.log(`  Max iterations: ${config.max_iterations}`);
   console.log(`  Preset: ${options.preset || "default"}`);
   console.log(`  Run ID: ${ctx.runId}`);
+  console.log(`  Platform: ${ctx.platformRegistry.getSummary()}`);
   console.log(`  Providers: ${ctx.providerRegistry.getSummary()}`);
   if (options.dryRun) console.log("  MODE: DRY RUN (no changes will be made)");
   console.log("=".repeat(60) + "\n");
@@ -1814,11 +2105,12 @@ async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<
 
   if (options.dryRun) {
     console.log("[DRY RUN] Configuration validated. Would execute:");
-    console.log(`  - Fetch issue #${issueId}`);
+    console.log(`  - Fetch issue #${issueId} (using ${platformClient.getDisplayName()})`);
     console.log(`  - Create branch: feature/${issueId}-implement`);
     console.log(`  - Run gates: ${Object.keys(config.gates).join(", ")}`);
     console.log(`  - Target score: ${config.target_score}`);
     console.log(`  - Gate timeout: ${DEFAULT_GATE_TIMEOUT_MS / 1000}s`);
+    console.log(`  - Platform: ${ctx.platformRegistry.getSummary()}`);
     console.log(`  - Providers: ${ctx.providerRegistry.getSummary()}`);
     return;
   }
@@ -1838,11 +2130,16 @@ async function runAutonomousLoop(issueId: string, options: RunOptions): Promise<
   const implementationProvider = ctx.providerRegistry.getDefaultClient();
   ctx.logger.info(`Implementation provider: ${implementationProvider.getDisplayName()}`);
 
+  const platformDisplayName = platformName === "gitlab" ? "GitLab" : "GitHub";
+  const issueViewCommand = platformClient.getIssueViewCommand(issueId);
+
   for await (const message of query({
     prompt: `You are starting an autonomous development session for issue #${issueId}.
 
+PLATFORM: ${platformDisplayName} (using ${platformClient.getDisplayName()})
+
 STEPS:
-1. Fetch issue #${issueId} from GitHub (use: gh issue view ${issueId})
+1. Fetch issue #${issueId} from ${platformDisplayName} (use: ${issueViewCommand})
 2. Create feature branch: feature/${issueId}-implement
 3. Read the issue description and acceptance criteria
 4. Implement the feature/fix
@@ -1974,15 +2271,31 @@ RULES:
     }
   }
 
-  // === PHASE 3: Create PR ===
+  // === PHASE 3: Create PR/MR ===
   if (currentScore >= config.target_score || (currentScore >= PR_FALLBACK_SCORE && ctx.iteration >= config.max_iterations)) {
-    ctx.logger.info("\nPhase 3: Creating pull request...");
+    const prType = platformName === "gitlab" ? "merge request" : "pull request";
+    ctx.logger.info(`\nPhase 3: Creating ${prType}...`);
+
+    const prTitle = `feat: implement #${issueId}`;
+    const prBody = `Implements #${issueId}\n\nQuality gate scores: ${currentScore}/${config.target_score}`;
+    const sourceBranch = `feature/${issueId}-implement`;
+    const targetBranch = "staging";
+
+    const prCommand = platformClient.getPRCreateCommand({
+      title: prTitle,
+      body: prBody,
+      sourceBranch,
+      targetBranch,
+    });
 
     for await (const message of query({
-      prompt: `Create a pull request from the current branch to staging.
-Title: "feat: implement #${issueId}"
+      prompt: `Create a ${prType} from the current branch to staging.
+Title: "${prTitle}"
 Include quality gate scores in the body.
-Use: gh pr create --fill --base staging`,
+
+PLATFORM: ${platformDisplayName}
+Use this command:
+${prCommand}`,
       options: {
         resume: ctx.sessionId,
         allowedTools: ["Bash", "Read"],
@@ -1990,7 +2303,7 @@ Use: gh pr create --fill --base staging`,
       },
     })) {
       if (isResultMessage(message)) {
-        ctx.logger.info("PR created successfully");
+        ctx.logger.info(`${prType} created successfully`);
       }
     }
   }
@@ -2162,12 +2475,12 @@ function printUsage(): void {
 RALPH WIGGUM - Autonomous Development Runner
 
 USAGE:
-  npx ts-node ralph-runner.ts --issue=123
-  npx ts-node ralph-runner.ts --issue=123 --preset=production
-  npx ts-node ralph-runner.ts --issue=123 --supervised
-  npx ts-node ralph-runner.ts --issue=123 --dry-run
-  npx ts-node ralph-runner.ts --test-provider
-  npx ts-node ralph-runner.ts --test-provider --preset=ollama_hybrid
+  npx tsx ralph-runner.ts --issue=123
+  npx tsx ralph-runner.ts --issue=123 --preset=production
+  npx tsx ralph-runner.ts --issue=123 --supervised
+  npx tsx ralph-runner.ts --issue=123 --dry-run
+  npx tsx ralph-runner.ts --test-provider
+  npx tsx ralph-runner.ts --test-provider --preset=ollama_hybrid
 
 OPTIONS:
   --issue=ID       Run on a single issue (required for runs)
@@ -2176,9 +2489,18 @@ OPTIONS:
   --dry-run        Validate config without executing
   --test-provider  Test provider connectivity and exit
 
+PLATFORM SUPPORT:
+  GitHub           Auto-detected from .github/ or git remote (uses gh CLI)
+  GitLab           Auto-detected from .gitlab-ci.yml or git remote (uses glab CLI)
+
+  Platform is detected automatically. Ensure the appropriate CLI is installed:
+    GitHub: https://cli.github.com
+    GitLab: https://gitlab.com/gitlab-org/cli
+
 ENVIRONMENT:
   ANTHROPIC_API_KEY  Required: Your Anthropic API key
-  GITHUB_TOKEN       Optional: GitHub token (falls back to gh CLI)
+  GITHUB_TOKEN       Optional: GitHub token (falls back to gh CLI auth)
+  GITLAB_TOKEN       Optional: GitLab token (falls back to glab CLI auth)
   DEBUG              Optional: Enable debug logging
 
 QUALITY GATES:
@@ -2213,7 +2535,6 @@ if (testProvider) {
     process.exit(1);
   });
 } else if (issueId) {
-  validateEnvironment();
   try {
     const validatedIssueId = validateIssueId(issueId);
     runAutonomousLoop(validatedIssueId, { preset, supervised, dryRun }).catch((e) => {

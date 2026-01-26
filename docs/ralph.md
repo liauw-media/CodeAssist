@@ -54,7 +54,31 @@ npx tsx ralph-runner.ts --help
 | **Node.js 18+** | [nodejs.org](https://nodejs.org) |
 | **Claude Code** | `curl -fsSL https://claude.ai/install.sh \| bash` |
 | **Anthropic API Key** | [console.anthropic.com](https://console.anthropic.com) |
-| **GitHub CLI** | `gh auth login` |
+| **GitHub CLI** | `gh auth login` (for GitHub projects) |
+| **GitLab CLI** | `glab auth login` (for GitLab projects) |
+
+### Platform Support
+
+Ralph auto-detects your platform:
+
+| Platform | Detection | CLI Required |
+|----------|-----------|--------------|
+| **GitHub** | `.github/` directory or `github.com` remote | `gh` |
+| **GitLab** | `.gitlab-ci.yml` or `gitlab.com` remote | `glab` |
+
+Install the appropriate CLI:
+
+```bash
+# GitHub CLI
+brew install gh        # macOS
+sudo apt install gh    # Ubuntu
+winget install GitHub.cli  # Windows
+
+# GitLab CLI
+brew install glab      # macOS
+sudo apt install glab  # Ubuntu
+winget install glab    # Windows
+```
 
 ### Environment Variables
 
@@ -62,8 +86,11 @@ npx tsx ralph-runner.ts --help
 # Required
 export ANTHROPIC_API_KEY=sk-ant-...
 
-# Optional (falls back to gh CLI authentication)
+# Optional - GitHub (falls back to gh CLI authentication)
 export GITHUB_TOKEN=ghp_...
+
+# Optional - GitLab (falls back to glab CLI authentication)
+export GITLAB_TOKEN=glpat_...
 
 # Debug mode
 export DEBUG=1
@@ -456,11 +483,37 @@ jobs:
             --preset=production
 ```
 
+### CI/CD Integration (GitLab CI)
+
+```yaml
+# .gitlab-ci.yml
+stages:
+  - autonomous
+
+ralph:
+  stage: autonomous
+  image: node:20
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "issue_event"'
+      when: manual
+  before_script:
+    - apt-get update && apt-get install -y curl
+    - curl -fsSL https://gitlab.com/gitlab-org/cli/-/releases/v1.36.0/downloads/glab_1.36.0_linux_amd64.tar.gz | tar xz
+    - mv glab_1.36.0_linux_amd64/bin/glab /usr/local/bin/
+    - glab auth login --token $GITLAB_TOKEN
+    - cd scripts && npm install
+  script:
+    - npx tsx ralph-runner.ts --issue=$CI_ISSUE_IID --preset=production
+  variables:
+    ANTHROPIC_API_KEY: $ANTHROPIC_API_KEY
+    GITLAB_TOKEN: $GITLAB_TOKEN
+```
+
 ---
 
 ## Human Intervention
 
-Comment on the GitHub issue to control Ralph:
+Comment on the GitHub/GitLab issue to control Ralph:
 
 | Command | Action |
 |---------|--------|
@@ -546,7 +599,7 @@ ralph-runner.ts
 export ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-### "gh: not found"
+### "gh: not found" (GitHub)
 
 Install GitHub CLI:
 ```bash
@@ -563,6 +616,25 @@ winget install GitHub.cli
 Then authenticate:
 ```bash
 gh auth login
+```
+
+### "glab: not found" (GitLab)
+
+Install GitLab CLI:
+```bash
+# macOS
+brew install glab
+
+# Ubuntu
+sudo apt install glab
+
+# Windows
+winget install glab
+```
+
+Then authenticate:
+```bash
+glab auth login
 ```
 
 ### Gate timeout
