@@ -71,7 +71,7 @@ const CIRCUIT_BREAKER_THRESHOLD = 5;
 const CIRCUIT_BREAKER_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
 
 // Valid presets
-const VALID_PRESETS = ["default", "production", "prototype", "frontend"] as const;
+const VALID_PRESETS = ["default", "production", "prototype", "frontend", "strict", "balanced", "fast"] as const;
 type Preset = (typeof VALID_PRESETS)[number];
 
 // Provider presets (handled separately from general presets)
@@ -222,6 +222,120 @@ const PROVIDER_PRESETS: Record<string, ProvidersConfig> = {
     ollama: {
       enabled: true,
       base_url: "http://localhost:11434",
+    },
+  },
+};
+
+// ============================================
+// GATE PRESETS
+// Define different gate weight distributions for various use cases
+// ============================================
+type GatePresetConfig = {
+  target_score: number;
+  max_iterations: number;
+  gates: Record<string, Partial<GateConfig>>;
+};
+
+const GATE_PRESETS: Record<string, GatePresetConfig> = {
+  // Strict: Maximum quality, all gates required, higher target
+  // Use for: Production releases, critical systems, compliance
+  strict: {
+    target_score: 98,
+    max_iterations: 20,
+    gates: {
+      test: { weight: 20, required: true },
+      security: { weight: 25, required: true },    // Higher weight
+      build: { weight: 10, required: true },
+      review: { weight: 15, required: true },      // Now required
+      mentor: { weight: 15, required: true },
+      architect: { weight: 10, required: true },   // Now required
+      ux: { weight: 5, required: false },
+      devops: { weight: 0, required: false },
+    },
+  },
+
+  // Balanced: Default - good balance of speed and quality
+  // Use for: Normal development, feature branches
+  balanced: {
+    target_score: 95,
+    max_iterations: 15,
+    gates: {
+      test: { weight: 20, required: true },
+      security: { weight: 20, required: true },
+      build: { weight: 10, required: true },
+      review: { weight: 15, required: false },
+      mentor: { weight: 15, required: true },
+      architect: { weight: 10, required: false },
+      ux: { weight: 5, required: false },
+      devops: { weight: 5, required: false },
+    },
+  },
+
+  // Fast: Speed over thoroughness, minimal gates
+  // Use for: Prototypes, hotfixes, experiments
+  fast: {
+    target_score: 85,
+    max_iterations: 8,
+    gates: {
+      test: { weight: 35, required: true },
+      security: { weight: 25, required: true },
+      build: { weight: 20, required: true },
+      review: { weight: 20, required: false },
+      mentor: { weight: 0, required: false },
+      architect: { weight: 0, required: false },
+      ux: { weight: 0, required: false },
+      devops: { weight: 0, required: false },
+    },
+  },
+
+  // Production: Alias for strict with additional safety
+  // Use for: Production deployments
+  production: {
+    target_score: 98,
+    max_iterations: 20,
+    gates: {
+      test: { weight: 20, required: true },
+      security: { weight: 25, required: true },
+      build: { weight: 10, required: true },
+      review: { weight: 15, required: true },
+      mentor: { weight: 15, required: true },
+      architect: { weight: 10, required: true },
+      ux: { weight: 5, required: false },
+      devops: { weight: 0, required: false },
+    },
+  },
+
+  // Prototype: Alias for fast
+  // Use for: Rapid prototyping, MVPs
+  prototype: {
+    target_score: 80,
+    max_iterations: 5,
+    gates: {
+      test: { weight: 40, required: true },
+      security: { weight: 30, required: false },   // Not required for prototypes
+      build: { weight: 30, required: true },
+      review: { weight: 0, required: false },
+      mentor: { weight: 0, required: false },
+      architect: { weight: 0, required: false },
+      ux: { weight: 0, required: false },
+      devops: { weight: 0, required: false },
+    },
+  },
+
+  // Frontend: Emphasizes UX and accessibility
+  // Use for: UI-heavy projects, design systems
+  frontend: {
+    target_score: 95,
+    max_iterations: 15,
+    gates: {
+      test: { weight: 20, required: true },
+      security: { weight: 15, required: true },
+      build: { weight: 10, required: true },
+      review: { weight: 15, required: false },
+      mentor: { weight: 10, required: false },
+      architect: { weight: 5, required: false },
+      ux: { weight: 20, required: true },          // High weight, required
+      devops: { weight: 5, required: false },
     },
   },
 };
@@ -1422,15 +1536,16 @@ function loadConfig(preset?: string): AutonomousConfig {
     target_score: 95,
     max_iterations: 15,
     iteration_delay: 5,
+    // Default: "balanced" preset - emphasizes architecture and security
     gates: {
-      test: { weight: 25, required: true, auto_fix: true, parallel_group: 1 },
-      security: { weight: 25, required: true, auto_fix: true, parallel_group: 1 },
-      build: { weight: 15, required: true, auto_fix: true, parallel_group: 1 },
-      review: { weight: 20, required: false, auto_fix: true, parallel_group: 2 },
-      mentor: { weight: 10, required: false, auto_fix: false, parallel_group: 2 },
-      ux: { weight: 5, required: false, auto_fix: false, parallel_group: 2 },
-      architect: { weight: 0, required: false, auto_fix: false, parallel_group: 3 },
-      devops: { weight: 0, required: false, auto_fix: false, parallel_group: 3 },
+      test: { weight: 20, required: true, auto_fix: true, parallel_group: 1, description: "Tests pass + coverage" },
+      security: { weight: 20, required: true, auto_fix: true, parallel_group: 1, description: "No critical vulnerabilities" },
+      build: { weight: 10, required: true, auto_fix: true, parallel_group: 1, description: "Project compiles" },
+      review: { weight: 15, required: false, auto_fix: true, parallel_group: 2, description: "Code quality, smells" },
+      mentor: { weight: 15, required: true, auto_fix: false, parallel_group: 2, description: "Architecture review" },
+      architect: { weight: 10, required: false, auto_fix: false, parallel_group: 3, description: "System security & performance" },
+      ux: { weight: 5, required: false, auto_fix: false, parallel_group: 3, description: "Accessibility (frontend)" },
+      devops: { weight: 5, required: false, auto_fix: false, parallel_group: 3, description: "CI/CD review" },
     },
     safety: {
       max_api_calls_per_hour: 100,
@@ -1523,8 +1638,22 @@ function loadConfig(preset?: string): AutonomousConfig {
     }
   }
 
-  // Apply general preset (default, production, prototype, frontend)
+  // Apply gate preset (strict, balanced, fast, production, prototype, frontend)
   const validatedPreset = validatePreset(preset);
+  if (validatedPreset && GATE_PRESETS[validatedPreset]) {
+    const gatePreset = GATE_PRESETS[validatedPreset];
+    defaultConfig.target_score = gatePreset.target_score;
+    defaultConfig.max_iterations = gatePreset.max_iterations;
+
+    // Merge gate configs from preset
+    for (const [gateName, gateConfig] of Object.entries(gatePreset.gates)) {
+      if (defaultConfig.gates[gateName]) {
+        Object.assign(defaultConfig.gates[gateName], gateConfig);
+      }
+    }
+  }
+
+  // Also check for user-defined presets in config file
   if (validatedPreset && defaultConfig.presets?.[validatedPreset]) {
     Object.assign(defaultConfig, defaultConfig.presets[validatedPreset]);
   }
@@ -2476,52 +2605,56 @@ RALPH WIGGUM - Autonomous Development Runner
 
 USAGE:
   npx tsx ralph-runner.ts --issue=123
-  npx tsx ralph-runner.ts --issue=123 --preset=production
+  npx tsx ralph-runner.ts --issue=123 --preset=strict
+  npx tsx ralph-runner.ts --issue=123 --preset=fast
   npx tsx ralph-runner.ts --issue=123 --supervised
   npx tsx ralph-runner.ts --issue=123 --dry-run
   npx tsx ralph-runner.ts --test-provider
-  npx tsx ralph-runner.ts --test-provider --preset=ollama_hybrid
 
 OPTIONS:
   --issue=ID       Run on a single issue (required for runs)
-  --preset=NAME    Use config preset (default, production, ollama_hybrid, ollama_only)
+  --preset=NAME    Use preset (see GATE PRESETS below)
   --supervised     Pause after each iteration for review
   --dry-run        Validate config without executing
   --test-provider  Test provider connectivity and exit
 
-PLATFORM SUPPORT:
-  GitHub           Auto-detected from .github/ or git remote (uses gh CLI)
-  GitLab           Auto-detected from .gitlab-ci.yml or git remote (uses glab CLI)
+GATE PRESETS:
+  strict         98/100 target, all gates required (production releases)
+  balanced       95/100 target, mentor required (default)
+  fast           85/100 target, minimal gates (hotfixes)
+  production     Alias for strict
+  prototype      80/100 target, tests only (MVPs)
+  frontend       95/100 target, UX required (UI projects)
 
-  Platform is detected automatically. Ensure the appropriate CLI is installed:
-    GitHub: https://cli.github.com
-    GitLab: https://gitlab.com/gitlab-org/cli
+PROVIDER PRESETS (combine with gate presets):
+  ollama_hybrid  Claude for critical gates, Ollama for others
+  ollama_only    All gates use local Ollama
+
+PLATFORM SUPPORT:
+  GitHub         Auto-detected from .github/ or git remote (uses gh CLI)
+  GitLab         Auto-detected from .gitlab-ci.yml or git remote (uses glab CLI)
+
+QUALITY GATES (balanced preset):
+  /test       20pts  required  Tests pass + coverage
+  /security   20pts  required  No critical vulnerabilities
+  /build      10pts  required  Project compiles
+  /review     15pts  optional  Code quality, smells
+  /mentor     15pts  required  Architecture review
+  /architect  10pts  optional  System security & performance
+  /ux          5pts  optional  Accessibility (frontend)
+  /devops      5pts  optional  CI/CD review
 
 ENVIRONMENT:
   ANTHROPIC_API_KEY  Required: Your Anthropic API key
   GITHUB_TOKEN       Optional: GitHub token (falls back to gh CLI auth)
   GITLAB_TOKEN       Optional: GitLab token (falls back to glab CLI auth)
-  DEBUG              Optional: Enable debug logging
-
-QUALITY GATES:
-  /test       25pts  Tests + coverage
-  /security   25pts  Vulnerability scan
-  /build      15pts  Compilation check
-  /review     20pts  Code quality
-  /mentor     10pts  Architecture advice
-  /ux          5pts  Accessibility
-  /architect   0pts  System security (creates issues)
-  /devops      0pts  CI/CD review (creates issues)
 
 GATE DEFINITIONS:
   External YAML files in: scripts/gates/
   Override or add gates by creating *.yml files
 
-TIMEOUTS:
-  Default gate timeout: ${DEFAULT_GATE_TIMEOUT_MS / 1000 / 60} minutes
-  Configure per-gate: timeout_ms in autonomous.yml
-
 CONFIG: .claude/autonomous.yml
+DOCS:  docs/gates.md
 `);
 }
 

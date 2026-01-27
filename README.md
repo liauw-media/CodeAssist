@@ -1,6 +1,6 @@
 # CodeAssist
 
-[![Version](https://img.shields.io/badge/version-1.7.1-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.7.1)
+[![Version](https://img.shields.io/badge/version-1.7.2-blue.svg)](https://github.com/liauw-media/CodeAssist/releases/tag/v1.7.2)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 An assistant library for Claude Code - commands, skills, and workflows that help Claude work more effectively.
@@ -26,12 +26,12 @@ This automatically:
 
 ---
 
-## What's New in 1.7.1
+## What's New in 1.7.2
 
-- **GitLab Support** - Ralph Wiggum now works with both GitHub and GitLab
-- **Platform Auto-Detection** - Detects from `.gitlab-ci.yml`, `.github/`, or git remote
-- **Ollama Integration** - Use local LLMs for non-critical quality gates
-- **Per-gate Model Selection** - Critical gates use Claude, others can use Ollama
+- **Session Preservation** - `/ca-update` now uses `/save-session` for proper context preservation
+- **Gate Presets** - New presets: `balanced`, `strict`, `fast`, `prototype`, `frontend`
+- **Rebalanced Gates** - Mentor now required (15pts), architect has weight (10pts)
+- **Gate Documentation** - New `docs/gates.md` with full configuration guide
 
 See [CHANGELOG.md](CHANGELOG.md) for full history.
 

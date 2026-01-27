@@ -2,6 +2,66 @@
 
 All notable changes to CodeAssist will be documented in this file.
 
+## [1.7.2] - 2025-01-27
+
+### Improved - Session Context Preservation (#16)
+
+**`/ca-update` Integration with `/save-session`:**
+- `/ca-update` now uses `/save-session` instead of writing directly to `session-context.md`
+- Preserves session history (doesn't overwrite previous sessions)
+- Works with concurrent sessions (multiple terminals)
+- Sessions saved as `pre-update-{version}.md` for easy identification
+
+**Benefits:**
+- Session context now integrates with `/session-list` and `/resume-session`
+- No more overwriting previous session context files
+- Consistent with existing session management workflow
+
+**Usage (unchanged):**
+```bash
+/ca-update
+# When prompted to update, session is auto-saved as:
+# .claude/sessions/pre-update-1.7.1.md
+
+# After restart:
+/resume-session pre-update-1.7.1
+```
+
+### Changed - Quality Gate Weights
+
+**Rebalanced gate weights for better design/security coverage:**
+
+| Gate | Old Weight | New Weight | Required |
+|------|------------|------------|----------|
+| test | 25 | 20 | Yes |
+| security | 25 | 20 | Yes |
+| build | 15 | 10 | Yes |
+| review | 20 | 15 | No |
+| mentor | 10 | **15** | **Yes** |
+| architect | 0 | **10** | No |
+| ux | 5 | 5 | No |
+| devops | 0 | **5** | No |
+
+**Rationale:** Mentor and architect gates catch design/security flaws early. Making mentor required ensures architecture review happens.
+
+### Added - Gate Presets
+
+**New presets for different scenarios:**
+
+| Preset | Target | Use Case |
+|--------|--------|----------|
+| `balanced` | 95 | Default for most projects |
+| `strict` | 98 | All major gates required |
+| `production` | 98 | Like strict + 90% coverage |
+| `fast` | 85 | Quick iterations, minimal gates |
+| `prototype` | 80 | Hackathons, MVPs |
+| `frontend` | 95 | UX gate required |
+
+**Documentation:**
+- New `docs/gates.md` - Comprehensive gate configuration guide
+
+---
+
 ## [1.7.1] - 2025-01-26
 
 ### Added - GitLab Support

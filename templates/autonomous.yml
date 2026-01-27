@@ -75,7 +75,7 @@ gates:
   # ═══════════════════════════════════════════════════════════════
 
   test:
-    weight: 25
+    weight: 20
     required: true
     auto_fix: true
     parallel_group: 1
@@ -88,7 +88,7 @@ gates:
       max_retries: 3
 
   security:
-    weight: 25
+    weight: 20
     required: true
     auto_fix: true
     parallel_group: 1
@@ -105,7 +105,7 @@ gates:
       - low_vulns
 
   build:
-    weight: 15
+    weight: 10
     required: true
     auto_fix: true
     parallel_group: 1
@@ -120,7 +120,7 @@ gates:
   # ═══════════════════════════════════════════════════════════════
 
   review:
-    weight: 20
+    weight: 15
     required: false
     auto_fix: true
     parallel_group: 2
@@ -135,12 +135,12 @@ gates:
       - high_complexity
 
   mentor:
-    weight: 10
-    required: false
+    weight: 15
+    required: true
     auto_fix: false
     parallel_group: 2
     command: /mentor
-    description: "Architecture review - patterns, concerns"
+    description: "Architecture review - patterns, design flaws, concerns"
     creates_issues_for:
       - architectural_concerns
       - tech_debt_recommendations
@@ -162,11 +162,11 @@ gates:
       - usability_concerns
 
   # ═══════════════════════════════════════════════════════════════
-  # PARALLEL GROUP 3: Advisory Gates (0 weight, create issues only)
+  # PARALLEL GROUP 3: Advisory Gates (lower weight, create issues)
   # ═══════════════════════════════════════════════════════════════
 
   architect:
-    weight: 0
+    weight: 10
     required: false
     auto_fix: false
     parallel_group: 3
@@ -184,7 +184,7 @@ gates:
       - roadmap: phases
 
   devops:
-    weight: 0
+    weight: 5
     required: false
     auto_fix: false
     parallel_group: 3
@@ -359,56 +359,188 @@ git_rules:
     # Strip forbidden patterns automatically
     auto_strip: true
 
-# Presets for different scenarios
+# ═══════════════════════════════════════════════════════════════════════
+# PRESETS
+# Pre-configured gate weights for different scenarios
+# See docs/gates.md for full documentation
+# ═══════════════════════════════════════════════════════════════════════
+
 presets:
+  # Balanced (default) - Good for most projects
   default:
     target_score: 95
-    gates: all
+    max_iterations: 15
+    gates: all  # Uses weights defined above
 
-  prototype:
-    target_score: 80
+  balanced:
+    target_score: 95
+    max_iterations: 15
+    gates: all  # Same as default
+
+  # Strict - Maximum quality, all major gates required
+  strict:
+    target_score: 98
+    max_iterations: 20
     gates:
       test:
+        weight: 20
+        required: true
+      security:
+        weight: 25
+        required: true
+      build:
+        weight: 10
+        required: true
+      review:
+        weight: 15
+        required: true
+      mentor:
+        weight: 15
+        required: true
+      architect:
+        weight: 10
+        required: true
+      ux:
+        weight: 5
+        required: false
+      devops:
+        weight: 0
+        required: false
+
+  # Production - Alias for strict
+  production:
+    target_score: 98
+    max_iterations: 20
+    gates:
+      test:
+        weight: 20
+        required: true
+        thresholds:
+          min_coverage: 90
+      security:
+        weight: 25
+        required: true
+        thresholds:
+          medium_vulns: 0  # No medium either
+      build:
+        weight: 10
+        required: true
+      review:
+        weight: 15
+        required: true
+      mentor:
+        weight: 15
+        required: true
+      architect:
+        weight: 10
+        required: true
+      ux:
+        weight: 5
+        required: false
+      devops:
+        weight: 0
+        required: false
+
+  # Fast - Minimal gates for quick iterations
+  fast:
+    target_score: 85
+    max_iterations: 5
+    gates:
+      test:
+        weight: 40
+        required: true
+      security:
+        weight: 30
+        required: true
+      build:
+        weight: 30
+        required: true
+      review:
+        weight: 0
+        required: false
+      mentor:
+        weight: 0
+        required: false
+      architect:
+        weight: 0
+        required: false
+      ux:
+        weight: 0
+        required: false
+      devops:
+        weight: 0
+        required: false
+
+  # Prototype - Just verify it works
+  prototype:
+    target_score: 80
+    max_iterations: 3
+    gates:
+      test:
+        weight: 50
         required: true
         thresholds:
           min_coverage: 60
       security:
+        weight: 20
+        required: false
+      build:
+        weight: 30
         required: true
       review:
+        weight: 0
         required: false
       mentor:
+        weight: 0
+        required: false
+      architect:
+        weight: 0
         required: false
       ux:
+        weight: 0
+        required: false
+      devops:
+        weight: 0
         required: false
 
-  production:
-    target_score: 98
-    gates:
-      test:
-        thresholds:
-          min_coverage: 90
-      security:
-        thresholds:
-          medium_vulns: 0  # No medium either
-      mentor:
-        required: true  # Architecture review required
-
+  # Frontend - UX gate required, higher review weight
   frontend:
     target_score: 95
+    max_iterations: 15
     gates:
-      ux:
+      test:
+        weight: 20
         required: true
-        weight: 15  # Higher weight for frontend
-      review:
+      security:
         weight: 15
+        required: true
+      build:
+        weight: 10
+        required: true
+      review:
+        weight: 20
+        required: true
+      mentor:
+        weight: 10
+        required: false
+      architect:
+        weight: 5
+        required: false
+      ux:
+        weight: 15
+        required: true
+      devops:
+        weight: 5
+        required: false
 
-  # Cost-optimized: Use Ollama for most gates
+  # Cost-optimized: Use Ollama for most gates (~60% cost savings)
   ollama_hybrid:
     providers:
       default: ollama
       gate_providers:
         security: claude  # Keep security on Claude for accuracy
         test: claude      # Keep test analysis on Claude
+        mentor: claude    # Architecture review needs strong reasoning
     target_score: 90  # Slightly lower threshold for local models
 
   # Fully local: No cloud API calls (privacy/offline mode)

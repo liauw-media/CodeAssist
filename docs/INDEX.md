@@ -86,6 +86,7 @@ Guide: [security-audit/README.md](security-audit/README.md)
 | Topic | Document |
 |-------|----------|
 | Getting started | [getting-started.md](getting-started.md) |
+| Quality gates | [gates.md](gates.md) |
 | Custom container registry | [registry-config.md](registry-config.md) |
 
 ### Team Resources

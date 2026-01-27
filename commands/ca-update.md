@@ -65,48 +65,38 @@ If yes, proceed to Step 6.
 
 ### Step 6: Save Session Context
 
-Before updating, save the current session context so work can be resumed after restart.
+Before updating, save the current session context using `/save-session`.
 
-**Create `.claude/session-context.md` with this structure:**
+> **Note:** This step only runs for updates (CodeAssist already installed). For fresh installs, there's no session context to preserve. Since `/ca-update` is itself a CodeAssist command, `/save-session` is always available when this step runs.
 
-```markdown
-# Session Context
-
-Saved: [current timestamp]
-Previous Version: [version before update]
-
-## Current Task
-
-[Summarize what the user was working on - be specific about files, features, bugs]
-
-## Recent Progress
-
-[List what was accomplished in this session]
-- [completed item 1]
-- [completed item 2]
-
-## Pending Work
-
-[What still needs to be done]
-- [ ] [pending item 1]
-- [ ] [pending item 2]
-
-## Key Decisions
-
-[Important decisions made during this session that should be remembered]
-
-## Files Modified
-
-[List files that were changed]
-- `path/to/file1` - [what was changed]
-- `path/to/file2` - [what was changed]
-
-## Notes
-
-[Any other context that would help resume work]
+**Generate session name:**
+```bash
+# Get current version for the session name
+version=$(cat .claude/VERSION 2>/dev/null || echo "unknown")
+session_name="pre-update-${version}"
 ```
 
-Write this context file before proceeding.
+**Call /save-session:**
+
+Execute the `/save-session` command with the generated name:
+```
+/save-session pre-update-{version}
+```
+
+This:
+- Saves to `.claude/sessions/pre-update-{version}.md`
+- Preserves session history (doesn't overwrite previous sessions)
+- Works with concurrent sessions (multiple terminals)
+- Integrates with `/session-list` and `/resume-session`
+
+The session file will contain:
+- Current task summary
+- Recent progress
+- Pending work
+- Key decisions
+- Files modified
+
+Wait for session save to complete before proceeding.
 
 ### Step 7: Run Update
 
@@ -135,10 +125,12 @@ New skills and commands only load when Claude starts fresh.
 To continue your work:
 1. Exit this session (Ctrl+C or /exit)
 2. Start fresh: claude
-3. Run: /resume-session
+3. Run: /resume-session pre-update-[old-version]
 
-Session context saved to .claude/session-context.md
+Session saved to .claude/sessions/pre-update-[old-version].md
 ```
+
+**Tip:** Run `/session-list` to see all saved sessions.
 
 **Important:** Do NOT continue working after update - old skills are still loaded.
 

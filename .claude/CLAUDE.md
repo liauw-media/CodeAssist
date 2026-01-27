@@ -309,6 +309,49 @@ Hooks are event-driven automations that run on tool operations:
 6. /review        - Code review
 7. /verify        - Final checks
 8. /commit        - Commit changes
+9. /clear         - Clear context before next task
+```
+
+## Tips
+
+### Deeper Reasoning
+
+Use "think" keywords when you need Claude to reason more carefully:
+
+| Keyword | Depth | Use When |
+|---------|-------|----------|
+| `think` | Standard | Default planning |
+| `think hard` | Deeper | Complex architecture decisions |
+| `think harder` | Deep | Tricky bugs, security analysis |
+| `ultrathink` | Maximum | Critical design decisions, difficult refactors |
+
+Example: "ultrathink about the best way to restructure the auth module"
+
+Works well with `/brainstorm`, `/plan`, `/architect`, and `/mentor`.
+
+### Clear Context Between Tasks
+
+Use `/clear` when switching between unrelated tasks. Leftover context from a previous task can mislead Claude.
+
+```
+/commit           ← finish current task
+/clear            ← reset context
+/status           ← start fresh on next task
+```
+
+### Independent Verification
+
+For critical code, use a separate Claude session to verify work:
+
+1. Implement and commit in session A
+2. Open a new session (or use a git worktree: `/branch -w`)
+3. Ask the fresh session to review with no prior context
+
+This catches confirmation bias - a reviewer in the same session has seen your implementation journey and may unconsciously trust it. A fresh session evaluates the code objectively.
+
+```bash
+# Quick independent review from a separate terminal
+cd project && claude -p "Review the last commit for correctness and edge cases"
 ```
 
 ## Server Safety

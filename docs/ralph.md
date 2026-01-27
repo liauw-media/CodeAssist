@@ -133,14 +133,18 @@ npx tsx ralph-runner.ts --issue=123 --preset=ollama_hybrid
 
 ### Presets
 
-| Preset | Description |
-|--------|-------------|
-| `default` | Standard thresholds (95 target) |
-| `production` | Stricter thresholds (98 target) |
-| `prototype` | Relaxed for rapid prototyping |
-| `frontend` | Includes UX gate |
-| `ollama_hybrid` | Claude for critical, Ollama for others |
-| `ollama_only` | All gates use Ollama |
+| Preset | Target | Description |
+|--------|--------|-------------|
+| `balanced` | 95 | Default - good for most projects |
+| `strict` | 98 | All major gates required |
+| `production` | 98 | Alias for strict + 90% coverage |
+| `fast` | 85 | Minimal gates for quick iterations |
+| `prototype` | 80 | Just verify it works |
+| `frontend` | 95 | UX gate required, higher review weight |
+| `ollama_hybrid` | 90 | Claude for critical, Ollama for others |
+| `ollama_only` | 85 | All gates use Ollama |
+
+See [gates.md](gates.md) for full preset documentation.
 
 ### Exit Codes
 
@@ -173,14 +177,16 @@ npx tsx ralph-runner.ts --issue=123 --preset=ollama_hybrid
 
 | Gate | Weight | Required | Auto-Fix | Description |
 |------|--------|----------|----------|-------------|
-| `/test` | 25 | Yes | Yes | Tests pass + 80% coverage |
-| `/security` | 25 | Yes | Yes | No critical/high vulnerabilities |
-| `/build` | 15 | Yes | Yes | Project compiles |
-| `/review` | 20 | No | Yes | Code quality, smells, duplication |
-| `/mentor` | 10 | No | No | Architecture review |
+| `/test` | 20 | Yes | Yes | Tests pass + 80% coverage |
+| `/security` | 20 | Yes | Yes | No critical/high vulnerabilities |
+| `/build` | 10 | Yes | Yes | Project compiles |
+| `/review` | 15 | No | Yes | Code quality, smells, duplication |
+| `/mentor` | 15 | Yes | No | Architecture review, design patterns |
 | `/ux` | 5 | No | No | Accessibility (frontend only) |
-| `/architect` | 0 | No | No | System security & performance |
-| `/devops` | 0 | No | No | CI/CD and infrastructure |
+| `/architect` | 10 | No | No | System security & performance |
+| `/devops` | 5 | No | No | CI/CD and infrastructure |
+
+> **Note:** Gate weights changed in v1.7.1. Mentor is now required with higher weight. See [gates.md](gates.md) for full documentation.
 
 ### Scoring
 
@@ -210,10 +216,10 @@ max_iterations: 15
 # Delay between iterations (seconds)
 iteration_delay: 5
 
-# Gate configuration
+# Gate configuration (balanced preset - default)
 gates:
   test:
-    weight: 25
+    weight: 20
     required: true
     auto_fix: true
     parallel_group: 1
@@ -222,30 +228,42 @@ gates:
       min_coverage: 80
 
   security:
-    weight: 25
+    weight: 20
     required: true
     auto_fix: true
     parallel_group: 1
 
   build:
-    weight: 15
+    weight: 10
     required: true
     auto_fix: true
     parallel_group: 1
 
   review:
-    weight: 20
+    weight: 15
     required: false
     auto_fix: true
     parallel_group: 2
 
   mentor:
-    weight: 10
-    required: false
+    weight: 15
+    required: true
     auto_fix: false
     parallel_group: 2
 
+  architect:
+    weight: 10
+    required: false
+    auto_fix: false
+    parallel_group: 3
+
   ux:
+    weight: 5
+    required: false
+    auto_fix: false
+    parallel_group: 3
+
+  devops:
     weight: 5
     required: false
     auto_fix: false
@@ -660,6 +678,7 @@ DEBUG=1 npx tsx ralph-runner.ts --issue=123
 
 ## See Also
 
+- [gates.md](gates.md) - Quality gates configuration and presets
 - [scripts/README.md](../scripts/README.md) - Full scripts documentation
 - [commands/autonomous.md](../commands/autonomous.md) - Interactive autonomous mode
 - [templates/autonomous.yml](../templates/autonomous.yml) - Example configuration
