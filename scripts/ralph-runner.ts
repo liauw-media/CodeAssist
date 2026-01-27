@@ -27,7 +27,7 @@ import {
 } from "fs";
 import { join, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { execFile } from "child_process";
+import { execFile, execSync } from "child_process";
 import * as yaml from "yaml";
 import { z } from "zod";
 
@@ -111,8 +111,16 @@ const GitCommitRulesSchema = z.object({
   auto_strip: z.boolean(),
 });
 
+const BranchFlowSchema = z.object({
+  feature: z.string(),
+  develop: z.string().optional(),
+  staging: z.string().optional(),
+  hotfix: z.string().optional(),
+});
+
 const GitRulesConfigSchema = z.object({
   protected_branches: z.array(z.string()),
+  branch_flow: BranchFlowSchema,
   commit_rules: GitCommitRulesSchema,
 });
 
@@ -141,8 +149,16 @@ const PartialGitCommitRulesSchema = z.object({
   auto_strip: z.boolean().optional(),
 }).optional();
 
+const PartialBranchFlowSchema = z.object({
+  feature: z.string().optional(),
+  develop: z.string().optional(),
+  staging: z.string().optional(),
+  hotfix: z.string().optional(),
+}).optional();
+
 const PartialGitRulesConfigSchema = z.object({
   protected_branches: z.array(z.string()).optional(),
+  branch_flow: PartialBranchFlowSchema,
   commit_rules: PartialGitCommitRulesSchema,
 }).optional();
 
@@ -371,8 +387,16 @@ interface SafetyConfig {
   forbidden: string[];
 }
 
+interface BranchFlow {
+  feature: string;  // Where feature branches merge to (e.g., "develop")
+  develop?: string; // Where develop merges to (e.g., "staging")
+  staging?: string; // Where staging merges to (e.g., "main")
+  hotfix?: string;  // Where hotfixes merge to (e.g., "main")
+}
+
 interface GitRulesConfig {
   protected_branches: string[];
+  branch_flow: BranchFlow;
   commit_rules: {
     forbidden_patterns: string[];
     auto_strip: boolean;
@@ -1554,6 +1578,12 @@ function loadConfig(preset?: string): AutonomousConfig {
     },
     git_rules: {
       protected_branches: ["main", "master", "staging"],
+      branch_flow: {
+        feature: "develop",  // feature/* → develop
+        develop: "staging",  // develop → staging
+        staging: "main",     // staging → main
+        hotfix: "main",      // hotfix/* → main
+      },
       commit_rules: {
         forbidden_patterns: [
           "Co-Authored-By: Claude",
@@ -1611,6 +1641,9 @@ function loadConfig(preset?: string): AutonomousConfig {
         if (validConfig.git_rules) {
           if (validConfig.git_rules.protected_branches) {
             defaultConfig.git_rules.protected_branches = validConfig.git_rules.protected_branches;
+          }
+          if (validConfig.git_rules.branch_flow) {
+            Object.assign(defaultConfig.git_rules.branch_flow, validConfig.git_rules.branch_flow);
           }
           if (validConfig.git_rules.commit_rules) {
             Object.assign(defaultConfig.git_rules.commit_rules, validConfig.git_rules.commit_rules);
@@ -2408,7 +2441,34 @@ RULES:
     const prTitle = `feat: implement #${issueId}`;
     const prBody = `Implements #${issueId}\n\nQuality gate scores: ${currentScore}/${config.target_score}`;
     const sourceBranch = `feature/${issueId}-implement`;
-    const targetBranch = "staging";
+
+    // Determine target branch from branch_flow config
+    // Auto-detect: check if configured target branch exists, fall back to main/master
+    const configuredTarget = config.git_rules.branch_flow.feature;
+    let targetBranch = configuredTarget;
+
+    // Verify the target branch exists in the remote
+    try {
+      const remoteBranches = execSync("git branch -r", { encoding: "utf-8" });
+      const targetExists = remoteBranches.includes(`origin/${configuredTarget}`);
+
+      if (!targetExists) {
+        // Fall back: try common branch names
+        const fallbacks = ["develop", "staging", "main", "master"];
+        const found = fallbacks.find(b => remoteBranches.includes(`origin/${b}`));
+        if (found) {
+          ctx.logger.warn(`Target branch '${configuredTarget}' not found, using '${found}'`);
+          targetBranch = found;
+        } else {
+          ctx.logger.warn(`Target branch '${configuredTarget}' not found, using 'main'`);
+          targetBranch = "main";
+        }
+      }
+    } catch {
+      ctx.logger.warn(`Could not verify target branch, using '${configuredTarget}'`);
+    }
+
+    ctx.logger.info(`PR target: ${sourceBranch} → ${targetBranch}`);
 
     const prCommand = platformClient.getPRCreateCommand({
       title: prTitle,
@@ -2418,7 +2478,7 @@ RULES:
     });
 
     for await (const message of query({
-      prompt: `Create a ${prType} from the current branch to staging.
+      prompt: `Create a ${prType} from the current branch to ${targetBranch}.
 Title: "${prTitle}"
 Include quality gate scores in the body.
 

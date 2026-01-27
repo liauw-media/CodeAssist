@@ -337,7 +337,8 @@ git_rules:
 
   # Branch flow
   branch_flow:
-    feature: staging  # Feature branches merge to staging
+    feature: develop  # Feature branches merge to develop
+    develop: staging  # Develop merges to staging
     staging: main     # Staging merges to main
     hotfix: main      # Hotfixes can go direct to main (with PR)
 
