@@ -70,6 +70,9 @@ const DEFAULT_GATE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 const CIRCUIT_BREAKER_THRESHOLD = 5;
 const CIRCUIT_BREAKER_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
 
+// Zero-width characters used in prompt injection / invisible text attacks
+const ZERO_WIDTH_REGEX = /[\u200B\u200C\u200D\u200E\u200F\uFEFF\u00AD\u2060\u2061\u2062\u2063\u2064\u2066\u2067\u2068\u2069\u206A-\u206F]/g;
+
 // Valid presets
 const VALID_PRESETS = ["default", "production", "prototype", "frontend", "strict", "balanced", "fast"] as const;
 type Preset = (typeof VALID_PRESETS)[number];
@@ -459,6 +462,9 @@ interface GateDefinition {
   prompt: string;
 }
 
+// Audit actor types for provenance tracking
+type AuditActor = "human" | "claude" | "system" | "gate";
+
 // ============================================
 // PLATFORM TYPES (GitHub/GitLab abstraction)
 // ============================================
@@ -612,7 +618,7 @@ class CheckpointManager {
 
   public save(state: RunState): void {
     try {
-      writeFileSync(this.stateFile, JSON.stringify(state, null, 2));
+      atomicWriteSync(this.stateFile, JSON.stringify(state, null, 2));
     } catch (error) {
       console.error("[WARN] Failed to save checkpoint:", error);
     }
@@ -650,10 +656,11 @@ class AuditLogger {
     this.maxSize = maxSize;
   }
 
-  public log(entry: Record<string, unknown>): void {
+  public log(entry: Record<string, unknown>, actor?: AuditActor): void {
     this.rotateIfNeeded();
+    const enriched = actor ? { ...entry, actor } : entry;
     try {
-      appendFileSync(this.logFile, JSON.stringify(entry) + "\n");
+      appendFileSync(this.logFile, JSON.stringify(enriched) + "\n");
     } catch (error) {
       console.error("[WARN] Failed to write audit log:", error);
     }
@@ -720,7 +727,7 @@ class MetricsCollector {
       filesModified: Array.from(this.filesModified),
     };
     try {
-      writeFileSync(this.metricsFile, JSON.stringify(metrics, null, 2));
+      atomicWriteSync(this.metricsFile, JSON.stringify(metrics, null, 2));
     } catch (error) {
       console.error("[WARN] Failed to save metrics:", error);
     }
@@ -1505,8 +1512,16 @@ function validatePreset(input: string | undefined): Preset | undefined {
   return input as Preset;
 }
 
+function stripZeroWidthChars(input: string, logger?: StructuredLogger): string {
+  const cleaned = input.replace(ZERO_WIDTH_REGEX, "");
+  if (cleaned.length !== input.length && logger) {
+    logger.warn(`Stripped ${input.length - cleaned.length} zero-width character(s) from input`);
+  }
+  return cleaned;
+}
+
 function sanitizeForShell(input: string): string {
-  return input.replace(/[;&|`$(){}[\]<>\\'"!#*?~\n\r]/g, "");
+  return stripZeroWidthChars(input).replace(/[;&|`$(){}[\]<>\\'"!#*?~\n\r]/g, "");
 }
 
 function sanitizeFilePath(input: string, projectRoot: string): string | null {
@@ -1519,6 +1534,49 @@ function sanitizeFilePath(input: string, projectRoot: string): string | null {
 
 function escapeRegex(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Write JSON atomically: write to .tmp, validate, swap with .bak backup.
+ * Windows-safe: explicitly removes target before rename (Windows renameSync
+ * fails if the destination already exists).
+ */
+function atomicWriteSync(filePath: string, content: string): void {
+  const tmpPath = `${filePath}.tmp`;
+  const bakPath = `${filePath}.bak`;
+
+  // 1. Write to temp file
+  writeFileSync(tmpPath, content, "utf-8");
+
+  // 2. Validate JSON round-trips correctly
+  try {
+    JSON.parse(readFileSync(tmpPath, "utf-8"));
+  } catch (e) {
+    try { unlinkSync(tmpPath); } catch { /* ignore cleanup */ }
+    throw new Error(`Atomic write validation failed for ${filePath}: ${e}`);
+  }
+
+  // 3. Rotate: remove old .bak, move current → .bak
+  try {
+    if (existsSync(bakPath)) unlinkSync(bakPath);
+    if (existsSync(filePath)) renameSync(filePath, bakPath);
+  } catch {
+    // If backup rotation fails, still attempt the write
+  }
+
+  // 4. Move .tmp → target
+  try {
+    if (existsSync(filePath)) unlinkSync(filePath);
+    renameSync(tmpPath, filePath);
+  } catch (e) {
+    // Rollback: restore from .bak if available
+    try {
+      if (existsSync(bakPath) && !existsSync(filePath)) {
+        renameSync(bakPath, filePath);
+      }
+    } catch { /* rollback failed, original error is more important */ }
+    throw new Error(`Atomic write failed for ${filePath}: ${e}`);
+  }
 }
 
 // ============================================
@@ -1840,7 +1898,7 @@ function createAuditHook(ctx: RunContext): HookCallback {
       tool: input.tool,
       file: filePath,
       command: input.tool_input.command?.substring(0, 100),
-    });
+    }, "claude");
 
     return {};
   };
@@ -1856,6 +1914,13 @@ function createGitBlockHook(ctx: RunContext): HookCallback {
       const pattern = new RegExp(`git\\s+push.*${escapeRegex(branch)}`, "i");
       if (pattern.test(command)) {
         ctx.logger.warn(`Blocked push to ${branch}`);
+        ctx.auditLogger.log({
+          timestamp: new Date().toISOString(),
+          runId: ctx.runId,
+          event: "blocked_push",
+          branch,
+          command: command.substring(0, 100),
+        }, "system");
         return {
           decision: "block",
           message: `[BLOCKED] Direct push to ${branch}. Use PR workflow.`,
@@ -1864,10 +1929,22 @@ function createGitBlockHook(ctx: RunContext): HookCallback {
     }
 
     if (/git\s+push.*--force/i.test(command)) {
+      ctx.auditLogger.log({
+        timestamp: new Date().toISOString(),
+        runId: ctx.runId,
+        event: "blocked_force_push",
+        command: command.substring(0, 100),
+      }, "system");
       return { decision: "block", message: "[BLOCKED] Force push is forbidden." };
     }
 
     if (/git\s+reset\s+--hard/i.test(command)) {
+      ctx.auditLogger.log({
+        timestamp: new Date().toISOString(),
+        runId: ctx.runId,
+        event: "blocked_hard_reset",
+        command: command.substring(0, 100),
+      }, "system");
       return { decision: "block", message: "[BLOCKED] Hard reset requires manual confirmation." };
     }
 
@@ -1889,6 +1966,13 @@ function createAttributionStripHook(ctx: RunContext): HookCallback {
     for (const pattern of ctx.config.git_rules.commit_rules.forbidden_patterns) {
       if (new RegExp(pattern, "gi").test(command)) {
         ctx.logger.warn(`Blocked commit with AI attribution pattern: ${pattern}`);
+        ctx.auditLogger.log({
+          timestamp: new Date().toISOString(),
+          runId: ctx.runId,
+          event: "blocked_attribution",
+          pattern,
+          command: command.substring(0, 100),
+        }, "system");
         return {
           decision: "block",
           message: `[BLOCKED] Commit contains forbidden pattern: ${pattern}. Remove AI attribution before committing.`,
@@ -2060,6 +2144,17 @@ async function runSingleGate(
   }
 
   result.duration = Date.now() - startTime;
+  ctx.auditLogger.log({
+    timestamp: new Date().toISOString(),
+    runId: ctx.runId,
+    event: "gate_result",
+    gate: gateName,
+    score: result.score,
+    passed: result.passed,
+    timedOut: result.timedOut,
+    issueCount: result.issues.length,
+    duration: result.duration,
+  }, "gate");
   return result;
 }
 
@@ -2145,6 +2240,14 @@ ${platformClient.getIssueCreateCommand({ title, body, labels })}`,
         const issueMatch = message.result.match(/[#!](\d+)/);
         if (issueMatch) {
           ctx.metrics.recordIssueCreated(issueMatch[1]);
+          ctx.auditLogger.log({
+            timestamp: new Date().toISOString(),
+            runId: ctx.runId,
+            event: "sub_issue_created",
+            issueId: issueMatch[1],
+            parentIssue,
+            gate: gateName,
+          }, "system");
           return issueMatch[1];
         }
       }
@@ -2493,6 +2596,14 @@ ${prCommand}`,
     })) {
       if (isResultMessage(message)) {
         ctx.logger.info(`${prType} created successfully`);
+        ctx.auditLogger.log({
+          timestamp: new Date().toISOString(),
+          runId: ctx.runId,
+          event: "pr_created",
+          targetBranch,
+          sourceBranch,
+          score: currentScore,
+        }, "system");
       }
     }
   }

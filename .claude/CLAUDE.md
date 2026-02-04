@@ -180,6 +180,7 @@ Sessions are stored in `.claude/sessions/` with unique names, allowing multiple 
 | `/guide` | Help with what to do next |
 | `/feedback [message]` | Submit feedback or report issues |
 | `/agent-select [task]` | Get agent recommendation |
+| `/doctor [--fix]` | Health check for CodeAssist installation |
 
 ## Setup Commands
 
