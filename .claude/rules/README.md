@@ -23,6 +23,7 @@ cp -r rules/ .claude/rules/
 | [git-workflow.md](git-workflow.md) | Branch naming, commits, PRs |
 | [coding-style.md](coding-style.md) | Naming, organization, patterns |
 | [agents.md](agents.md) | When to delegate to agents |
+| [issue-first.md](issue-first.md) | All code changes must start with a GitHub/GitLab issue |
 
 ## How Rules Work
 

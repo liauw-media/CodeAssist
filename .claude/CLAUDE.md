@@ -276,6 +276,7 @@ Rules are always-enforced guidelines in `rules/`. Unlike skills (situational), r
 | `git-workflow` | Branch naming, commit format, PR standards |
 | `coding-style` | Naming conventions, code organization, immutability |
 | `agents` | When and how to delegate to specialized agents |
+| `issue-first` | All code changes must start with a GitHub/GitLab issue |
 
 **Install:** Copy `rules/` to `~/.claude/rules/` or project `.claude/rules/`
 
