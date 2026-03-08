@@ -185,11 +185,14 @@ cd scripts && npx ts-node ralph-runner.ts --issue=123
 
 | Command | Purpose |
 |---------|---------|
-| `/save-session [name]` | Save context with optional name (auto-generates from branch if omitted) |
-| `/resume-session [name]` | Resume a specific session or pick from list |
-| `/session-list [filter]` | List all saved sessions |
+| `/save-session [name]` | Save context to SQLite with metadata extraction and importance scoring |
+| `/resume-session [name]` | Resume session with connections and consolidation insights |
+| `/session-list [filter]` | List sessions, filter, or show stats (`--stats`, `--archived`) |
+| `/consolidate` | Actively consolidate sessions — find patterns and cross-cutting insights |
 
-Sessions are stored in `.claude/sessions/` with unique names, allowing multiple terminals to work independently without overwriting each other's context.
+Sessions are stored in `.claude/sessions/sessions.db` (SQLite with WAL mode for concurrent access). Each session includes structured metadata: entities, topics, importance scoring (0.0-1.0), and auto-detected connections to related sessions.
+
+**Consolidation** actively re-processes unconsolidated sessions to find patterns, connections, and insights — not just passive storage. Run `/consolidate` after completing features or at the end of a work day.
 
 > After `/ca-update`, restart Claude and run `/resume-session` to continue.
 

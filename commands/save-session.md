@@ -1,6 +1,6 @@
 # Save Session
 
-Save your current session context with an optional name for later resumption.
+Save your current session context to the SQLite database for later resumption.
 
 ## Usage
 
@@ -23,131 +23,82 @@ Parse `$ARGUMENTS` for a session name.
 
 **If no name provided:** Generate from current branch + short timestamp:
 ```bash
-# Get branch name
 branch=$(git branch --show-current 2>/dev/null || echo "main")
-# Generate: branch-MMDD-HHMM (e.g., feature-auth-0111-1430)
 name="${branch}-$(date +%m%d-%H%M)"
+echo "Session name: $name"
 ```
 
-### Step 2: Ensure Sessions Directory Exists
+### Step 2: Gather Context
+
+Collect information about the current session by reviewing your conversation context:
+
+1. **Current task** — What is the user working on? (1-2 sentences)
+2. **Progress** — What was accomplished? (bullet list)
+3. **Pending** — What still needs to be done? (bullet list)
+4. **Decisions** — What important decisions were made?
+5. **Files modified** — What files were changed? (one per line)
+6. **Entities** — Extract key identifiers: file paths, function names, issue numbers, component names, API endpoints
+7. **Topics** — Categorize: what areas does this session cover? (e.g., auth, database, frontend, CI/CD, refactoring)
+8. **Importance** — Rate 0.0-1.0 based on impact:
+   - 0.1-0.3: Minor fixes, typos, formatting
+   - 0.4-0.6: Standard features, bug fixes
+   - 0.7-0.8: Architecture decisions, security changes
+   - 0.9-1.0: Breaking changes, critical fixes, production incidents
+
+### Step 3: Save to Database
 
 ```bash
-mkdir -p .claude/sessions
+python3 scripts/session-db.py save "{name}" \
+  --branch "$(git branch --show-current 2>/dev/null || echo main)" \
+  --dir "$(pwd)" \
+  --task "{task summary}" \
+  --progress "{progress items}" \
+  --pending "{pending items}" \
+  --decisions "{decisions}" \
+  --files "{files modified, one per line}" \
+  --notes "{additional context}" \
+  --entities '{entities as JSON array}' \
+  --topics '{topics as JSON array}' \
+  --importance {score}
 ```
 
-### Step 3: Gather Context
+**Note:** The script auto-detects connections to related sessions based on shared entities, files, and branch names.
 
-Collect information about the current session:
+### Step 4: Confirm Save
 
-1. **Current task** - What is the user working on?
-2. **Progress** - What was accomplished?
-3. **Pending** - What still needs to be done?
-4. **Decisions** - What important decisions were made?
-5. **Files** - What files were modified?
+Display the result from the script, then show:
 
-### Step 4: Create Session File
-
-Write to `.claude/sessions/{name}.md`:
-
-```markdown
-# Session: {name}
-
-Saved: [current timestamp]
-Version: [current CodeAssist version from .claude/VERSION]
-Branch: [current git branch]
-Directory: [current working directory]
-
-## Current Task
-
-[Summarize the main task/goal the user is working on]
-
-## Recent Progress
-
-[List what was accomplished]
-- [item 1]
-- [item 2]
-
-## Pending Work
-
-[What still needs to be done]
-- [ ] [item 1]
-- [ ] [item 2]
-
-## Key Decisions
-
-[Important decisions that should be remembered]
-- [decision 1]
-- [decision 2]
-
-## Files Modified
-
-[Files that were changed in this session]
-- `path/to/file` - [what was changed]
-
-## Notes
-
-[Any other context for resuming later]
-```
-
-### Step 5: Update Session Index
-
-Append to `.claude/sessions/index.md` (create if doesn't exist):
-
-```markdown
-| Session | Saved | Branch | Task |
-|---------|-------|--------|------|
-| [{name}](./{name}.md) | [timestamp] | [branch] | [brief task] |
-```
-
-### Step 6: Claude-mem Integration (Optional)
-
-If claude-mem is available (check for port 37777), offer to sync:
-
-```
-Claude-mem detected. Would you like to also save this context to persistent memory?
-This makes it searchable across all future sessions.
-```
-
-If yes, create a memory-friendly summary that claude-mem can capture.
-
-### Step 7: Confirm Save
-
-Display:
 ```
 ## Session Saved
 
 **Name:** {name}
-**File:** .claude/sessions/{name}.md
-**Time:** [timestamp]
+**Database:** .claude/sessions/sessions.db
+**Importance:** {score}/1.0
 
 ### Summary
-- **Task:** [brief summary]
-- **Progress:** [N] items completed
-- **Pending:** [N] items remaining
+- **Task:** {brief summary}
+- **Progress:** {N} items completed
+- **Pending:** {N} items remaining
+- **Entities:** {count} tracked
+- **Topics:** {topics list}
+- **Connections:** {N} related sessions found
 
 ### Resume Later
-```bash
-/resume-session {name}
-```
+  /resume-session {name}
 
 ### View All Sessions
+  /session-list
+
+### Consolidate Knowledge
+  /consolidate
+```
+
+## Migration
+
+If markdown session files exist in `.claude/sessions/` but haven't been migrated:
+
 ```bash
-/session-list
-```
-```
-
-## Output Format
-
-```
-Session "{name}" saved to .claude/sessions/{name}.md
-
-Summary:
-- Task: [current task]
-- Progress: [completed count]
-- Pending: [pending count]
-
-Resume with: /resume-session {name}
-List all: /session-list
+python3 scripts/session-db.py migrate
 ```
 
 Execute the session save now.

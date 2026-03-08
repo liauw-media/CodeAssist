@@ -1,6 +1,6 @@
 # Session List
 
-List all saved sessions for the current project.
+List all saved sessions from the SQLite database.
 
 ## Usage
 
@@ -9,118 +9,92 @@ List all saved sessions for the current project.
 ```
 
 **Examples:**
-- `/session-list` - Show all sessions
+- `/session-list` - Show all active sessions
 - `/session-list auth` - Filter sessions containing "auth"
 - `/session-list --archived` - Show archived sessions
+- `/session-list --stats` - Show database statistics
 
 ## Execute
 
-### Step 1: Check for Sessions
+### Step 1: Parse Arguments
 
+Parse `$ARGUMENTS`:
+- If contains `--archived` → show archived sessions
+- If contains `--stats` → show statistics
+- Otherwise → use as filter term
+
+### Step 2: Query Database
+
+**Default (all active sessions):**
 ```bash
-if [ -d .claude/sessions ]; then
-    session_count=$(ls -1 .claude/sessions/*.md 2>/dev/null | grep -v index.md | wc -l)
-    echo "Found $session_count sessions"
-else
-    echo "No sessions directory"
-fi
+python3 scripts/session-db.py list --json
 ```
 
-If no sessions exist:
-```
-No saved sessions found.
-
-To save your current session:
-  /save-session [name]
-
-Examples:
-  /save-session             # Auto-name from branch
-  /save-session auth-work   # Custom name
+**With filter:**
+```bash
+python3 scripts/session-db.py list --filter "{term}" --json
 ```
 
-### Step 2: Parse Session Files
+**Archived:**
+```bash
+python3 scripts/session-db.py list --archived --json
+```
 
-For each `.md` file in `.claude/sessions/` (excluding index.md):
+**Statistics:**
+```bash
+python3 scripts/session-db.py stats
+```
 
-1. Extract session name from filename
-2. Read first few lines to get:
-   - Saved timestamp
-   - Branch name
-   - Current task (first line of "## Current Task" section)
+### Step 3: Display Results
 
-### Step 3: Display Sessions
+Parse the JSON output and display as a formatted table:
 
 ```
-## Saved Sessions
+## Saved Sessions ({count})
 
-| Name | Saved | Branch | Task |
-|------|-------|--------|------|
-| auth-feature | 2025-01-11 14:30 | feature/auth | Implementing OAuth login |
-| main-0110-0930 | 2025-01-10 09:30 | main | Bug fixes for release |
-| api-refactor | 2025-01-09 16:45 | refactor/api | Cleaning up API endpoints |
-
-**Total:** 3 sessions
+| Name | Branch | Importance | Task | Saved |
+|------|--------|------------|------|-------|
+| {name} | {branch} | {importance} | {task} | {date} |
 
 ### Quick Actions
 
 Resume a session:
   /resume-session <name>
 
-Delete a session:
-  rm .claude/sessions/<name>.md
+Search sessions:
+  /session-list <keyword>
 
-Archive all old sessions:
-  /session-cleanup
+Consolidate knowledge:
+  /consolidate
+
+Save current session:
+  /save-session [name]
 ```
 
-### Step 4: Show Archived Sessions (if requested)
-
-If `--archived` flag or filter includes "archived":
-
-```bash
-ls -la .claude/sessions/archive/*.md 2>/dev/null
-```
+### Step 4: Show Statistics (if --stats)
 
 ```
-## Archived Sessions
+## Session Database Statistics
 
-| Name | Archived | Original Date |
-|------|----------|---------------|
-| old-feature.20250108-143022 | 2025-01-08 | 2025-01-07 |
+| Metric | Value |
+|--------|-------|
+| Total sessions | {total} |
+| Active | {active} |
+| Archived | {archived} |
+| Consolidated | {consolidated} |
+| Unconsolidated | {unconsolidated} |
+| Consolidations | {count} |
+| Connections | {count} |
+| Avg importance | {avg} |
+| Database size | {size} |
 
-To restore: mv .claude/sessions/archive/<name>.md .claude/sessions/
-```
+### Top Topics
+1. {topic} ({count} sessions)
+2. {topic} ({count} sessions)
 
-### Step 5: Filter Results (if filter provided)
-
-If `$ARGUMENTS` contains a filter term (not a flag):
-- Only show sessions where name, branch, or task contains the filter
-- Case-insensitive matching
-
-```
-## Sessions matching "auth"
-
-| Name | Saved | Branch | Task |
-|------|-------|--------|------|
-| auth-feature | 2025-01-11 14:30 | feature/auth | Implementing OAuth login |
-
-Found 1 session matching "auth"
-```
-
-## Output Format
-
-```
-## Saved Sessions (3)
-
-| Name | Saved | Branch | Task |
-|------|-------|--------|------|
-| auth-feature | Jan 11, 14:30 | feature/auth | OAuth login |
-| main-0110-0930 | Jan 10, 09:30 | main | Bug fixes |
-| api-refactor | Jan 09, 16:45 | refactor/api | API cleanup |
-
-Commands:
-  /resume-session <name>  - Resume a session
-  /save-session [name]    - Save current session
+### Actions
+- `/consolidate` — Process {unconsolidated} unconsolidated sessions
+- `/save-session` — Save current session
 ```
 
 Execute the session list now.

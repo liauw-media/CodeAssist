@@ -1,6 +1,6 @@
 # Resume Session
 
-Resume work from a saved session context.
+Resume work from a saved session in the SQLite database.
 
 ## Usage
 
@@ -15,25 +15,17 @@ Resume work from a saved session context.
 
 ## Execute
 
-### Step 1: Check for Sessions Directory
+### Step 1: Check Database
 
 ```bash
-if [ -d .claude/sessions ]; then
-    echo "Sessions directory found"
-else
-    echo "No sessions directory found"
-fi
+python3 scripts/session-db.py stats
 ```
 
-If no sessions directory exists:
+If no sessions exist:
 ```
 No saved sessions found.
 
-To save your current session:
-  /save-session [name]
-
-Example:
-  /save-session auth-feature
+To save your current session: /save-session [name]
 ```
 
 ### Step 2: Determine Which Session to Resume
@@ -41,102 +33,95 @@ Example:
 Parse `$ARGUMENTS` for a session name.
 
 **If name provided:**
-- Look for `.claude/sessions/{name}.md`
-- If not found, show error with suggestions
-
-**If no name provided:**
-- List available sessions and ask user to choose
 
 ```bash
-# List available sessions
-ls -la .claude/sessions/*.md 2>/dev/null | grep -v index.md
+python3 scripts/session-db.py resume "{name}"
 ```
 
-Display session picker:
-```
-## Available Sessions
+The script returns JSON with the session data, connected sessions, and relevant consolidations. If not found, it returns suggestions based on partial name matching.
 
-| # | Name | Saved | Branch | Task |
-|---|------|-------|--------|------|
-| 1 | auth-feature | 2025-01-11 14:30 | feature/auth | Implementing login |
-| 2 | main-0110-0930 | 2025-01-10 09:30 | main | Bug fixes |
-| 3 | api-refactor | 2025-01-09 16:45 | refactor/api | API cleanup |
+**If no name provided:**
 
-Enter session number or name to resume:
+```bash
+python3 scripts/session-db.py list --json
 ```
 
-### Step 3: Load Session Context
+Display the session list and ask the user to choose.
 
-Read the selected session file `.claude/sessions/{name}.md` and parse:
-- Saved timestamp
-- CodeAssist version
-- Branch name
-- Current task
-- Progress items
-- Pending items
-- Key decisions
-- Modified files
-- Notes
+### Step 3: Load and Display Session Context
 
-### Step 4: Display Session Context
+Parse the JSON returned by `resume` and display:
 
 ```
 ## Resuming Session: {name}
 
-**Saved:** [timestamp]
-**Branch:** [branch from file]
-**Version:** [version from file]
+**Saved:** {created_at}
+**Branch:** {branch}
+**Importance:** {importance}/1.0
 
 ### Current Task
-[task from context]
+{task}
 
-### Recent Progress
-[progress items from context]
+### Completed
+{progress items}
 
 ### Pending Work
-[pending items from context]
+{pending items}
 
 ### Key Decisions
-[decisions from context]
+{decisions}
 
 ### Files Modified
-[files from context]
+{files_modified}
+
+### Notes
+{notes}
 ```
 
-### Step 5: Verify Current State
+### Step 4: Show Connections
 
-Check if the environment matches the saved session:
+If the session has connections to other sessions, display them:
+
+```
+### Related Sessions
+| Session | Relationship | Strength |
+|---------|-------------|----------|
+| {connected_name} | {relationship} | {strength} |
+```
+
+### Step 5: Show Consolidation Insights
+
+If there are relevant consolidations:
+
+```
+### Insights from Consolidation
+{consolidation summary and insight}
+```
+
+### Step 6: Verify Current State
 
 ```bash
-# Check current branch
-current_branch=$(git branch --show-current)
-# Check git status for mentioned files
+current_branch=$(git branch --show-current 2>/dev/null)
 git status --short
 ```
 
 **If branch differs:**
 ```
 Note: You're on branch '{current}' but session was saved on '{saved}'.
-Would you like to switch branches? (y/n)
+Would you like to switch branches?
 ```
 
-**If files changed:**
-```
-Note: Some files have changed since session was saved:
-- [file] - [status]
-```
-
-### Step 6: Offer Options
+### Step 7: Present Next Steps
 
 ```
 Ready to continue?
 
 Based on your saved context, you were working on:
-[brief summary of current task]
+{brief summary of current task}
 
 Next steps appear to be:
-1. [first pending item]
-2. [second pending item]
+1. {first pending item}
+2. {second pending item}
 
 Options:
 1. Continue with these tasks
@@ -144,67 +129,27 @@ Options:
 3. Archive this session and start fresh
 ```
 
-### Step 7: Handle User Choice
-
-**If continue:**
-- Mark session as "active" (rename to `{name}.active.md`)
-- Display next steps
-
-**If archive:**
+**If archive chosen:**
 ```bash
-# Move to archive
-mkdir -p .claude/sessions/archive
-mv .claude/sessions/{name}.md .claude/sessions/archive/{name}.$(date +%Y%m%d-%H%M%S).md
+python3 scripts/session-db.py archive "{name}"
 ```
 
-### Step 8: Cleanup
+### Step 8: Search (if name not found)
 
-After resuming, optionally archive the session file:
-```
-Session resumed.
+If the provided name doesn't match any session, search:
 
-The session file has been kept at .claude/sessions/{name}.md
-You can delete it with: rm .claude/sessions/{name}.md
-Or archive later with: /session-archive {name}
+```bash
+python3 scripts/session-db.py search "{name}" --limit 5
 ```
 
-## Output Format
-
-```
-## Session Resumed: {name}
-
-**From:** [timestamp]
-**Branch:** [branch]
-
-### You Were Working On
-[current task from context]
-
-### Completed
-- [recent progress items]
-
-### Next Steps
-- [ ] [pending item 1]
-- [ ] [pending item 2]
-
-### Key Context
-[important decisions or notes]
-
----
-
-Ready to continue. What would you like to work on?
-```
+Display search results and let the user pick.
 
 ## Migration from Old Format
 
-If `.claude/session-context.md` exists (old format), offer to migrate:
+If markdown session files exist but database is empty:
 
-```
-Found legacy session file at .claude/session-context.md
-
-Would you like to:
-1. Migrate to new format (recommended)
-2. Resume from legacy file
-3. Delete legacy file and start fresh
+```bash
+python3 scripts/session-db.py migrate
 ```
 
 Execute the session resume now.
