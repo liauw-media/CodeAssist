@@ -71,7 +71,7 @@ Self-hosted workflow automation platform. Connect 1,236+ nodes (services, APIs, 
   "mcpServers": {
     "n8n": {
       "command": "npx",
-      "args": ["-y", "@anthropic/mcp-n8n-builder"],
+      "args": ["-y", "mcp-n8n-builder"],
       "env": {
         "N8N_BASE_URL": "https://n8n.your-domain.com",
         "N8N_API_KEY": "your-api-key"
@@ -98,6 +98,7 @@ curl -X POST -H "Content-Type: application/json" \
 **Skills:** [czlonkowski/n8n-skills](https://github.com/czlonkowski/n8n-skills) — 7 SKILL.md files for building production n8n workflows
 **Setup:** Generate API key in n8n (Settings > API) → Add MCP config → Restart Claude Code
 **Use cases:** Post-deploy notifications, CI/CD triggers, CRM syncing, invoice automation, monitoring alerts, scheduled reports
+**Full guide:** [docs/n8n-setup.md](n8n-setup.md)
 
 ---
 
