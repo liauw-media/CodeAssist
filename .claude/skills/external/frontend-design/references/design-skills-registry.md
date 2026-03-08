@@ -88,6 +88,36 @@ WCAG compliance, ARIA patterns, color contrast, keyboard navigation.
 clawhub install web-accessibility
 ```
 
+## Animation & Motion Skills
+
+### web-animation (built-in)
+
+GSAP ScrollTrigger, Lenis smooth scroll, parallax, page transitions. 9 production patterns.
+
+**Location:** `skills/design/web-animation/SKILL.md`
+**Patterns:** fade-reveal, stagger, parallax, sticky, horizontal-scroll, text-split, clip-reveal, counter, page-load-sequence
+**Libraries:** GSAP + ScrollTrigger, Lenis, Barba.js, Framer Motion
+
+### claudedesignskills (22 skills)
+
+Full animation skillstack: GSAP, Three.js, React Three Fiber, Framer Motion, Babylon.js, Locomotive Scroll, Barba.js, Lottie, anime.js, React Spring, and more.
+
+```bash
+claude plugin marketplace add freshtechbro/claudedesignskills
+```
+
+**Source:** [freshtechbro/claudedesignskills](https://github.com/freshtechbro/claudedesignskills)
+**Quality:** Production-ready, 50+ generators, comprehensive API references
+
+### Frontend Design Toolkit (70+ tools)
+
+Curated collection of design skills, animation skills, theming, and Figma integration.
+
+**Source:** [Claude-Code-Frontend-Design-Toolkit](https://github.com/wilwaldon/Claude-Code-Frontend-Design-Toolkit)
+**Highlights:** UI/UX Pro Max (240+ styles), Taste Skill (variance knobs), 11 named aesthetics, Figma MCP
+
+---
+
 ## Tier 3: Specialized Frameworks
 
 ### Astro

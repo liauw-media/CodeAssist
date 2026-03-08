@@ -10,7 +10,9 @@ $ARGUMENTS
 ```
 No arguments or "help"          → Show design commands overview
 "setup"                         → Install design skills and dependencies
-"[description of what to build]" → Design and build it
+"setup animation"               → Install animation skills (GSAP, Lenis, etc.)
+"[description of what to build]" → Design and build it (detects if animation needed)
+"animate [description]"         → Add scroll animations to existing page
 "tokens [style]"                → Generate design tokens for a style
 "audit [url or path]"           → Audit an existing design
 "blocks [category]"             → Browse shadcn blocks by category
@@ -84,9 +86,101 @@ ls -d .claude/skills/external/frontend-design* 2>/dev/null
 
 ---
 
+## SETUP ANIMATION Flow
+
+Install animation and scroll libraries for immersive websites.
+
+### Step 1: Install Core Animation Libraries
+
+```bash
+npm install gsap lenis 2>/dev/null || echo "Not in a Node project — install manually"
+```
+
+### Step 2: Install Animation Skills
+
+**Option A: Full animation skillstack (22 skills — GSAP, Three.js, Framer Motion, Locomotive, Barba.js, etc.)**
+```bash
+claude plugin marketplace add freshtechbro/claudedesignskills 2>/dev/null || echo "Install manually from https://github.com/freshtechbro/claudedesignskills"
+```
+
+**Option B: Individual skills**
+```bash
+# Lenis smooth scroll for React
+npx -y @lobehub/market-cli skills install orkait-ai-skill-agent-lenis-react 2>/dev/null || echo "Manual: https://lobehub.com/skills/orkait-ai-skill-agent-lenis-react"
+
+# Scroll Experience Architect
+npx -y @lobehub/market-cli skills install rootcastleco-rei-skills-scroll-experience 2>/dev/null || echo "Manual: https://lobehub.com/skills/rootcastleco-rei-skills-scroll-experience"
+```
+
+### Step 3: Verify
+
+```bash
+echo "=== Animation Libraries ==="
+ls node_modules/gsap 2>/dev/null && echo "GSAP: installed" || echo "GSAP: missing"
+ls node_modules/lenis 2>/dev/null && echo "Lenis: installed" || echo "Lenis: missing"
+ls node_modules/@barba 2>/dev/null && echo "Barba.js: installed" || echo "Barba.js: not installed (optional)"
+echo ""
+echo "=== Animation Skills ==="
+ls .claude/skills/external/web-animation 2>/dev/null && echo "web-animation skill: installed" || echo "web-animation skill: check skills/design/web-animation/"
+```
+
+### Output
+
+```
+## Animation Skills Installed
+
+**Libraries:**
+- [x] GSAP + ScrollTrigger — Scroll-driven animations
+- [x] Lenis — Smooth scrolling
+- [ ] Barba.js — Page transitions (optional)
+- [ ] Framer Motion — React animations (install if using React)
+
+**Skills:**
+- [x] web-animation — Patterns: parallax, sticky, text-reveal, clip-reveal, counters
+- [ ] claudedesignskills — 22 animation skills (optional)
+
+**Usage:**
+- `/design animated corporate site like mont-fort.com` — Full animated build
+- `/design animate [section]` — Add animations to existing page
+```
+
+---
+
+## ANIMATE Flow
+
+Add scroll animations and motion to an existing page or section.
+
+Read the `web-animation` skill at `skills/design/web-animation/SKILL.md` for patterns.
+
+### Process
+
+1. **Analyze current page** — Read the existing HTML/components
+2. **Identify animation opportunities** — Hero entrance, section reveals, parallax images, counters
+3. **Install libraries if missing** — `npm install gsap lenis`
+4. **Set up Lenis + GSAP sync** — See web-animation skill for boilerplate
+5. **Apply patterns selectively** — Pick 3-5 key moments, not everything
+6. **Add prefers-reduced-motion fallback** — Mandatory for accessibility
+7. **Test on mobile** — Touch scrolling behaves differently
+
+### Animation Budget per Page
+
+```
+Hero entrance sequence:     1 timeline (load)
+Section reveals:            3-5 elements with .reveal class
+Parallax images:            1-2 key images
+Staggered content:          1-2 grids/lists
+Special moment:             1 sticky section OR counter OR clip-reveal
+```
+
+**Do NOT animate every element. Restraint is what separates premium from amateur.**
+
+---
+
 ## BUILD Flow (default when description provided)
 
-You are a frontend designer and developer. Follow these principles strictly:
+You are a frontend designer and developer. Follow these principles strictly.
+
+**Animation detection:** If the user's description mentions animations, scroll effects, parallax, smooth scroll, "like mont-fort.com", "immersive", or "cinematic" — read the `web-animation` skill at `skills/design/web-animation/SKILL.md` and apply its patterns alongside the design principles below.
 
 ### Design Philosophy
 
