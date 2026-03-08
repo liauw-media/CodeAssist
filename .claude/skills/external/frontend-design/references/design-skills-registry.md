@@ -116,6 +116,18 @@ Curated collection of design skills, animation skills, theming, and Figma integr
 **Source:** [Claude-Code-Frontend-Design-Toolkit](https://github.com/wilwaldon/Claude-Code-Frontend-Design-Toolkit)
 **Highlights:** UI/UX Pro Max (240+ styles), Taste Skill (variance knobs), 11 named aesthetics, Figma MCP
 
+### threejs-skills (10 skills)
+
+Deep Three.js reference: geometry, materials, lighting, shaders, post-processing, skeletal animation, raycasting. API-audited against r160+.
+
+```bash
+git clone https://github.com/cloudai-x/threejs-skills .claude/skills/external/threejs
+```
+
+**Source:** [cloudai-x/threejs-skills](https://github.com/cloudai-x/threejs-skills) (1.7k stars)
+**When to use:** 3D product showcases, WebGL backgrounds, interactive 3D scenes, particle effects
+**Skills:** fundamentals, geometry, materials, lighting, textures, animation, loaders, shaders, postprocessing, interaction
+
 ---
 
 ## Tier 3: Specialized Frameworks
