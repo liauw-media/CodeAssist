@@ -16,8 +16,11 @@ Ask the user what they want to install, or suggest based on their project:
 | Source | Command | Examples |
 |--------|---------|----------|
 | **aitmpl** | `npx claude-code-templates@latest --skill=<path> --yes` | React, Vue, Django, Rails |
+| **ClawHub** | `clawhub install <slug>` | 3,200+ OpenClaw skills |
 | **GitHub** | Clone to `.claude/skills/` | vercel-labs, community repos |
 | **SkillsMP** | Browse skillsmp.com | 32,000+ community skills |
+
+> **ClawHub security warning:** ~20% of ClawHub skills flagged as malicious. Always check VirusTotal report before installing.
 
 ### Step 2: Popular Skills by Framework
 
@@ -96,14 +99,34 @@ find .claude/skills -name "SKILL.md" | head -20
 | **Mobile** | react-native-best-practices |
 | **Full Stack** | Multiple framework skills |
 
+### Install from ClawHub (OpenClaw)
+
+```bash
+# Install CLI first (if not already)
+npm install -g clawhub
+
+# Search by keyword or natural language
+clawhub search "code review"
+clawhub search "API testing"
+
+# Install
+clawhub install <skill-slug>
+
+# Link to Claude Code (skills install to ./skills/ by default)
+ln -sfn ./skills .claude/skills/openclaw
+```
+
+> ClawHub uses vector search — natural language queries work well.
+
 ### Skill Sources
 
-| Source | URL | Notes |
-|--------|-----|-------|
-| **aitmpl** | [aitmpl.com](https://aitmpl.com) | claude-code-templates CLI |
-| **Vercel** | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | Official Vercel skills |
-| **SkillsMP** | [skillsmp.com](https://skillsmp.com) | 32,000+ community skills |
-| **Anthropic** | [anthropics/skills](https://github.com/anthropics/skills) | SKILL.md format spec |
+| Source | URL | Skills | Notes |
+|--------|-----|--------|-------|
+| **aitmpl** | [aitmpl.com](https://aitmpl.com) | 100+ | claude-code-templates CLI, analytics, chat monitor |
+| **ClawHub** | [clawhub.com](https://docs.openclaw.ai/tools/clawhub) | 3,200+ | OpenClaw registry, vector search |
+| **Vercel** | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | 10+ | Official Vercel skills |
+| **SkillsMP** | [skillsmp.com](https://skillsmp.com) | 32,000+ | Community marketplace |
+| **Anthropic** | [anthropics/skills](https://github.com/anthropics/skills) | Spec | SKILL.md format standard |
 
 ### Output Format
 

@@ -62,3 +62,11 @@ After receiving agent output:
 ✓ Code changes are syntactically valid
 ✓ Security recommendations are followed
 ```
+
+## Error Feedback Loop
+
+When any command or skill fails or produces unexpected results:
+
+- **ALWAYS** suggest: `Run /feedback [description] to report this issue.`
+- Include what went wrong and which command/skill was running
+- This applies to ALL commands — not just specific ones

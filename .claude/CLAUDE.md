@@ -1,6 +1,27 @@
 # CodeAssist
 
-An assistant library for Claude Code.
+An assistant library for Claude Code. **GET SHIT DONE.**
+
+## Core Strategy: GSD (Get Shit Done)
+
+CodeAssist recommends [get-shit-done](https://github.com/gsd-build/get-shit-done) as the project workflow engine for all projects. GSD solves "context rot" — quality degradation as Claude fills its context window — through structured phases and parallel subagent orchestration.
+
+**Install per project:**
+```bash
+npx get-shit-done-cc --claude --local    # Project-level (./.claude/)
+npx get-shit-done-cc --claude --global   # User-level (~/.claude/)
+```
+
+**GSD Workflow Phases:**
+```
+Discuss → Plan → Execute → Verify → Commit
+```
+
+Each phase maintains structured context files (PROJECT.md, REQUIREMENTS.md, ROADMAP.md, STATE.md) to prevent context rot. Execution runs in parallel dependency-based "waves" with fresh 200k-token contexts per subagent.
+
+**After install:** Run `/gsd:help` to see GSD commands.
+
+> GSD and CodeAssist are complementary. GSD handles project-level orchestration (phases, context management, parallel execution). CodeAssist provides specialized agents, safety rails, and domain-specific commands.
 
 ## Action Commands
 
@@ -55,6 +76,7 @@ An assistant library for Claude Code.
 | Command | Action |
 |---------|--------|
 | `/project [task]` | Project coordination, status reports, risk tracking |
+| `/design [description]` | Build modern UIs with shadcn/Tailwind (anti-AI-slop) |
 | `/ux [task]` | UX architecture, design systems, themes |
 | `/summary [topic]` | Executive summaries for stakeholders |
 
@@ -194,11 +216,23 @@ Sessions are stored in `.claude/sessions/` with unique names, allowing multiple 
 | `/autonomous-setup` | Configure autonomous development mode |
 | `/ollama-setup` | Configure Ollama as local LLM backend (v0.14.0+) |
 
+### GSD Setup
+
+```bash
+# Install GSD for the current project
+npx get-shit-done-cc --claude --local
+
+# Or install globally for all projects
+npx get-shit-done-cc --claude --global
+```
+
 ## External Tools
 
 | Command | Purpose |
 |---------|---------|
 | `/aider [task]` | Delegate code generation to Ollama (saves context) |
+| `/qmd [action]` | Knowledge base search (setup, search, query, obsidian, status) |
+| `/openclaw [action]` | OpenClaw integration (setup, search, install, publish, mcp, sync) |
 
 > Config in `.aider.conf.yml`. Default: `qwen3-coder` on `ollama.cerberus-kitchen.ts.net`
 
@@ -302,6 +336,17 @@ Hooks are event-driven automations that run on tool operations:
 
 ## Workflow
 
+**With GSD installed (recommended):**
+```
+1. /gsd:discuss   - Capture decisions and requirements
+2. /gsd:plan      - Research, validate, create XML task plans
+3. /gsd:execute   - Parallel waves with dependency ordering
+4. /gsd:verify    - UAT against requirements
+5. /commit        - Atomic commits per task (auto by GSD)
+6. /clear         - Clear context before next milestone
+```
+
+**Without GSD (CodeAssist standalone):**
 ```
 1. /status        - Check current state
 2. /brainstorm    - Discuss approach
@@ -313,6 +358,8 @@ Hooks are event-driven automations that run on tool operations:
 8. /commit        - Commit changes
 9. /clear         - Clear context before next task
 ```
+
+> **Best practice:** Use GSD for project orchestration, CodeAssist commands for specialized tasks within GSD's execute phase.
 
 ## Tips
 
@@ -403,8 +450,22 @@ MCP (Model Context Protocol) gives Claude direct access to external tools. Confi
 | **Lighthouse** | Performance auditing |
 | **Sentry** | Error tracking and debugging |
 | **Slack** | Team communication search |
+| **QMD** | Local knowledge base search (notes, docs, transcripts) |
+| **Odoo** | ERP integration — invoices, CRM, contacts, products |
 
 Run `/mcp-setup` to configure, or copy templates from `templates/mcp*.json`.
+
+### Community MCP Servers
+
+Domain-specific MCPs contributed by the community:
+
+| MCP | Use Case | Install |
+|-----|----------|---------|
+| **[Spectra Finance](https://github.com/Finanzgoblin/spectra-mcp-server)** | DeFi fixed-rate yield analysis, 26 tools across 10 chains | `npx spectra-mcp-server` |
+| **[Hyperliquid Info](https://github.com/kukapay/hyperliquid-info-mcp)** | Hyperliquid perp DEX data, positions, funding rates | Python, read-only |
+| **[Hyperliquid](https://github.com/mektigboy/server-hyperliquid)** | Hyperliquid market data, order books, candles | `npx server-hyperliquid` |
+
+> These are third-party MCPs. Review before use. All listed are **read-only** (no trading execution).
 
 > **Context Warning:** Too many MCPs can shrink your 200k context to ~70k. Enable 2-5 per project, use `disabledMcpServers` for unused ones.
 
@@ -423,57 +484,26 @@ Install via `/plugin-setup` or manually:
 
 > See [claude-plugins-official](https://github.com/anthropics/claude-plugins-official) for full list.
 
-## Notable Mentions
+## Ecosystem
 
-### [everything-claude-code](https://github.com/affaan-m/everything-claude-code)
+Full details and install guides: [docs/ecosystem.md](docs/ecosystem.md)
 
-Battle-tested Claude Code configurations by [@affaanmustafa](https://x.com/affaanmustafa), Anthropic hackathon winner. CodeAssist adopted several patterns:
+| Tool | What | Install |
+|------|------|---------|
+| **[GSD](https://github.com/gsd-build/get-shit-done)** | Project workflow engine, prevents context rot | `npx get-shit-done-cc --claude --global` |
+| **[QMD](https://github.com/tobi/qmd)** | Knowledge base search (Obsidian, docs) | `npm i -g @tobilu/qmd` → `/qmd setup` |
+| **[OpenClaw](https://docs.openclaw.ai/)** | Agent orchestration, 3,200+ skills | `npm i -g clawhub` → `/openclaw setup` |
+| **[Agent Zero](https://github.com/agent0ai/agent-zero)** | Docker-isolated autonomous agent runtime | `docker compose up -d` |
+| **[Vibe Kanban](https://github.com/BloopAI/vibe-kanban)** | Visual kanban board for AI agents | `npx vibe-kanban` |
+| **[Paperclip](https://github.com/paperclipai/paperclip)** | Multi-project governance, token budgets | `npx paperclipai onboard --yes` |
+| **[Botasaurus](https://github.com/omkarcloud/botasaurus)** | Anti-ban web scraping, data enrichment | `pip install botasaurus` |
+| **[Odoo MCP](https://github.com/ivnvxd/mcp-server-odoo)** | ERP — invoices, CRM, contacts | MCP config in `.mcp.json` |
 
-- **Rules system** - Always-enforced guidelines (security, testing, git-workflow)
-- **Hooks system** - Event-driven automations for tool operations
-- **TDD workflow** - Red-Green-Refactor with coverage requirements
-- **Specialized agents** - Build error resolver, E2E runner, refactor cleaner
+**Skill registries:** [aitmpl.com](https://aitmpl.com) (100+) · [ClawHub](https://clawhub.ai) (3,200+) · [SkillsMP](https://skillsmp.com) (32,000+)
+**Monitoring:** `npx claude-code-templates@latest --analytics` (tokens/costs) · `--chats` (live responses)
+**Freelancer guide:** [docs/freelancer-kickstart.md](docs/freelancer-kickstart.md)
 
-### [agency-agents](https://github.com/msitarzewski/agency-agents)
-
-A collection of 51 specialized AI agent personalities by [@msitarzewski](https://github.com/msitarzewski). CodeAssist integrated concepts from their agents:
-
-**Tier 1 (Core):** Sprint Prioritizer, Reality Checker, Project Shepherd, UX Architect, Executive Summary Generator, Agents Orchestrator
-
-**Tier 2 (Analysis):** Evidence Collector, Brand Guardian, Trend Researcher, Workflow Optimizer
-
-**Tier 3 (Engineering):** Rapid Prototyper, Backend Architect, DevOps Automator, AI Engineer
-
-**Tier 3 (Testing):** API Tester, Performance Benchmarker, Test Results Analyzer
-
-**Tier 3 (Product):** Analytics Reporter, Experiment Tracker, Feedback Synthesizer, UX Researcher
-
-**Agents not integrated but available from source:**
-
-| Agent | Use Case | Notes |
-|-------|----------|-------|
-| **Growth Hacker** | User acquisition strategies | Marketing focus |
-| **Content Creator** | Marketing content generation | Marketing focus |
-| **Social Media Strategists** | Platform-specific content | Marketing focus |
-| **Spatial Computing** | XR/VisionOS development | Niche platform |
-
-> Install additional agents from [agency-agents](https://github.com/msitarzewski/agency-agents) to `~/.claude/agents/`.
-
-### [claude-mem](https://github.com/thedotmack/claude-mem)
-
-Persistent memory system for Claude Code by [@thedotmack](https://github.com/thedotmack). Automatically captures session context and makes it available across sessions.
-
-**Features:** Auto-capture via lifecycle hooks, SQLite + vector storage, web UI at localhost:37777, privacy tags, semantic search.
-
-**Install:** `/mem-setup` or manually:
-```bash
-/plugin marketplace add thedotmack/claude-mem
-/plugin install claude-mem
-```
-
-### [SkillsMP](https://skillsmp.com/)
-
-Community marketplace with 32,000+ agent skills using the open SKILL.md format. Browse skills compatible with Claude Code, OpenAI Codex CLI, and GitHub Copilot.
+> Use `/feedback [message]` to report issues — auto-creates GitHub issues with context.
 
 ## Version
 

@@ -93,4 +93,12 @@ If context is unclear, ask:
 - [Relevant advice]
 ```
 
+### Need Help?
+
+Always include at the end of guidance:
+
+```
+Need something that doesn't exist yet? Run `/feedback [your idea]` to suggest it.
+```
+
 Give actionable advice based on their situation.

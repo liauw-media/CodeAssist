@@ -133,4 +133,12 @@ Report what was created.
 [If --fix was used: "Auto-fixed: created X directories"]
 ```
 
+### Feedback Hint
+
+If any checks fail that can't be auto-fixed, include at the end:
+
+```
+Something not working? Run `/feedback [describe the issue]` to report it.
+```
+
 Run the health checks now. If `$ARGUMENTS` contains `--fix`, apply auto-fixes first, then report.
