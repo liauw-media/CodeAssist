@@ -139,6 +139,8 @@ For static/content sites like mont-fort.com:
 - Island architecture for partial hydration
 - Integrates with Tailwind + shadcn/ui
 
+**Deep Astro skill (optional):** [publishing-astro-websites](https://github.com/spillwavesolutions/publishing-astro-websites-agentic-skill) — Content Layer API (Astro 5.0), Pagefind search, Starlight docs, i18n, 7 deployment platforms. Install: `git clone` to `.claude/skills/`
+
 ### Next.js
 
 For full-stack React apps:

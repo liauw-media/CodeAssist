@@ -17,6 +17,9 @@ Are you a solo dev starting out?
 ├── Feature needs external data?
 │   └── Add: Botasaurus (scraping, enrichment)
 │
+├── Want to automate workflows?
+│   └── Add: n8n MCP (connect 1,236+ services)
+│
 ├── Want to automate full projects?
 │   └── Add: OpenClaw (orchestration) + Agent Zero (isolated execution)
 │
@@ -45,6 +48,56 @@ npx get-shit-done-cc --claude --global   # All projects
 **After install:** `/gsd:help`
 
 GSD manages context files (PROJECT.md, REQUIREMENTS.md, ROADMAP.md, STATE.md) and runs execution in parallel dependency-based "waves" with fresh 200k-token contexts per subagent.
+
+---
+
+## Automation & Workflows
+
+### [n8n](https://n8n.io/)
+
+Self-hosted workflow automation platform. Connect 1,236+ nodes (services, APIs, databases) with visual workflows. Two integration directions with Claude Code:
+
+**Direction 1: Claude Code → n8n** (build & manage workflows)
+
+| MCP Server | What | Stars |
+|------------|------|-------|
+| [czlonkowski/n8n-mcp](https://github.com/czlonkowski/n8n-mcp) | Node documentation for all 1,236+ nodes. Claude becomes an n8n architect | ~13k |
+| [spences10/mcp-n8n-builder](https://github.com/spences10/mcp-n8n-builder) | Full CRUD, execution management, schema validation | — |
+| [n8n built-in MCP](https://docs.n8n.io/advanced-ai/accessing-n8n-mcp-server/) | Expose workflows as MCP tools (Settings > MCP) | Official |
+
+**Add to `.mcp.json`:**
+```json
+{
+  "mcpServers": {
+    "n8n": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-n8n-builder"],
+      "env": {
+        "N8N_BASE_URL": "https://n8n.your-domain.com",
+        "N8N_API_KEY": "your-api-key"
+      }
+    }
+  }
+}
+```
+
+**Direction 2: n8n → Claude Code** (automate dev tasks)
+
+| Node | What |
+|------|------|
+| [n8n-nodes-claudecode](https://github.com/johnlindquist/n8n-nodes-claudecode) | Run Claude Code SDK inside n8n workflows — auto-review PRs, diagnose errors, write migrations |
+| Anthropic Chat Model (built-in) | Use Claude as LLM inside n8n AI Agent workflows |
+
+**Direction 3: Simple webhooks** (no MCP needed)
+```bash
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"event":"deploy","branch":"main"}' \
+  https://n8n.your-domain.com/webhook/your-webhook-id
+```
+
+**Skills:** [czlonkowski/n8n-skills](https://github.com/czlonkowski/n8n-skills) — 7 SKILL.md files for building production n8n workflows
+**Setup:** Generate API key in n8n (Settings > API) → Add MCP config → Restart Claude Code
+**Use cases:** Post-deploy notifications, CI/CD triggers, CRM syncing, invoice automation, monitoring alerts, scheduled reports
 
 ---
 

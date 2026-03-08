@@ -140,6 +140,18 @@
       }
     },
 
+    "_section_automation": "=== AUTOMATION & WORKFLOWS ===",
+
+    "n8n": {
+      "_description": "Build and manage n8n workflows from Claude Code",
+      "command": "npx",
+      "args": ["-y", "mcp-n8n-builder"],
+      "env": {
+        "N8N_BASE_URL": "${N8N_BASE_URL}",
+        "N8N_API_KEY": "${N8N_API_KEY}"
+      }
+    },
+
     "_section_project": "=== PROJECT MANAGEMENT ===",
 
     "linear": {

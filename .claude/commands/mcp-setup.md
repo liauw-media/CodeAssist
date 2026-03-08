@@ -94,6 +94,13 @@ export SLACK_BOT_TOKEN="xoxb-xxxx"
 claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
 ```
 
+**n8n:**
+```bash
+# Generate API key at: n8n Settings > API
+export N8N_BASE_URL="https://n8n.your-domain.com"
+export N8N_API_KEY="your-api-key"
+```
+
 ### Step 5: Enable in Settings
 
 Add to `.claude/settings.local.json`:
@@ -123,6 +130,7 @@ After restart, MCPs should be available. Test by asking Claude to use one.
 | **Database work** | PostgreSQL/SQLite, Supabase |
 | **API development** | Context7, Sentry |
 | **DevOps** | Docker, Kubernetes, AWS |
+| **Workflow automation** | n8n |
 | **Team collaboration** | Slack, Linear |
 
 ### Boris Cherny's Setup (Claude Code Creator)

@@ -452,6 +452,7 @@ MCP (Model Context Protocol) gives Claude direct access to external tools. Confi
 | **Slack** | Team communication search |
 | **QMD** | Local knowledge base search (notes, docs, transcripts) |
 | **Odoo** | ERP integration — invoices, CRM, contacts, products |
+| **n8n** | Workflow automation — build, manage, trigger n8n workflows |
 
 Run `/mcp-setup` to configure, or copy templates from `templates/mcp*.json`.
 
@@ -497,6 +498,7 @@ Full details and install guides: [docs/ecosystem.md](docs/ecosystem.md)
 | **[Vibe Kanban](https://github.com/BloopAI/vibe-kanban)** | Visual kanban board for AI agents | `npx vibe-kanban` |
 | **[Paperclip](https://github.com/paperclipai/paperclip)** | Multi-project governance, token budgets | `npx paperclipai onboard --yes` |
 | **[Botasaurus](https://github.com/omkarcloud/botasaurus)** | Anti-ban web scraping, data enrichment | `pip install botasaurus` |
+| **[n8n](https://n8n.io/)** | Workflow automation, 1,236+ integrations | MCP config in `.mcp.json` |
 | **[Odoo MCP](https://github.com/ivnvxd/mcp-server-odoo)** | ERP — invoices, CRM, contacts | MCP config in `.mcp.json` |
 
 **Skill registries:** [aitmpl.com](https://aitmpl.com) (100+) · [ClawHub](https://clawhub.ai) (3,200+) · [SkillsMP](https://skillsmp.com) (32,000+)
